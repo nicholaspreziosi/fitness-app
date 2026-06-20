@@ -80,6 +80,6 @@ describe('TemplateBlockEditView', () => {
         name: 'Updated Block',
       })
     );
-    expect(mockReplace).toHaveBeenCalledWith('/library');
+    expect(mockReplace).toHaveBeenCalledWith('/library/template-blocks/block-1');
   });
 });

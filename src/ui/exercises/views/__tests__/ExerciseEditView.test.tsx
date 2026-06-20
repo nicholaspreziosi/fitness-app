@@ -78,6 +78,6 @@ describe('ExerciseEditView', () => {
       'exercise-1',
       expect.objectContaining({ name: 'Updated Squat' })
     );
-    expect(mockReplace).toHaveBeenCalledWith('/library');
+    expect(mockReplace).toHaveBeenCalledWith('/library/exercises/exercise-1');
   });
 });

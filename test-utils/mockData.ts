@@ -43,6 +43,7 @@ export function createMockWorkoutExercise(
     id: 'workout-exercise-1',
     sortOrder: 0,
     exerciseId: 'exercise-1',
+    sourceTemplateBlockId: null,
     completed: false,
     ...overrides,
   };

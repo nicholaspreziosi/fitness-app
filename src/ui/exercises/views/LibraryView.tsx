@@ -46,6 +46,7 @@ export function LibraryView() {
     archiveExercise,
     restoreExercise,
     deleteExercise,
+    toggleFavorite: toggleExerciseFavorite,
   } = useExerciseLibrary();
 
   const {
@@ -55,6 +56,7 @@ export function LibraryView() {
     error: templatesError,
     archiveTemplateBlock,
     restoreTemplateBlock,
+    toggleFavorite: toggleTemplateFavorite,
   } = useTemplateBlocks({ enabled: tab === 'templates' });
 
   const filteredExercises = React.useMemo(
@@ -75,11 +77,11 @@ export function LibraryView() {
     router.push('/library/template-blocks/new');
   };
 
-  const openEditExercise = (exerciseId: string) => {
+  const openExerciseDetail = (exerciseId: string) => {
     router.push(`/library/exercises/${exerciseId}`);
   };
 
-  const openEditTemplate = (blockId: string) => {
+  const openTemplateDetail = (blockId: string) => {
     router.push(`/library/template-blocks/${blockId}`);
   };
 
@@ -186,8 +188,9 @@ export function LibraryView() {
                     exercise={exercise}
                     onArchive={archiveExercise}
                     onDelete={deleteExercise}
-                    onPress={() => openEditExercise(exercise.id)}
+                    onPress={() => openExerciseDetail(exercise.id)}
                     onRestore={restoreExercise}
+                    onToggleFavorite={toggleExerciseFavorite}
                   />
                 ))}
               </DividedList>
@@ -211,8 +214,9 @@ export function LibraryView() {
                   key={block.id}
                   block={block}
                   onArchive={archiveTemplateBlock}
-                  onPress={() => openEditTemplate(block.id)}
+                  onPress={() => openTemplateDetail(block.id)}
                   onRestore={restoreTemplateBlock}
+                  onToggleFavorite={toggleTemplateFavorite}
                 />
               ))}
             </DividedList>

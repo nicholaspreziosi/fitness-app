@@ -53,7 +53,7 @@ export function TemplateBlockEditView() {
         initialValues={templateBlockToFormValues(templateBlock)}
         onSubmit={async (values) => {
           await updateTemplateBlock(blockId, values);
-          router.replace('/library');
+          router.replace(`/library/template-blocks/${blockId}`);
         }}
       />
 

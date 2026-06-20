@@ -36,10 +36,10 @@ export function WorkoutModeView() {
 
       <WorkoutCard
         name="Wednesday Lower Body"
-        dateLabel="Today"
         status="planned"
         exerciseCount={exercises.length}
         completedCount={completedCount}
+        estimatedMinutes={45}
       />
 
       <ComponentDemoSection

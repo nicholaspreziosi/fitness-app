@@ -1,4 +1,3 @@
-import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { ActivityIndicator, View } from 'react-native';
 
@@ -11,11 +10,10 @@ export function LoadingState({ message = 'Loading...', className }: LoadingState
   return (
     <View
       className={cn(
-        'items-center justify-center rounded-lg border border-border bg-card px-6 py-10',
+        'flex-1 h-full items-center justify-center px-6 py-10',
         className
       )}>
       <ActivityIndicator size="large" />
-      <Text className="mt-3 text-sm text-muted-foreground">{message}</Text>
     </View>
   );
 }

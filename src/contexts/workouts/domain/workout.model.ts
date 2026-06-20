@@ -3,6 +3,7 @@ import type { BodyPart, Muscle } from '@/src/contexts/exercises/domain/exercise.
 export const WORKOUT_STATUSES = [
   'draft',
   'planned',
+  'inProgress',
   'completed',
   'skipped',
   'archived',
@@ -14,6 +15,7 @@ export interface WorkoutExercise {
   id: string;
   sortOrder: number;
   exerciseId: string;
+  sourceTemplateBlockId?: string | null;
   bodyPart?: BodyPart;
   primaryMuscles?: Muscle[];
   secondaryMuscles?: Muscle[];
@@ -34,8 +36,9 @@ export interface Workout {
   name: string;
   createdAt: Date;
   updatedAt: Date;
-  date?: Date;
+  date: Date;
   status: WorkoutStatus;
+  activeSession?: boolean;
   exercises: WorkoutExercise[];
   sourceTemplateBlockIds?: string[];
   notes?: string;

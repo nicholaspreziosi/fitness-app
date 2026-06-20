@@ -3,6 +3,7 @@ import {
   EXERCISE_LIST_STALE_TIME_MS,
 } from '@/src/ui/exercises/hooks/usePrefetchExerciseLibrary';
 import { exerciseQueryKeys } from '@/src/ui/exercises/hooks/exerciseQueryKeys';
+import { useToggleExerciseFavorite } from '@/src/ui/exercises/hooks/useToggleExerciseFavorite';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -54,17 +55,7 @@ export function useExerciseLibrary() {
     onSuccess: invalidateExercises,
   });
 
-  const favoriteMutation = useMutation({
-    mutationFn: async ({ id, isFavorite }: { id: string; isFavorite: boolean }) => {
-      const service = createExerciseService(userId!);
-      if (isFavorite) {
-        await service.unfavoriteExercise(id);
-      } else {
-        await service.favoriteExercise(id);
-      }
-    },
-    onSuccess: invalidateExercises,
-  });
+  const { toggleFavorite } = useToggleExerciseFavorite();
 
   const deleteMutation = useMutation({
     mutationFn: async (exerciseId: string) => {
@@ -81,8 +72,7 @@ export function useExerciseLibrary() {
     error: exercisesQuery.error,
     archiveExercise: archiveMutation.mutateAsync,
     restoreExercise: restoreMutation.mutateAsync,
-    toggleFavorite: (id: string, isFavorite: boolean) =>
-      favoriteMutation.mutateAsync({ id, isFavorite }),
+    toggleFavorite,
     deleteExercise: deleteMutation.mutateAsync,
   };
 }

@@ -17,11 +17,19 @@ export default function LibraryStackLayout() {
         }}
       />
       <Stack.Screen
-        name="exercises/[id]"
+        name="exercises/[id]/index"
+        options={{
+          ...createDetailStackScreenOptions(colorScheme),
+          headerTitle: 'Exercise',
+          headerBackTitle: 'Library',
+        }}
+      />
+      <Stack.Screen
+        name="exercises/[id]/edit"
         options={{
           ...createDetailStackScreenOptions(colorScheme),
           headerTitle: 'Edit Exercise',
-          headerBackTitle: 'Library',
+          headerBackTitle: 'Exercise',
         }}
       />
       <Stack.Screen
@@ -33,11 +41,19 @@ export default function LibraryStackLayout() {
         }}
       />
       <Stack.Screen
-        name="template-blocks/[id]"
+        name="template-blocks/[id]/index"
+        options={{
+          ...createDetailStackScreenOptions(colorScheme),
+          headerTitle: 'Template',
+          headerBackTitle: 'Library',
+        }}
+      />
+      <Stack.Screen
+        name="template-blocks/[id]/edit"
         options={{
           ...createDetailStackScreenOptions(colorScheme),
           headerTitle: 'Edit Template',
-          headerBackTitle: 'Library',
+          headerBackTitle: 'Template',
         }}
       />
     </Stack>

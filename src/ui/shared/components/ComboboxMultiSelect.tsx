@@ -91,11 +91,13 @@ export function ComboboxMultiSelect({
         </View>
       </Pressable>
 
-      <Modal animationType="fade" transparent visible={open} onRequestClose={close}>
-        <Pressable className="flex-1 bg-black/40 px-4 pt-28" onPress={close}>
-          <Pressable
-            className="overflow-hidden rounded-xl border border-border bg-card"
-            onPress={(event) => event.stopPropagation?.()}>
+      <Modal animationType="none" transparent visible={open} onRequestClose={close}>
+        <View className="flex-1">
+          <Pressable className="absolute inset-0 bg-black/40" onPress={close} />
+          <View className="flex-1 px-4 pt-28" pointerEvents="box-none">
+            <Pressable
+              className="overflow-hidden rounded-xl border border-border bg-card"
+              onPress={(event) => event.stopPropagation?.()}>
             <View className="border-b border-border px-3 py-2">
               <View className="flex-row items-center gap-2 rounded-lg border border-border bg-background px-3">
                 <Icon as={Search} className="size-4 text-muted-foreground" />
@@ -158,7 +160,8 @@ export function ComboboxMultiSelect({
               </Pressable>
             </View>
           </Pressable>
-        </Pressable>
+          </View>
+        </View>
       </Modal>
     </View>
   );

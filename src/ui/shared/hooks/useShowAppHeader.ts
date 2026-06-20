@@ -1,6 +1,6 @@
 import { useSegments } from 'expo-router';
 
-const TAB_ROOT_SEGMENTS = new Set(['home', 'planner', 'workout', 'library', 'settings']);
+const TAB_ROOT_SEGMENTS = new Set(['home', 'calendar', 'workout', 'library', 'settings']);
 
 export function useShowAppHeader() {
   const segments = useSegments();

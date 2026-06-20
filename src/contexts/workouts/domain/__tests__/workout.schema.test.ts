@@ -55,6 +55,20 @@ describe('workoutExerciseSchema', () => {
     expect(nonInteger.success).toBe(false);
   });
 
+  it('supports sourceTemplateBlockId', () => {
+    const withBlock = workoutExerciseSchema.safeParse({
+      ...createMockWorkoutExercise(),
+      sourceTemplateBlockId: 'block-1',
+    });
+    const withoutBlock = workoutExerciseSchema.safeParse({
+      ...createMockWorkoutExercise(),
+      sourceTemplateBlockId: null,
+    });
+
+    expect(withBlock.success).toBe(true);
+    expect(withoutBlock.success).toBe(true);
+  });
+
   it('supports copied bodyPart', () => {
     const result = workoutExerciseSchema.safeParse({
       ...createMockWorkoutExercise(),
@@ -138,41 +152,48 @@ describe('workoutExerciseSchema', () => {
 describe('workoutSchema', () => {
   const baseWorkout = createMockWorkout();
 
-  it.each(['draft', 'planned', 'completed', 'skipped', 'archived'] as const)(
+  it.each(['draft', 'planned', 'inProgress', 'completed', 'skipped', 'archived'] as const)(
     'validates status: %s',
     (status) => {
       const result = workoutSchema.safeParse({
         ...baseWorkout,
         status,
-        date: status === 'draft' ? undefined : createTestDate(),
+        date: createTestDate(),
       });
 
       expect(result.success).toBe(true);
     }
   );
 
-  it('allows optional date for draft workouts', () => {
+  it('requires date for all workouts including draft', () => {
     const result = workoutSchema.safeParse({
       ...baseWorkout,
       status: 'draft',
       date: undefined,
     });
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
   });
 
-  it.each(['planned', 'completed', 'skipped', 'archived'] as const)(
-    'requires date for %s workouts',
-    (status) => {
-      const result = workoutSchema.safeParse({
-        ...baseWorkout,
-        status,
-        date: undefined,
-      });
+  it('requires date for all statuses', () => {
+    const result = workoutSchema.safeParse({
+      ...baseWorkout,
+      status: 'planned',
+      date: undefined,
+    });
 
-      expect(result.success).toBe(false);
-    }
-  );
+    expect(result.success).toBe(false);
+  });
+
+  it('supports activeSession', () => {
+    const result = workoutSchema.safeParse({
+      ...baseWorkout,
+      status: 'inProgress',
+      activeSession: true,
+    });
+
+    expect(result.success).toBe(true);
+  });
 
   it('stores embedded WorkoutExercise[]', () => {
     const exercises = [

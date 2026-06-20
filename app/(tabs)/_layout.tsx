@@ -3,7 +3,6 @@ import { THEME } from '@/lib/theme';
 import { usePrefetchExerciseLibrary } from '@/src/ui/exercises/hooks/usePrefetchExerciseLibrary';
 import { AppHeader } from '@/src/ui/shared/components/AppHeader';
 import { AppHeaderScrollProvider } from '@/src/ui/shared/providers/AppHeaderScrollProvider';
-import { PortalHost } from '@rn-primitives/portal';
 import { Tabs } from 'expo-router';
 import {
   CalendarIcon,
@@ -58,9 +57,9 @@ export default function TabsLayout() {
             }}
           />
           <Tabs.Screen
-            name="planner"
+            name="calendar"
             options={{
-              title: 'Planner',
+              title: 'Calendar',
               tabBarIcon: ({ color, size }) => <Icon as={CalendarIcon} color={color} size={size} />,
             }}
           />
@@ -87,11 +86,8 @@ export default function TabsLayout() {
               tabBarIcon: ({ color, size }) => <Icon as={SettingsIcon} color={color} size={size} />,
             }}
           />
-          <Tabs.Screen name="index" options={{ href: null }} />
-          <Tabs.Screen name="dashboard" options={{ href: null }} />
         </Tabs>
         <AppHeader />
-        <PortalHost />
       </View>
     </AppHeaderScrollProvider>
   );

@@ -1,7 +1,7 @@
 import { Text } from '@/components/ui/text';
 import type { Exercise } from '@/src/contexts/exercises/domain/exercise.model';
-import { formatExercisePrescription } from '@/src/contexts/exercises/domain/exercisePresentation';
 import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
+import { FavoriteButton } from '@/src/ui/shared/components/FavoriteButton';
 import {
   SwipeableListRow,
   type ListRowAction,
@@ -16,6 +16,7 @@ type ExerciseListItemProps = {
   onArchive: (id: string) => void;
   onRestore: (id: string) => void;
   onDelete: (id: string) => void;
+  onToggleFavorite: (id: string, isFavorite: boolean) => void;
 };
 
 type PendingConfirmAction = 'archive' | 'delete';
@@ -26,6 +27,7 @@ export function ExerciseListItem({
   onArchive,
   onRestore,
   onDelete,
+  onToggleFavorite,
 }: ExerciseListItemProps) {
   const [pendingAction, setPendingAction] = React.useState<PendingConfirmAction | null>(null);
 
@@ -70,13 +72,13 @@ export function ExerciseListItem({
         accessibilityLabel={exercise.name}
         className={cn(exercise.status === 'archived' && 'opacity-80')}
         onPress={onPress}>
-        <View className="min-w-0 flex-1">
-          <Text className="font-medium text-foreground">{exercise.name}</Text>
-          {formatExercisePrescription(exercise) ? (
-            <Text className="mt-0.5 text-sm tabular-nums text-muted-foreground">
-              {formatExercisePrescription(exercise)}
-            </Text>
-          ) : null}
+        <View className="min-w-0 flex-1 flex-row items-center justify-between gap-2">
+          <Text className="min-w-0 flex-1 font-medium text-foreground">{exercise.name}</Text>
+          <FavoriteButton
+            favorite={exercise.favorite ?? false}
+            testID={`favorite-exercise-${exercise.id}`}
+            onPress={() => onToggleFavorite(exercise.id, exercise.favorite ?? false)}
+          />
         </View>
       </SwipeableListRow>
 

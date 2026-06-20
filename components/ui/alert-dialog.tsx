@@ -4,7 +4,7 @@ import { TextClassContext } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import * as AlertDialogPrimitive from '@rn-primitives/alert-dialog';
 import * as React from 'react';
-import { Platform, View, type ViewProps } from 'react-native';
+import { Platform, StyleSheet, View, type ViewProps } from 'react-native';
 import { FadeIn, FadeOut } from 'react-native-reanimated';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 
@@ -16,32 +16,38 @@ const AlertDialogPortal = AlertDialogPrimitive.Portal;
 
 const FullWindowOverlay = Platform.OS === 'ios' ? RNFullWindowOverlay : React.Fragment;
 
+const overlayClassName = cn(
+  'flex items-center justify-center bg-black/50 p-2',
+  Platform.OS === 'web' ? 'fixed inset-0 z-50' : 'absolute inset-0 z-50'
+);
+
 function AlertDialogOverlay({
   className,
   children,
   ...props
 }: Omit<React.ComponentProps<typeof AlertDialogPrimitive.Overlay>, 'asChild'> & {
-    children?: React.ReactNode;
-  }) {
-  return (
-    <FullWindowOverlay>
-      <AlertDialogPrimitive.Overlay
-        className={cn(
-          'absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black/50 p-2',
-          Platform.select({
-            web: 'animate-in fade-in-0 fixed',
-          }),
-          className
-        )}
-        {...props}>
-        <NativeOnlyAnimatedView
-          entering={FadeIn.duration(200).delay(50)}
-          exiting={FadeOut.duration(150)}>
-          <>{children}</>
-        </NativeOnlyAnimatedView>
+  children?: React.ReactNode;
+}) {
+  if (Platform.OS === 'web') {
+    return (
+      <AlertDialogPrimitive.Overlay className={cn(overlayClassName, className)} {...props}>
+        {children}
       </AlertDialogPrimitive.Overlay>
-    </FullWindowOverlay>
+    );
+  }
+
+  const overlay = (
+    <NativeOnlyAnimatedView
+      entering={FadeIn.duration(200)}
+      exiting={FadeOut.duration(150)}
+      style={StyleSheet.absoluteFillObject}>
+      <AlertDialogPrimitive.Overlay className={cn(overlayClassName, className)} {...props}>
+        {children}
+      </AlertDialogPrimitive.Overlay>
+    </NativeOnlyAnimatedView>
   );
+
+  return <FullWindowOverlay>{overlay}</FullWindowOverlay>;
 }
 
 function AlertDialogContent({
@@ -49,17 +55,14 @@ function AlertDialogContent({
   portalHost,
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
-    portalHost?: string;
-  }) {
+  portalHost?: string;
+}) {
   return (
     <AlertDialogPortal hostName={portalHost}>
       <AlertDialogOverlay>
         <AlertDialogPrimitive.Content
           className={cn(
             'bg-background border-border z-50 flex w-full max-w-[calc(100%-2rem)] flex-col gap-4 rounded-lg border p-6 shadow-lg shadow-black/5 sm:max-w-lg',
-            Platform.select({
-              web: 'animate-in fade-in-0 zoom-in-95 duration-200',
-            }),
             className
           )}
           {...props}

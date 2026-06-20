@@ -1,5 +1,6 @@
 import { createTemplateBlockService } from '@/src/contexts/templateBlocks/application/createTemplateBlockService';
 import { templateBlockQueryKeys } from '@/src/ui/templateBlocks/hooks/templateBlockQueryKeys';
+import { useToggleTemplateBlockFavorite } from '@/src/ui/templateBlocks/hooks/useToggleTemplateBlockFavorite';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -55,6 +56,8 @@ export function useTemplateBlocks(options?: { enabled?: boolean }) {
     onSuccess: invalidateTemplateBlocks,
   });
 
+  const { toggleFavorite } = useToggleTemplateBlockFavorite();
+
   return {
     templateBlocks: templateBlocksQuery.data ?? [],
     isLoading: isInitialLoading,
@@ -62,5 +65,6 @@ export function useTemplateBlocks(options?: { enabled?: boolean }) {
     error: templateBlocksQuery.error,
     archiveTemplateBlock: archiveMutation.mutateAsync,
     restoreTemplateBlock: restoreMutation.mutateAsync,
+    toggleFavorite,
   };
 }

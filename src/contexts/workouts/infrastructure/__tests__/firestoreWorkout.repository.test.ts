@@ -110,7 +110,7 @@ describe('FirestoreWorkoutRepository', () => {
   it('lists draft workouts', async () => {
     const repository = new FirestoreWorkoutRepository(userId, db);
 
-    await repository.create(createMockWorkout({ id: 'draft-1', status: 'draft', date: undefined }));
+    await repository.create(createMockWorkout({ id: 'draft-1', status: 'draft', date: createTestDate() }));
     await repository.create(
       createMockWorkout({ id: 'planned-1', status: 'planned', date: createTestDate() })
     );
@@ -134,7 +134,7 @@ describe('FirestoreWorkoutRepository', () => {
   it('hard deletes draft and planned workouts', async () => {
     const repository = new FirestoreWorkoutRepository(userId, db);
 
-    await repository.create(createMockWorkout({ id: 'draft-1', status: 'draft', date: undefined }));
+    await repository.create(createMockWorkout({ id: 'draft-1', status: 'draft', date: createTestDate() }));
     await repository.create(
       createMockWorkout({ id: 'planned-1', status: 'planned', date: createTestDate() })
     );

@@ -13,7 +13,7 @@ export type ListRowAction = {
 
 type SwipeableListRowProps = {
   children: React.ReactNode;
-  onPress: () => void;
+  onPress?: () => void;
   actions: ListRowAction[];
   testID?: string;
   accessibilityLabel?: string;
@@ -94,7 +94,9 @@ export function SwipeableListRow({
     </View>
   );
 
-  const row = (
+  const rowClassName = cn('bg-background px-1 py-3.5', onPress && 'active:bg-muted/40', className);
+
+  const row = onPress ? (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
@@ -106,7 +108,7 @@ export function SwipeableListRow({
           : undefined
       }
       testID={testID}
-      className={cn('bg-background px-1 py-3.5 active:bg-muted/40', className)}
+      className={rowClassName}
       onPress={onPress}
       onLongPress={actions.length > 0 && Platform.OS !== 'web' ? showActionSheet : undefined}
       onContextMenu={
@@ -119,6 +121,10 @@ export function SwipeableListRow({
       }>
       {children}
     </Pressable>
+  ) : (
+    <View accessibilityLabel={accessibilityLabel} testID={testID} className={rowClassName}>
+      {children}
+    </View>
   );
 
   if (actions.length === 0) {

@@ -110,7 +110,7 @@ describe('TemplateBlockService', () => {
 });
 
 describe('WorkoutService', () => {
-  it('creates draft workout', async () => {
+  it('creates draft workout with required date', async () => {
     const workoutRepository = createWorkoutRepositoryMock();
     const service = new WorkoutService(
       workoutRepository,
@@ -118,14 +118,33 @@ describe('WorkoutService', () => {
       createExerciseRepositoryMock()
     );
 
-    const workout = await service.createDraftWorkout({
+    const workout = await service.createWorkout({
       id: 'workout-1',
       name: 'Draft Workout',
+      date: createTestDate(),
+      status: 'draft',
     });
 
     expect(workout.status).toBe('draft');
+    expect(workout.date).toEqual(createTestDate());
     expect(workout.exercises).toEqual([]);
     expect(workoutRepository.create).toHaveBeenCalled();
+  });
+
+  it('rejects workout without date', async () => {
+    const service = new WorkoutService(
+      createWorkoutRepositoryMock(),
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    await expect(
+      service.createWorkout({
+        id: 'workout-1',
+        name: 'Invalid',
+        date: undefined as unknown as Date,
+      })
+    ).rejects.toThrow(ServiceError);
   });
 
   it('creates workout from one or more template blocks', async () => {
@@ -195,6 +214,7 @@ describe('WorkoutService', () => {
       id: expect.any(String),
       sortOrder: 0,
       exerciseId: 'exercise-1',
+      sourceTemplateBlockId: 'block-1',
       bodyPart: 'Upper Legs',
       primaryMuscles: ['Quads'],
       secondaryMuscles: ['Glute Max'],
@@ -256,7 +276,7 @@ describe('WorkoutService', () => {
   });
 
   it('hard deletes draft workouts and rejects hard delete for completed workouts', async () => {
-    const draft = createMockWorkout({ id: 'draft-1', status: 'draft', date: undefined });
+    const draft = createMockWorkout({ id: 'draft-1', status: 'draft' });
     const completed = createMockWorkout({ id: 'completed-1', status: 'completed' });
     const workoutRepository = createWorkoutRepositoryMock({
       findById: jest.fn().mockImplementation(async (id: string) => {
@@ -281,5 +301,63 @@ describe('WorkoutService', () => {
     expect(workoutRepository.hardDelete).toHaveBeenCalledWith('draft-1');
 
     await expect(service.deleteWorkout('completed-1')).rejects.toThrow(ServiceError);
+  });
+
+  it('adds exercise to workout', async () => {
+    const existing = createMockWorkout({ id: 'workout-1', exercises: [] });
+    const exercise = createMockExercise({ id: 'exercise-2' });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(existing),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock({
+        findById: jest.fn().mockResolvedValue(exercise),
+      })
+    );
+
+    const workout = await service.addExerciseToWorkout('workout-1', 'exercise-2');
+
+    expect(workout.exercises).toHaveLength(1);
+    expect(workout.exercises[0]?.exerciseId).toBe('exercise-2');
+    expect(workoutRepository.update).toHaveBeenCalled();
+  });
+
+  it('moves workout to another date', async () => {
+    const existing = createMockWorkout({ id: 'workout-1', status: 'planned' });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(existing),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+    const newDate = createTestDate(7);
+
+    const workout = await service.moveWorkoutToDate('workout-1', newDate);
+
+    expect(workout.date).toEqual(newDate);
+  });
+
+  it('duplicates workout on selected date', async () => {
+    const existing = createMockWorkout({ id: 'workout-1', status: 'planned' });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(existing),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+    const targetDate = createTestDate(14);
+
+    const duplicated = await service.duplicateWorkout('workout-1', targetDate);
+
+    expect(duplicated.id).not.toBe('workout-1');
+    expect(duplicated.date).toEqual(targetDate);
+    expect(duplicated.status).toBe('planned');
+    expect(workoutRepository.create).toHaveBeenCalled();
   });
 });

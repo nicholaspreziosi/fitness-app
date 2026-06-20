@@ -50,7 +50,7 @@ export function ExerciseEditView() {
         initialValues={exerciseToFormValues(exercise)}
         onSubmit={async (values) => {
           await updateExercise(exercise.id, values);
-          router.replace('/library');
+          router.replace(`/library/exercises/${exercise.id}`);
         }}
       />
 

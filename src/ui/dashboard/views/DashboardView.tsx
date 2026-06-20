@@ -46,7 +46,7 @@ export function DashboardView() {
           actionIcon={PlusIcon}
           icon={CalendarDaysIcon}
           title="No workouts this week"
-          description="Plan your first session in the Planner tab to start tracking coverage."
+          description="Plan your first session in the Calendar tab to start tracking coverage."
           actionLabel="Plan workout"
         />
       </ComponentDemoSection>

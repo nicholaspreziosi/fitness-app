@@ -12,6 +12,7 @@ export const workoutExerciseSchema = z.object({
   id: z.string().min(1),
   sortOrder: z.number().int().nonnegative(),
   exerciseId: z.string().min(1),
+  sourceTemplateBlockId: z.string().min(1).nullable().optional(),
   bodyPart: bodyPartSchema.optional(),
   primaryMuscles: z.array(muscleSchema).optional(),
   secondaryMuscles: z.array(muscleSchema).optional(),
@@ -27,29 +28,18 @@ export const workoutExerciseSchema = z.object({
   completed: z.boolean(),
 });
 
-export const workoutSchema = z
-  .object({
-    id: z.string().min(1),
-    name: z.string().min(1),
-    createdAt: z.date(),
-    updatedAt: z.date(),
-    date: z.date().optional(),
-    status: workoutStatusSchema,
-    exercises: z.array(workoutExerciseSchema),
-    sourceTemplateBlockIds: z.array(z.string().min(1)).optional(),
-    notes: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    const requiresDate = data.status !== 'draft';
-
-    if (requiresDate && !data.date) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Workouts with this status require a date.',
-        path: ['date'],
-      });
-    }
-  });
+export const workoutSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  date: z.date(),
+  status: workoutStatusSchema,
+  activeSession: z.boolean().optional(),
+  exercises: z.array(workoutExerciseSchema),
+  sourceTemplateBlockIds: z.array(z.string().min(1)).optional(),
+  notes: z.string().optional(),
+});
 
 export type WorkoutExerciseInput = z.infer<typeof workoutExerciseSchema>;
 export type WorkoutInput = z.infer<typeof workoutSchema>;

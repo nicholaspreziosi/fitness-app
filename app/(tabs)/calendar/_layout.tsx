@@ -2,7 +2,7 @@ import { createTabStackScreenOptions } from '@/src/ui/shared/navigation/stackScr
 import { Stack } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 
-export default function PlannerStackLayout() {
+export default function CalendarStackLayout() {
   const { colorScheme } = useColorScheme();
 
   return (

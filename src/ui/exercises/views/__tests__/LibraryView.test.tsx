@@ -112,6 +112,7 @@ function mockTemplates(overrides: Partial<ReturnType<typeof useTemplateBlocks>> 
     error: null,
     archiveTemplateBlock: jest.fn(),
     restoreTemplateBlock: jest.fn(),
+    toggleFavorite: jest.fn(),
     ...overrides,
   });
 }
@@ -168,7 +169,7 @@ describe('LibraryView', () => {
     expect(screen.getByText('Romanian Deadlift')).toBeTruthy();
   });
 
-  it('navigates to edit exercise on row press', () => {
+  it('navigates to exercise detail on row press', () => {
     mockLibrary({
       exercises: [createMockExercise({ id: '1', name: 'Pendulum Squat' })],
     });
@@ -290,7 +291,7 @@ describe('LibraryView', () => {
     expect(mockPush).toHaveBeenCalledWith('/library/template-blocks/new');
   });
 
-  it('navigates to edit template on row press', () => {
+  it('navigates to template detail on row press', () => {
     mockTemplates({
       templateBlocks: [
         createMockTemplateBlock({ id: 'block-1', name: 'Shoulder Rehab' }),

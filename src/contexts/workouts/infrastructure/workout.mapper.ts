@@ -2,7 +2,6 @@ import type { Workout, WorkoutExercise } from '@/src/contexts/workouts/domain/wo
 import { createId } from '@/src/lib/id/createId';
 import {
   dateToTimestamp,
-  optionalDateToTimestamp,
   optionalTimestampToDate,
   stripUndefinedFields,
   timestampToDate,
@@ -13,6 +12,7 @@ export type FirestoreWorkoutExerciseDocument = {
   id?: string;
   sortOrder?: number;
   exerciseId: string;
+  sourceTemplateBlockId?: string | null;
   bodyPart?: WorkoutExercise['bodyPart'];
   primaryMuscles?: WorkoutExercise['primaryMuscles'];
   secondaryMuscles?: WorkoutExercise['secondaryMuscles'];
@@ -32,8 +32,9 @@ export type FirestoreWorkoutDocument = {
   name: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
-  date?: Timestamp;
+  date: Timestamp;
   status: Workout['status'];
+  activeSession?: boolean;
   exercises: FirestoreWorkoutExerciseDocument[];
   sourceTemplateBlockIds?: string[];
   notes?: string;
@@ -46,6 +47,7 @@ function workoutExerciseToFirestore(
     id: exercise.id,
     sortOrder: exercise.sortOrder,
     exerciseId: exercise.exerciseId,
+    sourceTemplateBlockId: exercise.sourceTemplateBlockId ?? null,
     bodyPart: exercise.bodyPart,
     primaryMuscles: exercise.primaryMuscles,
     secondaryMuscles: exercise.secondaryMuscles,
@@ -70,6 +72,7 @@ function workoutExerciseFromFirestore(
     id: data.id ?? createId('workout-exercise'),
     sortOrder: data.sortOrder ?? index,
     exerciseId: data.exerciseId,
+    sourceTemplateBlockId: data.sourceTemplateBlockId ?? null,
     bodyPart: data.bodyPart,
     primaryMuscles: data.primaryMuscles,
     secondaryMuscles: data.secondaryMuscles,
@@ -91,8 +94,9 @@ export function workoutToFirestore(workout: Workout): FirestoreWorkoutDocument {
     name: workout.name,
     createdAt: dateToTimestamp(workout.createdAt),
     updatedAt: dateToTimestamp(workout.updatedAt),
-    date: optionalDateToTimestamp(workout.date),
+    date: dateToTimestamp(workout.date),
     status: workout.status,
+    activeSession: workout.activeSession,
     exercises: workout.exercises.map(workoutExerciseToFirestore),
     sourceTemplateBlockIds: workout.sourceTemplateBlockIds,
     notes: workout.notes,
@@ -105,8 +109,9 @@ export function workoutFromFirestore(id: string, data: FirestoreWorkoutDocument)
     name: data.name,
     createdAt: timestampToDate(data.createdAt),
     updatedAt: timestampToDate(data.updatedAt),
-    date: optionalTimestampToDate(data.date),
+    date: data.date ? timestampToDate(data.date) : timestampToDate(data.createdAt),
     status: data.status,
+    activeSession: data.activeSession ?? false,
     exercises: data.exercises.map((exercise, index) => workoutExerciseFromFirestore(exercise, index)),
     sourceTemplateBlockIds: data.sourceTemplateBlockIds,
     notes: data.notes,
