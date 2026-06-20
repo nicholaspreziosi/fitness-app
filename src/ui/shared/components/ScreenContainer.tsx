@@ -54,7 +54,9 @@ export function ScreenContainer({
   );
 
   if (!scrollable) {
-    return <View className={cn('flex-1 bg-background', className)}>{content}</View>;
+    return (
+      <View className={cn('flex-1 bg-background', className)}>{content}</View>
+    );
   }
 
   const useHeaderScroll = showAppHeader && headerScroll;

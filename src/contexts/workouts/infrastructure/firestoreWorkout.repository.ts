@@ -53,11 +53,15 @@ export class FirestoreWorkoutRepository implements WorkoutRepository {
   }
 
   async listByWeek(weekStart: Date, weekEnd: Date): Promise<Workout[]> {
+    return this.listByDateRange(weekStart, weekEnd);
+  }
+
+  async listByDateRange(rangeStart: Date, rangeEnd: Date): Promise<Workout[]> {
     const snapshot = await getDocs(
       query(
         collection(this.db, this.collectionPath),
-        where('date', '>=', Timestamp.fromDate(weekStart)),
-        where('date', '<=', Timestamp.fromDate(weekEnd))
+        where('date', '>=', Timestamp.fromDate(rangeStart)),
+        where('date', '<=', Timestamp.fromDate(rangeEnd))
       )
     );
 

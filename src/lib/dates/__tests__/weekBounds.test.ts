@@ -4,6 +4,7 @@ import {
   getDayName,
   getWeekBounds,
   getWeekDays,
+  isBeforeDay,
   isSameDay,
   startOfDay,
 } from '@/src/lib/dates/weekBounds';
@@ -38,6 +39,17 @@ describe('weekBounds', () => {
     const b = startOfDay(new Date('2025-06-18T20:00:00.000Z'));
 
     expect(isSameDay(a, b)).toBe(true);
+  });
+
+  it('detects dates before a reference day', () => {
+    const reference = new Date('2025-06-18T12:00:00.000Z');
+    const past = new Date('2025-06-17T12:00:00.000Z');
+    const same = new Date('2025-06-18T20:00:00.000Z');
+    const future = new Date('2025-06-19T12:00:00.000Z');
+
+    expect(isBeforeDay(past, reference)).toBe(true);
+    expect(isBeforeDay(same, reference)).toBe(false);
+    expect(isBeforeDay(future, reference)).toBe(false);
   });
 
   it('adds weeks', () => {

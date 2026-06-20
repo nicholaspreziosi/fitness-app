@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/text';
 import type { Exercise } from '@/src/contexts/exercises/domain/exercise.model';
 import type { WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
@@ -16,9 +18,11 @@ import { View } from 'react-native';
 type WorkoutEditPanelProps = {
   exercises: WorkoutExercise[];
   exercisesById: Map<string, Exercise>;
+  workoutName: string;
   workoutDate: Date;
   canChangeDate: boolean;
   dateChangeDisabledMessage?: string;
+  onNameChange: (name: string) => void;
   onAddExercise: () => void;
   onAddTemplate: () => void;
   onDateChange: (date: Date) => void;
@@ -32,9 +36,11 @@ type WorkoutEditPanelProps = {
 export function WorkoutEditPanel({
   exercises,
   exercisesById,
+  workoutName,
   workoutDate,
   canChangeDate,
   dateChangeDisabledMessage,
+  onNameChange,
   onAddExercise,
   onAddTemplate,
   onDateChange,
@@ -44,7 +50,25 @@ export function WorkoutEditPanel({
   onConfirmDateChange,
   onCancelDateChange,
 }: WorkoutEditPanelProps) {
+  const [name, setName] = React.useState(workoutName);
   const sorted = React.useMemo(() => sortWorkoutExercises(exercises), [exercises]);
+
+  React.useEffect(() => {
+    setName(workoutName);
+  }, [workoutName]);
+
+  const handleNameBlur = React.useCallback(() => {
+    const trimmed = name.trim();
+
+    if (!trimmed) {
+      setName(workoutName);
+      return;
+    }
+
+    if (trimmed !== workoutName) {
+      onNameChange(trimmed);
+    }
+  }, [name, onNameChange, workoutName]);
 
   const addMenuItems = React.useMemo(
     () => [
@@ -64,6 +88,19 @@ export function WorkoutEditPanel({
 
   return (
     <View className="mt-3 gap-3 border-t border-border pt-3">
+      <View className="gap-2">
+        <Label nativeID="workout-name-label">Name</Label>
+        <Input
+          accessibilityLabel="Workout name"
+          aria-labelledby="workout-name-label"
+          placeholder="Wednesday Lower Body"
+          testID="workout-name-input"
+          value={name}
+          onBlur={handleNameBlur}
+          onChangeText={setName}
+        />
+      </View>
+
       <Text className="text-sm font-medium text-foreground">Date</Text>
       <View className="flex-row items-center justify-between gap-2">
         <DatePickerField

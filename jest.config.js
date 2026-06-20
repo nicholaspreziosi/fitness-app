@@ -7,6 +7,8 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/$1',
     '^firebase/firestore$': '<rootDir>/test-utils/firestoreManualMock.ts',
     '^firebase/auth$': '<rootDir>/test-utils/firebaseAuthManualMock.ts',
+    '^victory-native$': '<rootDir>/test-utils/victoryNativeMock.ts',
+    '^@shopify/react-native-skia$': '<rootDir>/test-utils/reactNativeSkiaMock.ts',
   },
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@rn-primitives/.*|nativewind|lucide-react-native|firebase)',

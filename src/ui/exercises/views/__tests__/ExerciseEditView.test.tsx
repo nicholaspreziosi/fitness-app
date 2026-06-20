@@ -54,7 +54,7 @@ describe('ExerciseEditView', () => {
 
     render(<ExerciseEditView />);
 
-    expect(screen.getByText('Loading exercise...')).toBeTruthy();
+    expect(screen.getByLabelText('loading')).toBeTruthy();
   });
 
   it('renders form with exercise data and saves changes', async () => {

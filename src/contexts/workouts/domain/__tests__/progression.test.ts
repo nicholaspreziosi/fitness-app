@@ -1,11 +1,14 @@
 import {
   applyApprovedDefaultUpdates,
+  buildDefaultUpdatesFromReviewItems,
   detectIncreasedHoldDuration,
   detectIncreasedReps,
   detectIncreasedSets,
   detectIncreasedWeight,
+  detectPlannedVsActualIncreases,
   detectProgressionImprovements,
   getSuggestedDefaultUpdates,
+  hasPlannedVsActualIncrease,
   hasProgressionImprovement,
   shouldAutoLowerDefaults,
 } from '@/src/contexts/workouts/domain/progression';
@@ -97,5 +100,43 @@ describe('progression helpers', () => {
       ...defaults,
       defaultWeight: 80,
     });
+  });
+});
+
+describe('planned vs actual default update review', () => {
+  it('detects increases when actual exceeds planned', () => {
+    expect(
+      detectPlannedVsActualIncreases(
+        { plannedWeight: 100, plannedReps: 8 },
+        { actualWeight: 110, actualReps: 10 }
+      )
+    ).toEqual([
+      { field: 'defaultReps', plannedValue: 8, actualValue: 10 },
+      { field: 'defaultWeight', plannedValue: 100, actualValue: 110 },
+    ]);
+  });
+
+  it('ignores equal or lower actual values', () => {
+    expect(
+      detectPlannedVsActualIncreases(
+        { plannedSets: 3, plannedHoldSeconds: 45 },
+        { actualSets: 3, actualHoldSeconds: 40 }
+      )
+    ).toEqual([]);
+    expect(
+      hasPlannedVsActualIncrease({ plannedReps: 8 }, { actualReps: 8 })
+    ).toBe(false);
+  });
+
+  it('builds library default updates from selected review items without lowering', () => {
+    const updates = buildDefaultUpdatesFromReviewItems(
+      { defaultWeight: 100, defaultReps: 12 },
+      [
+        { field: 'defaultWeight', plannedValue: 100, actualValue: 110 },
+        { field: 'defaultReps', plannedValue: 8, actualValue: 10 },
+      ]
+    );
+
+    expect(updates).toEqual({ defaultWeight: 110 });
   });
 });

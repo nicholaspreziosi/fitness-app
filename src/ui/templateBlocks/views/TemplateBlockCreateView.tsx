@@ -15,7 +15,7 @@ export function TemplateBlockCreateView() {
   if (isLoading) {
     return (
       <ScreenContainer scrollable={false}>
-        <LoadingState message="Loading exercises..." />
+        <LoadingState />
       </ScreenContainer>
     );
   }

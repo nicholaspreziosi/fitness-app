@@ -1,4 +1,7 @@
-import { reorderWorkoutExercises } from '@/src/contexts/workouts/domain/workoutExerciseOrdering';
+import {
+  mergeVisibleExerciseReorder,
+  reorderWorkoutExercises,
+} from '@/src/contexts/workouts/domain/workoutExerciseOrdering';
 import { createMockWorkoutExercise } from '@/test-utils/mockData';
 
 describe('reorderWorkoutExercises', () => {
@@ -24,5 +27,22 @@ describe('reorderWorkoutExercises', () => {
     expect(() => reorderWorkoutExercises(exercises, ['we-2'])).toThrow(
       'Exercise order must include each workout exercise exactly once.'
     );
+  });
+});
+
+describe('mergeVisibleExerciseReorder', () => {
+  it('reorders only visible exercises while preserving hidden exercise positions', () => {
+    const orderedIds = mergeVisibleExerciseReorder(
+      [
+        createMockWorkoutExercise({ id: 'we-1' }),
+        createMockWorkoutExercise({ id: 'we-2' }),
+        createMockWorkoutExercise({ id: 'we-3' }),
+        createMockWorkoutExercise({ id: 'we-4' }),
+      ],
+      ['we-2', 'we-4'],
+      ['we-4', 'we-2']
+    );
+
+    expect(orderedIds).toEqual(['we-1', 'we-4', 'we-3', 'we-2']);
   });
 });

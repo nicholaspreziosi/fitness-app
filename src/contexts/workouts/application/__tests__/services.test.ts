@@ -6,7 +6,7 @@ import type { WorkoutRepository } from '@/src/contexts/workouts/domain/workout.r
 import { WorkoutService } from '@/src/contexts/workouts/application/workout.service';
 import { ServiceError } from '@/src/contexts/shared/domain/service.errors';
 import { createMockExercise, createMockTemplateBlock, createMockWorkout } from '@/test-utils/mockData';
-import { createTestDate } from '@/test-utils/testDates';
+import { createTestDate, FIXED_DATE } from '@/test-utils/testDates';
 
 function createExerciseRepositoryMock(
   overrides: Partial<ExerciseRepository> = {}
@@ -51,6 +51,7 @@ function createWorkoutRepositoryMock(
     update: jest.fn(),
     findById: jest.fn(),
     listByWeek: jest.fn(),
+    listByDateRange: jest.fn(),
     listDrafts: jest.fn(),
     listAll: jest.fn(),
     archive: jest.fn(),
@@ -110,6 +111,15 @@ describe('TemplateBlockService', () => {
 });
 
 describe('WorkoutService', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(FIXED_DATE);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('creates draft workout with required date', async () => {
     const workoutRepository = createWorkoutRepositoryMock();
     const service = new WorkoutService(
@@ -225,6 +235,152 @@ describe('WorkoutService', () => {
     });
   });
 
+  it('starts workout and sets active session', async () => {
+    const existing = createMockWorkout({ id: 'workout-1', status: 'planned' });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(existing),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    const workout = await service.startWorkout('workout-1');
+
+    expect(workout.status).toBe('inProgress');
+    expect(workout.activeSession).toBe(true);
+    expect(workoutRepository.update).toHaveBeenCalled();
+  });
+
+  it('seeds actual values from planned values when starting a workout', async () => {
+    const existing = createMockWorkout({
+      id: 'workout-1',
+      status: 'planned',
+      exercises: [
+        {
+          id: 'we-1',
+          sortOrder: 0,
+          exerciseId: 'exercise-1',
+          completed: false,
+          plannedSets: 2,
+          plannedReps: 10,
+          plannedWeight: 50,
+        },
+      ],
+    });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(existing),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    const workout = await service.startWorkout('workout-1');
+
+    expect(workout.exercises[0]).toMatchObject({
+      actualSets: 2,
+      actualReps: 10,
+      actualWeight: 50,
+    });
+  });
+
+  it('resumes workout and sets active session without changing status', async () => {
+    const existing = createMockWorkout({
+      id: 'workout-1',
+      status: 'inProgress',
+      activeSession: false,
+    });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(existing),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    const workout = await service.resumeWorkout('workout-1');
+
+    expect(workout.status).toBe('inProgress');
+    expect(workout.activeSession).toBe(true);
+  });
+
+  it('exits workout and clears active session while keeping inProgress status', async () => {
+    const existing = createMockWorkout({
+      id: 'workout-1',
+      status: 'inProgress',
+      activeSession: true,
+    });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(existing),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    const workout = await service.exitWorkout('workout-1');
+
+    expect(workout.status).toBe('inProgress');
+    expect(workout.activeSession).toBe(false);
+    expect(workoutRepository.update).toHaveBeenCalled();
+  });
+
+  it('rejects exit for non inProgress workouts', async () => {
+    const existing = createMockWorkout({ id: 'workout-1', status: 'planned' });
+    const service = new WorkoutService(
+      createWorkoutRepositoryMock({
+        findById: jest.fn().mockResolvedValue(existing),
+      }),
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    await expect(service.exitWorkout('workout-1')).rejects.toThrow(ServiceError);
+  });
+
+  it('updates a single workout exercise by id', async () => {
+    const existing = createMockWorkout({
+      id: 'workout-1',
+      status: 'inProgress',
+      exercises: [
+        {
+          id: 'we-1',
+          sortOrder: 0,
+          exerciseId: 'exercise-1',
+          completed: false,
+          plannedSets: 2,
+        },
+      ],
+    });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(existing),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    const workout = await service.updateWorkoutExercise('workout-1', 'we-1', {
+      completed: true,
+      actualSets: 2,
+      actualReps: 8,
+    });
+
+    expect(workout.exercises[0]).toMatchObject({
+      id: 'we-1',
+      completed: true,
+      actualSets: 2,
+      actualReps: 8,
+    });
+    expect(workoutRepository.update).toHaveBeenCalled();
+  });
+
   it('completes workout', async () => {
     const existing = createMockWorkout({ id: 'workout-1', status: 'planned' });
     const workoutRepository = createWorkoutRepositoryMock({
@@ -239,6 +395,7 @@ describe('WorkoutService', () => {
     const workout = await service.completeWorkout('workout-1');
 
     expect(workout.status).toBe('completed');
+    expect(workout.activeSession).toBe(false);
     expect(workoutRepository.update).toHaveBeenCalled();
   });
 
@@ -256,12 +413,24 @@ describe('WorkoutService', () => {
     const workout = await service.skipWorkout('workout-1');
 
     expect(workout.status).toBe('skipped');
+    expect(workout.activeSession).toBe(false);
   });
 
-  it('archives completed or skipped workouts instead of hard deleting them', async () => {
-    const completed = createMockWorkout({ id: 'workout-1', status: 'completed' });
+  it('hard deletes completed and skipped workouts', async () => {
+    const completed = createMockWorkout({ id: 'completed-1', status: 'completed' });
+    const skipped = createMockWorkout({ id: 'skipped-1', status: 'skipped' });
     const workoutRepository = createWorkoutRepositoryMock({
-      findById: jest.fn().mockResolvedValue(completed),
+      findById: jest.fn().mockImplementation(async (id: string) => {
+        if (id === 'completed-1') {
+          return completed;
+        }
+
+        if (id === 'skipped-1') {
+          return skipped;
+        }
+
+        return null;
+      }),
     });
     const service = new WorkoutService(
       workoutRepository,
@@ -269,23 +438,47 @@ describe('WorkoutService', () => {
       createExerciseRepositoryMock()
     );
 
-    await service.archiveWorkout('workout-1');
+    await service.deleteWorkout('completed-1');
+    await service.deleteWorkout('skipped-1');
 
-    expect(workoutRepository.archive).toHaveBeenCalledWith('workout-1');
-    expect(workoutRepository.hardDelete).not.toHaveBeenCalled();
+    expect(workoutRepository.hardDelete).toHaveBeenCalledWith('completed-1');
+    expect(workoutRepository.hardDelete).toHaveBeenCalledWith('skipped-1');
   });
 
-  it('hard deletes draft workouts and rejects hard delete for completed workouts', async () => {
+  it('clears activeSession before deleting an in-progress workout', async () => {
+    const inProgress = createMockWorkout({
+      id: 'workout-1',
+      status: 'inProgress',
+      activeSession: true,
+    });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(inProgress),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    await service.deleteWorkout('workout-1');
+
+    expect(workoutRepository.update).toHaveBeenCalledWith(
+      expect.objectContaining({ activeSession: false })
+    );
+    expect(workoutRepository.hardDelete).toHaveBeenCalledWith('workout-1');
+  });
+
+  it('hard deletes draft workouts and rejects hard delete for archived workouts', async () => {
     const draft = createMockWorkout({ id: 'draft-1', status: 'draft' });
-    const completed = createMockWorkout({ id: 'completed-1', status: 'completed' });
+    const archived = createMockWorkout({ id: 'archived-1', status: 'archived' });
     const workoutRepository = createWorkoutRepositoryMock({
       findById: jest.fn().mockImplementation(async (id: string) => {
         if (id === 'draft-1') {
           return draft;
         }
 
-        if (id === 'completed-1') {
-          return completed;
+        if (id === 'archived-1') {
+          return archived;
         }
 
         return null;
@@ -300,7 +493,144 @@ describe('WorkoutService', () => {
     await service.deleteWorkout('draft-1');
     expect(workoutRepository.hardDelete).toHaveBeenCalledWith('draft-1');
 
-    await expect(service.deleteWorkout('completed-1')).rejects.toThrow(ServiceError);
+    await expect(service.deleteWorkout('archived-1')).rejects.toThrow(ServiceError);
+  });
+
+  it('reverts in-progress, completed, and skipped workouts to planned with activeSession false', async () => {
+    const statuses = ['inProgress', 'completed', 'skipped'] as const;
+
+    for (const status of statuses) {
+      const existing = createMockWorkout({
+        id: `workout-${status}`,
+        status,
+        date: createTestDate(1),
+        activeSession: status === 'inProgress',
+      });
+      const workoutRepository = createWorkoutRepositoryMock({
+        findById: jest.fn().mockResolvedValue(existing),
+      });
+      const service = new WorkoutService(
+        workoutRepository,
+        createTemplateBlockRepositoryMock(),
+        createExerciseRepositoryMock()
+      );
+
+      const workout = await service.revertWorkoutToPlanned(`workout-${status}`);
+
+      expect(workout.status).toBe('planned');
+      expect(workout.activeSession).toBe(false);
+    }
+  });
+
+  it('rejects reverting planned and archived workouts to planned', async () => {
+    const planned = createMockWorkout({ id: 'planned-1', status: 'planned' });
+    const archived = createMockWorkout({ id: 'archived-1', status: 'archived' });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockImplementation(async (id: string) => {
+        if (id === 'planned-1') {
+          return planned;
+        }
+
+        if (id === 'archived-1') {
+          return archived;
+        }
+
+        return null;
+      }),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    await expect(service.revertWorkoutToPlanned('planned-1')).rejects.toThrow(ServiceError);
+    await expect(service.revertWorkoutToPlanned('archived-1')).rejects.toThrow(ServiceError);
+  });
+
+  it('rejects reverting past workouts to planned', async () => {
+    const completed = createMockWorkout({
+      id: 'completed-1',
+      status: 'completed',
+      date: createTestDate(-1),
+    });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(completed),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    await expect(service.revertWorkoutToPlanned('completed-1')).rejects.toThrow(ServiceError);
+  });
+
+  it('rejects creating planned workouts on past dates', async () => {
+    const workoutRepository = createWorkoutRepositoryMock();
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    await expect(
+      service.createWorkout({
+        id: 'workout-1',
+        name: 'Past Workout',
+        date: createTestDate(-1),
+        status: 'planned',
+      })
+    ).rejects.toThrow(ServiceError);
+  });
+
+  it('allows creating completed or skipped workouts on past dates', async () => {
+    const workoutRepository = createWorkoutRepositoryMock();
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    const completed = await service.createWorkout({
+      id: 'completed-1',
+      name: 'Past Completed',
+      date: createTestDate(-1),
+      status: 'completed',
+    });
+    const skipped = await service.createWorkout({
+      id: 'skipped-1',
+      name: 'Past Skipped',
+      date: createTestDate(-2),
+      status: 'skipped',
+    });
+
+    expect(completed.status).toBe('completed');
+    expect(skipped.status).toBe('skipped');
+    expect(workoutRepository.create).toHaveBeenCalledTimes(2);
+  });
+
+  it('allows editing completed and skipped workouts', async () => {
+    const exercise = createMockExercise({ id: 'exercise-2' });
+
+    for (const status of ['completed', 'skipped'] as const) {
+      const existing = createMockWorkout({ id: `workout-${status}`, status, exercises: [] });
+      const workoutRepository = createWorkoutRepositoryMock({
+        findById: jest.fn().mockResolvedValue(existing),
+      });
+      const service = new WorkoutService(
+        workoutRepository,
+        createTemplateBlockRepositoryMock(),
+        createExerciseRepositoryMock({
+          findById: jest.fn().mockResolvedValue(exercise),
+        })
+      );
+
+      const workout = await service.addExerciseToWorkout(`workout-${status}`, 'exercise-2');
+
+      expect(workout.exercises).toHaveLength(1);
+      expect(workoutRepository.update).toHaveBeenCalled();
+    }
   });
 
   it('adds exercise to workout', async () => {
@@ -359,5 +689,24 @@ describe('WorkoutService', () => {
     expect(duplicated.date).toEqual(targetDate);
     expect(duplicated.status).toBe('planned');
     expect(workoutRepository.create).toHaveBeenCalled();
+  });
+
+  it('lists workouts by date range', async () => {
+    const rangeStart = createTestDate(0);
+    const rangeEnd = createTestDate(30);
+    const workouts = [createMockWorkout({ id: 'workout-1' })];
+    const workoutRepository = createWorkoutRepositoryMock({
+      listByDateRange: jest.fn().mockResolvedValue(workouts),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    const result = await service.listWorkoutsByDateRange(rangeStart, rangeEnd);
+
+    expect(workoutRepository.listByDateRange).toHaveBeenCalledWith(rangeStart, rangeEnd);
+    expect(result).toEqual(workouts);
   });
 });

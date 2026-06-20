@@ -3,6 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/text';
 import { Textarea } from '@/components/ui/textarea';
 import type { Exercise } from '@/src/contexts/exercises/domain/exercise.model';
+import { formatExercisePrescription } from '@/src/contexts/exercises/domain/exercisePresentation';
 import type { TemplateBlockStatus } from '@/src/contexts/templateBlocks/domain/templateBlock.model';
 import { TEMPLATE_BLOCK_STATUSES } from '@/src/contexts/templateBlocks/domain/templateBlock.model';
 import { createEmptyTemplateBlockFormValues } from '@/src/contexts/templateBlocks/domain/templateBlockForm.mapper';
@@ -85,6 +86,33 @@ export function TemplateBlockForm({
     }
   };
 
+  const renderExerciseRow = (
+    exercise: Exercise,
+    action: React.ReactNode,
+    options?: { testID?: string; variant?: 'card' | 'background' }
+  ) => {
+    const prescription = formatExercisePrescription(exercise);
+    const variant = options?.variant ?? 'card';
+
+    return (
+      <View
+        key={exercise.id}
+        testID={options?.testID}
+        className={cn(
+          'flex-row items-center justify-between rounded-lg border border-border px-3 py-2',
+          variant === 'card' ? 'bg-card' : 'bg-background'
+        )}>
+        <View className="min-w-0 flex-1 pr-2">
+          <Text className="text-foreground">{exercise.name}</Text>
+          {prescription ? (
+            <Text className="mt-0.5 text-xs text-muted-foreground">{prescription}</Text>
+          ) : null}
+        </View>
+        {action}
+      </View>
+    );
+  };
+
   return (
     <View className="gap-6">
       {error ? <Text className="text-sm text-destructive">{error}</Text> : null}
@@ -143,41 +171,38 @@ export function TemplateBlockForm({
             <Text className="text-sm text-muted-foreground">No exercises selected yet.</Text>
           ) : (
             <View className="gap-2">
-              {selectedExercises.map((exercise) => (
-                <View
-                  key={exercise.id}
-                  testID={`selected-exercise-${exercise.id}`}
-                  className="flex-row items-center justify-between rounded-lg border border-border bg-card px-3 py-2">
-                  <Text className="flex-1 text-foreground">{exercise.name}</Text>
+              {selectedExercises.map((exercise) =>
+                renderExerciseRow(
+                  exercise,
                   <Pressable
                     accessibilityRole="button"
                     testID={`remove-exercise-${exercise.id}`}
                     className="rounded-md border border-border p-1.5"
                     onPress={() => removeExercise(exercise.id)}>
                     <MinusIcon className="text-foreground" size={16} />
-                  </Pressable>
-                </View>
-              ))}
+                  </Pressable>,
+                  { testID: `selected-exercise-${exercise.id}` }
+                )
+              )}
             </View>
           )}
 
           {availableExercises.length > 0 ? (
             <View className="gap-2">
               <Text className="text-sm text-muted-foreground">Add exercises</Text>
-              {availableExercises.map((exercise) => (
-                <View
-                  key={exercise.id}
-                  className="flex-row items-center justify-between rounded-lg border border-border bg-background px-3 py-2">
-                  <Text className="flex-1 text-foreground">{exercise.name}</Text>
+              {availableExercises.map((exercise) =>
+                renderExerciseRow(
+                  exercise,
                   <Pressable
                     accessibilityRole="button"
                     testID={`add-exercise-${exercise.id}`}
                     className="rounded-md border border-border p-1.5"
                     onPress={() => addExercise(exercise.id)}>
                     <PlusIcon className="text-foreground" size={16} />
-                  </Pressable>
-                </View>
-              ))}
+                  </Pressable>,
+                  { variant: 'background' }
+                )
+              )}
             </View>
           ) : null}
         </View>

@@ -107,6 +107,38 @@ describe('FirestoreWorkoutRepository', () => {
     expect(workouts.map((workout) => workout.id)).toEqual(['planned-1']);
   });
 
+  it('lists workouts by date range and excludes archived workouts', async () => {
+    const repository = new FirestoreWorkoutRepository(userId, db);
+    const rangeStart = createTestDate(0);
+    const rangeEnd = createTestDate(30);
+
+    await repository.create(
+      createMockWorkout({
+        id: 'planned-1',
+        status: 'planned',
+        date: createTestDate(10),
+      })
+    );
+    await repository.create(
+      createMockWorkout({
+        id: 'archived-1',
+        status: 'archived',
+        date: createTestDate(15),
+      })
+    );
+    await repository.create(
+      createMockWorkout({
+        id: 'outside-range',
+        status: 'planned',
+        date: createTestDate(45),
+      })
+    );
+
+    const workouts = await repository.listByDateRange(rangeStart, rangeEnd);
+
+    expect(workouts.map((workout) => workout.id)).toEqual(['planned-1']);
+  });
+
   it('lists draft workouts', async () => {
     const repository = new FirestoreWorkoutRepository(userId, db);
 

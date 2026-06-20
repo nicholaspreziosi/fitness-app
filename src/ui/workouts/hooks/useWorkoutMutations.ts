@@ -1,5 +1,5 @@
 import { createWorkoutService } from '@/src/contexts/workouts/application/createWorkoutService';
-import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
+import type { Workout, WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
 import { workoutQueryKeys } from '@/src/ui/workouts/hooks/workoutQueryKeys';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -28,7 +28,7 @@ export function useWorkoutMutations() {
       id: string;
       name: string;
       date: Date;
-      status?: 'draft' | 'planned';
+      status?: 'draft' | 'planned' | 'completed' | 'skipped';
       templateBlockIds?: string[];
       exerciseIds?: string[];
     }) => {
@@ -112,10 +112,10 @@ export function useWorkoutMutations() {
     onSuccess: invalidate,
   });
 
-  const archiveWorkout = useMutation({
+  const revertWorkoutToPlanned = useMutation({
     mutationFn: async (workoutId: string) => {
       const service = createWorkoutService(userId!);
-      return service.archiveWorkout(workoutId);
+      return service.revertWorkoutToPlanned(workoutId);
     },
     onSuccess: invalidate,
   });
@@ -144,6 +144,48 @@ export function useWorkoutMutations() {
     onSuccess: invalidate,
   });
 
+  const completeWorkout = useMutation({
+    mutationFn: async (workoutId: string) => {
+      const service = createWorkoutService(userId!);
+      return service.completeWorkout(workoutId);
+    },
+    onSuccess: invalidate,
+  });
+
+  const exitWorkout = useMutation({
+    mutationFn: async (workoutId: string) => {
+      const service = createWorkoutService(userId!);
+      return service.exitWorkout(workoutId);
+    },
+    onSuccess: invalidate,
+  });
+
+  const updateWorkoutExercise = useMutation({
+    mutationFn: async (params: {
+      workoutId: string;
+      workoutExerciseId: string;
+      patch: Partial<
+        Pick<
+          WorkoutExercise,
+          | 'completed'
+          | 'actualSets'
+          | 'actualReps'
+          | 'actualHoldSeconds'
+          | 'actualWeight'
+          | 'notes'
+        >
+      >;
+    }) => {
+      const service = createWorkoutService(userId!);
+      return service.updateWorkoutExercise(
+        params.workoutId,
+        params.workoutExerciseId,
+        params.patch
+      );
+    },
+    onSuccess: invalidate,
+  });
+
   const updateWorkout = useMutation({
     mutationFn: async (workout: Workout) => {
       const service = createWorkoutService(userId!);
@@ -162,10 +204,13 @@ export function useWorkoutMutations() {
     moveWorkout,
     duplicateWorkout,
     deleteWorkout,
-    archiveWorkout,
+    revertWorkoutToPlanned,
     startWorkout,
     resumeWorkout,
+    completeWorkout,
+    exitWorkout,
     skipWorkout,
+    updateWorkoutExercise,
     updateWorkout,
     isReady: Boolean(userId),
   };

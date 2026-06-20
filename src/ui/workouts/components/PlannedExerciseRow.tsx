@@ -1,6 +1,7 @@
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
+import { formatWorkoutExercisePrescription } from '@/src/contexts/workouts/domain/workoutPresentation';
 import type { WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
 import { GripVerticalIcon, XIcon } from 'lucide-react-native';
 import * as React from 'react';
@@ -18,6 +19,7 @@ type PlannedExerciseRowProps = {
 };
 
 export function PlannedExerciseRow({
+  workoutExercise,
   exerciseName,
   showDragHandle = false,
   dragHandleRight = false,
@@ -26,6 +28,7 @@ export function PlannedExerciseRow({
   dragHandle,
   className,
 }: PlannedExerciseRowProps) {
+  const prescription = formatWorkoutExercisePrescription(workoutExercise);
   const handleNode = showDragHandle
     ? dragHandle ?? <Icon as={GripVerticalIcon} className="size-4 text-muted-foreground" />
     : null;
@@ -33,11 +36,16 @@ export function PlannedExerciseRow({
   return (
     <View
       className={cn(
-        'flex-row items-center gap-2 border-b border-border py-2 bg-card',
+        'flex-row items-center gap-2 border-b border-border py-2.5 bg-card',
         className
       )}>
       {!dragHandleRight ? handleNode : null}
-      <Text className="flex-1 text-sm text-foreground">{exerciseName}</Text>
+      <View className="min-w-0 flex-1">
+        <Text className="text-sm font-medium text-foreground">{exerciseName}</Text>
+        {prescription ? (
+          <Text className="mt-0.5 text-xs text-muted-foreground">{prescription}</Text>
+        ) : null}
+      </View>
       {dragHandleRight ? handleNode : null}
       {showRemove ? (
         <Pressable accessibilityRole="button" hitSlop={8} onPress={onRemove}>

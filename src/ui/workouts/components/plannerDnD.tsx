@@ -5,8 +5,12 @@ import { SwipeableListRow } from '@/src/ui/shared/components/SwipeableListRow';
 import { PlannedExerciseRow } from '@/src/ui/workouts/components/PlannedExerciseRow';
 import { GripVerticalIcon } from 'lucide-react-native';
 import * as React from 'react';
-import { Pressable, View } from 'react-native';
+import { LogBox, Pressable, View } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
+
+LogBox.ignoreLogs([
+  'VirtualizedLists should never be nested inside plain ScrollViews with the same orientation because it can break windowing',
+]);
 
 type ExerciseReorderListProps = {
   exercises: WorkoutExercise[];

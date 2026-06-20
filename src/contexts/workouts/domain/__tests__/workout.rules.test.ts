@@ -10,10 +10,12 @@ import {
 } from '@/src/contexts/templateBlocks/domain/templateBlock.rules';
 import {
   canHardDeleteWorkout,
+  canRevertWorkoutToPlanned,
+  canUsePlannedStatusForWorkout,
   isVisibleInWeeklyPlanner,
-  shouldArchiveWorkoutInsteadOfDelete,
 } from '@/src/contexts/workouts/domain/workout.rules';
 import { createMockExercise, createMockWorkout } from '@/test-utils/mockData';
+import { createTestDate, FIXED_DATE } from '@/test-utils/testDates';
 
 describe('archive and delete domain rules', () => {
   describe('exercises', () => {
@@ -59,14 +61,93 @@ describe('archive and delete domain rules', () => {
       expect(canHardDeleteWorkout('planned')).toBe(true);
     });
 
-    it('completed workouts should be archived instead of hard deleted', () => {
-      expect(shouldArchiveWorkoutInsteadOfDelete('completed')).toBe(true);
-      expect(canHardDeleteWorkout('completed')).toBe(false);
+    it('in-progress workouts can be hard deleted', () => {
+      expect(canHardDeleteWorkout('inProgress')).toBe(true);
     });
 
-    it('skipped workouts should be archived instead of hard deleted', () => {
-      expect(shouldArchiveWorkoutInsteadOfDelete('skipped')).toBe(true);
-      expect(canHardDeleteWorkout('skipped')).toBe(false);
+    it('completed workouts can be hard deleted', () => {
+      expect(canHardDeleteWorkout('completed')).toBe(true);
+    });
+
+    it('skipped workouts can be hard deleted', () => {
+      expect(canHardDeleteWorkout('skipped')).toBe(true);
+    });
+
+    it('archived workouts cannot be hard deleted', () => {
+      expect(canHardDeleteWorkout('archived')).toBe(false);
+    });
+
+    it('allows reverting in-progress, completed, and skipped workouts to planned on today or future dates', () => {
+      const referenceDate = FIXED_DATE;
+      const futureDate = createTestDate(1);
+
+      expect(
+        canRevertWorkoutToPlanned(
+          createMockWorkout({ status: 'inProgress', date: futureDate }),
+          referenceDate
+        )
+      ).toEqual({ allowed: true });
+      expect(
+        canRevertWorkoutToPlanned(
+          createMockWorkout({ status: 'completed', date: futureDate }),
+          referenceDate
+        )
+      ).toEqual({ allowed: true });
+      expect(
+        canRevertWorkoutToPlanned(
+          createMockWorkout({ status: 'skipped', date: futureDate }),
+          referenceDate
+        )
+      ).toEqual({ allowed: true });
+    });
+
+    it('rejects reverting past workouts to planned', () => {
+      const referenceDate = FIXED_DATE;
+
+      expect(
+        canRevertWorkoutToPlanned(
+          createMockWorkout({ status: 'completed', date: createTestDate(-1) }),
+          referenceDate
+        ).allowed
+      ).toBe(false);
+    });
+
+    it('rejects reverting draft, planned, and archived workouts to planned', () => {
+      const futureDate = createTestDate(1);
+
+      expect(
+        canRevertWorkoutToPlanned(
+          createMockWorkout({ status: 'draft', date: futureDate }),
+          FIXED_DATE
+        ).allowed
+      ).toBe(false);
+      expect(
+        canRevertWorkoutToPlanned(
+          createMockWorkout({ status: 'planned', date: futureDate }),
+          FIXED_DATE
+        ).allowed
+      ).toBe(false);
+      expect(
+        canRevertWorkoutToPlanned(
+          createMockWorkout({ status: 'archived', date: futureDate }),
+          FIXED_DATE
+        ).allowed
+      ).toBe(false);
+    });
+
+    it('rejects planned status for past workout dates', () => {
+      expect(
+        canUsePlannedStatusForWorkout(
+          createMockWorkout({ status: 'planned', date: createTestDate(-1) }),
+          FIXED_DATE
+        ).allowed
+      ).toBe(false);
+      expect(
+        canUsePlannedStatusForWorkout(
+          createMockWorkout({ status: 'completed', date: createTestDate(-1) }),
+          FIXED_DATE
+        ).allowed
+      ).toBe(true);
     });
 
     it('archived workouts should not appear in default weekly planner queries', () => {

@@ -1,3 +1,7 @@
+jest.mock('@/src/ui/workouts/hooks/useWeekSwipeGesture', () => ({
+  useWeekSwipeWithScrollGesture: jest.fn(() => ({})),
+}));
+
 jest.mock('@/src/ui/workouts/hooks/useExpandedWorkoutSwipeBlock', () => {
   const React = require('react');
   const { View } = require('react-native');
@@ -8,6 +12,8 @@ jest.mock('@/src/ui/workouts/hooks/useExpandedWorkoutSwipeBlock', () => {
     ),
     useExpandedWorkoutSwipeBlock: () => ({
       blockedRects: { value: [] },
+      blockedRectsList: [],
+      hasExpandedWorkouts: false,
       updateExpandedBounds: jest.fn(),
       clearExpandedBounds: jest.fn(),
     }),
@@ -95,7 +101,6 @@ jest.mock('react-native-gesture-handler', () => {
   const createPanGesture = () => {
     const gesture = {
       enabled: () => gesture,
-      manualActivation: () => gesture,
       activeOffsetX: () => gesture,
       failOffsetY: () => gesture,
       onTouchesDown: () => gesture,
@@ -104,8 +109,13 @@ jest.mock('react-native-gesture-handler', () => {
     return gesture;
   };
   return {
-    Gesture: { Pan: createPanGesture },
+    Gesture: {
+      Pan: createPanGesture,
+      Native: createPanGesture,
+      Simultaneous: (...gestures: unknown[]) => gestures[0],
+    },
     GestureDetector: ({ children }: { children: React.ReactNode }) => <View>{children}</View>,
+    ScrollView: ({ children }: { children: React.ReactNode }) => <View>{children}</View>,
   };
 });
 
@@ -145,7 +155,7 @@ describe('CalendarView', () => {
       moveWorkout: { mutateAsync: jest.fn() } as never,
       duplicateWorkout: { mutateAsync: jest.fn() } as never,
       deleteWorkout: { mutate: jest.fn() } as never,
-      archiveWorkout: { mutate: jest.fn() } as never,
+      revertWorkoutToPlanned: { mutate: jest.fn() } as never,
       startWorkout: { mutate: jest.fn() } as never,
       skipWorkout: { mutate: jest.fn() } as never,
       updateWorkout: { mutateAsync: jest.fn() } as never,

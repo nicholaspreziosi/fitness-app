@@ -1,6 +1,12 @@
 import type { Workout, WorkoutStatus } from './workout.model';
 
-const EDITABLE_STATUSES: WorkoutStatus[] = ['draft', 'planned', 'inProgress'];
+const EDITABLE_STATUSES: WorkoutStatus[] = [
+  'draft',
+  'planned',
+  'inProgress',
+  'completed',
+  'skipped',
+];
 
 export type PlannerRuleResult =
   | { allowed: true }
@@ -54,14 +60,6 @@ export function canAddTemplateBlockToWorkout(
 }
 
 export function canEditWorkoutExercises(status: WorkoutStatus): PlannerRuleResult {
-  if (status === 'completed') {
-    return { allowed: false, message: 'Completed workouts cannot be edited.' };
-  }
-
-  if (status === 'skipped') {
-    return { allowed: false, message: 'Skipped workouts cannot be edited.' };
-  }
-
   if (status === 'archived') {
     return { allowed: false, message: 'Archived workouts cannot be edited.' };
   }
@@ -103,14 +101,6 @@ export function canMoveExerciseBetweenWorkouts(
 export function canMoveWorkoutToDate(workout: Pick<Workout, 'status'>): MoveWorkoutRuleResult {
   if (workout.status === 'archived') {
     return { allowed: false, message: 'Archived workouts cannot be moved.' };
-  }
-
-  if (workout.status === 'completed') {
-    return { allowed: false, message: 'Completed workouts cannot be moved.' };
-  }
-
-  if (workout.status === 'skipped') {
-    return { allowed: false, message: 'Skipped workouts cannot be moved.' };
   }
 
   if (workout.status === 'inProgress') {

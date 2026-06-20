@@ -94,7 +94,7 @@ export function LibraryView() {
     return (
       <ScreenContainer>
         <PageHeader title="Library" />
-        <LoadingState message={isExercisesTab ? 'Loading exercises...' : 'Loading templates...'} />
+        <LoadingState />
       </ScreenContainer>
     );
   }

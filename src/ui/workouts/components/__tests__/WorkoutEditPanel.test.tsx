@@ -57,8 +57,10 @@ describe('WorkoutEditPanel', () => {
     ['exercise-1', createMockExercise({ id: 'exercise-1', name: 'Pendulum Squat' })],
   ]);
   const defaultProps = {
+    workoutName: 'Wednesday Lower Body',
     workoutDate: createTestDate(),
     canChangeDate: true,
+    onNameChange: jest.fn(),
     onDateChange: jest.fn(),
     onAddExercise: jest.fn(),
     onAddTemplate: jest.fn(),
@@ -80,6 +82,43 @@ describe('WorkoutEditPanel', () => {
     expect(screen.getByText('Reorder list')).toBeTruthy();
     expect(screen.queryByText('Done')).toBeNull();
     expect(screen.queryByText('Remove')).toBeNull();
+  });
+
+  it('calls onNameChange when a new name is entered and blurred', () => {
+    const onNameChange = jest.fn();
+
+    render(
+      <WorkoutEditPanel
+        {...defaultProps}
+        onNameChange={onNameChange}
+        exercises={[createMockWorkoutExercise()]}
+        exercisesById={exercisesById}
+      />
+    );
+
+    fireEvent.changeText(screen.getByTestId('workout-name-input'), 'Friday Upper Body');
+    fireEvent(screen.getByTestId('workout-name-input'), 'blur');
+
+    expect(onNameChange).toHaveBeenCalledWith('Friday Upper Body');
+  });
+
+  it('reverts empty name on blur without calling onNameChange', () => {
+    const onNameChange = jest.fn();
+
+    render(
+      <WorkoutEditPanel
+        {...defaultProps}
+        onNameChange={onNameChange}
+        exercises={[createMockWorkoutExercise()]}
+        exercisesById={exercisesById}
+      />
+    );
+
+    fireEvent.changeText(screen.getByTestId('workout-name-input'), '   ');
+    fireEvent(screen.getByTestId('workout-name-input'), 'blur');
+
+    expect(onNameChange).not.toHaveBeenCalled();
+    expect(screen.getByDisplayValue('Wednesday Lower Body')).toBeTruthy();
   });
 
   it('opens add menu and calls onAddExercise', () => {

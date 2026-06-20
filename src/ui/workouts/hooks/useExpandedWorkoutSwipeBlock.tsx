@@ -11,6 +11,8 @@ export type ExpandedWorkoutBounds = {
 
 type ExpandedWorkoutSwipeBlockContextValue = {
   blockedRects: SharedValue<ExpandedWorkoutBounds[]>;
+  blockedRectsList: ExpandedWorkoutBounds[];
+  hasExpandedWorkouts: boolean;
   updateExpandedBounds: (workoutId: string, bounds: ExpandedWorkoutBounds) => void;
   clearExpandedBounds: (workoutId: string) => void;
 };
@@ -21,9 +23,14 @@ const ExpandedWorkoutSwipeBlockContext =
 export function ExpandedWorkoutSwipeBlockProvider({ children }: { children: React.ReactNode }) {
   const blockedRects = useSharedValue<ExpandedWorkoutBounds[]>([]);
   const boundsByWorkoutIdRef = React.useRef(new Map<string, ExpandedWorkoutBounds>());
+  const [blockedRectsList, setBlockedRectsList] = React.useState<ExpandedWorkoutBounds[]>([]);
+  const [hasExpandedWorkouts, setHasExpandedWorkouts] = React.useState(false);
 
   const syncBlockedRects = React.useCallback(() => {
-    blockedRects.value = Array.from(boundsByWorkoutIdRef.current.values());
+    const next = Array.from(boundsByWorkoutIdRef.current.values());
+    blockedRects.value = next;
+    setBlockedRectsList(next);
+    setHasExpandedWorkouts(next.length > 0);
   }, [blockedRects]);
 
   const updateExpandedBounds = React.useCallback(
@@ -45,10 +52,12 @@ export function ExpandedWorkoutSwipeBlockProvider({ children }: { children: Reac
   const value = React.useMemo(
     () => ({
       blockedRects,
+      blockedRectsList,
+      hasExpandedWorkouts,
       updateExpandedBounds,
       clearExpandedBounds,
     }),
-    [blockedRects, clearExpandedBounds, updateExpandedBounds]
+    [blockedRects, blockedRectsList, clearExpandedBounds, hasExpandedWorkouts, updateExpandedBounds]
   );
 
   return (
@@ -76,15 +85,28 @@ export function useRegisterExpandedWorkoutSwipeBlock(
   cardRef: React.RefObject<View | null>
 ) {
   const { updateExpandedBounds, clearExpandedBounds } = useExpandedWorkoutSwipeBlock();
+  const isExpandedRef = React.useRef(isExpanded);
+  const measureGenerationRef = React.useRef(0);
+
+  React.useEffect(() => {
+    isExpandedRef.current = isExpanded;
+  }, [isExpanded]);
 
   const measureBounds = React.useCallback(() => {
+    const generation = ++measureGenerationRef.current;
+
     cardRef.current?.measureInWindow((x, y, width, height) => {
+      if (generation !== measureGenerationRef.current || !isExpandedRef.current) {
+        return;
+      }
+
       updateExpandedBounds(workoutId, { x, y, width, height });
     });
   }, [cardRef, updateExpandedBounds, workoutId]);
 
   React.useEffect(() => {
     if (!isExpanded) {
+      measureGenerationRef.current += 1;
       clearExpandedBounds(workoutId);
       return;
     }

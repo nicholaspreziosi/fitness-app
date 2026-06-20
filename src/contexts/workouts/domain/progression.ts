@@ -14,6 +14,19 @@ export type WorkoutActuals = Pick<
   'actualSets' | 'actualReps' | 'actualHoldSeconds' | 'actualWeight'
 >;
 
+export type WorkoutPlannedValues = Pick<
+  WorkoutExercise,
+  'plannedSets' | 'plannedReps' | 'plannedHoldSeconds' | 'plannedWeight'
+>;
+
+export type DefaultUpdateField = keyof ExerciseDefaults;
+
+export type PlannedVsActualReviewItem = {
+  field: DefaultUpdateField;
+  plannedValue: number;
+  actualValue: number;
+};
+
 export type DefaultUpdateSuggestion = Partial<ExerciseDefaults>;
 
 function isIncrease(defaultValue: number | undefined, actualValue: number | undefined): boolean {
@@ -121,4 +134,57 @@ export function applyApprovedDefaultUpdates(
     ...defaults,
     ...suggested,
   };
+}
+
+const PLANNED_ACTUAL_FIELD_PAIRS: Array<{
+  field: DefaultUpdateField;
+  plannedKey: keyof WorkoutPlannedValues;
+  actualKey: keyof WorkoutActuals;
+}> = [
+  { field: 'defaultSets', plannedKey: 'plannedSets', actualKey: 'actualSets' },
+  { field: 'defaultReps', plannedKey: 'plannedReps', actualKey: 'actualReps' },
+  { field: 'defaultHoldSeconds', plannedKey: 'plannedHoldSeconds', actualKey: 'actualHoldSeconds' },
+  { field: 'defaultWeight', plannedKey: 'plannedWeight', actualKey: 'actualWeight' },
+];
+
+export function detectPlannedVsActualIncreases(
+  planned: WorkoutPlannedValues,
+  actuals: WorkoutActuals
+): PlannedVsActualReviewItem[] {
+  return PLANNED_ACTUAL_FIELD_PAIRS.flatMap(({ field, plannedKey, actualKey }) => {
+    const plannedValue = planned[plannedKey];
+    const actualValue = actuals[actualKey];
+
+    if (plannedValue === undefined || actualValue === undefined || actualValue <= plannedValue) {
+      return [];
+    }
+
+    return [{ field, plannedValue, actualValue }];
+  });
+}
+
+export function hasPlannedVsActualIncrease(
+  planned: WorkoutPlannedValues,
+  actuals: WorkoutActuals
+): boolean {
+  return detectPlannedVsActualIncreases(planned, actuals).length > 0;
+}
+
+export function buildDefaultUpdatesFromReviewItems(
+  currentDefaults: ExerciseDefaults,
+  selectedItems: PlannedVsActualReviewItem[]
+): DefaultUpdateSuggestion {
+  const updates: DefaultUpdateSuggestion = {};
+
+  for (const item of selectedItems) {
+    const currentValue = currentDefaults[item.field];
+
+    if (currentValue !== undefined && item.actualValue <= currentValue) {
+      continue;
+    }
+
+    updates[item.field] = item.actualValue;
+  }
+
+  return updates;
 }

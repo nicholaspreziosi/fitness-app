@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
+import { formatExercisePrescription } from '@/src/contexts/exercises/domain/exercisePresentation';
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
 import { useTemplateBlock } from '@/src/ui/templateBlocks/hooks/useTemplateBlock';
 import { useToggleTemplateBlockFavorite } from '@/src/ui/templateBlocks/hooks/useToggleTemplateBlockFavorite';
@@ -31,18 +32,23 @@ export function TemplateBlockDetailView() {
       return [];
     }
 
-    const exerciseById = new Map(exercises.map((exercise) => [exercise.id, exercise.name]));
+    const exerciseById = new Map(exercises.map((exercise) => [exercise.id, exercise]));
 
-    return templateBlock.exerciseIds.map((exerciseId) => ({
-      id: exerciseId,
-      name: exerciseById.get(exerciseId) ?? 'Unknown exercise',
-    }));
+    return templateBlock.exerciseIds.map((exerciseId) => {
+      const exercise = exerciseById.get(exerciseId);
+
+      return {
+        id: exerciseId,
+        name: exercise?.name ?? 'Unknown exercise',
+        prescription: exercise ? formatExercisePrescription(exercise) : undefined,
+      };
+    });
   }, [exercises, templateBlock]);
 
   if (blockLoading || exercisesLoading) {
     return (
       <ScreenContainer scrollable={false}>
-        <LoadingState message="Loading template block..." />
+        <LoadingState />
       </ScreenContainer>
     );
   }
@@ -105,6 +111,11 @@ export function TemplateBlockDetailView() {
                 onPress={() => router.push(`/library/exercises/${exercise.id}`)}>
                 <View className="min-w-0 flex-1">
                   <Text className="text-sm font-medium text-foreground">{exercise.name}</Text>
+                  {exercise.prescription ? (
+                    <Text className="mt-0.5 text-xs text-muted-foreground">
+                      {exercise.prescription}
+                    </Text>
+                  ) : null}
                 </View>
               </SwipeableListRow>
             ))}

@@ -5,7 +5,7 @@ import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
 import { sortWorkoutExercises } from '@/src/contexts/workouts/domain/planner.helpers';
 import { canMoveWorkoutToDate } from '@/src/contexts/workouts/domain/planner.rules';
 import { estimateWorkoutDuration } from '@/src/contexts/workouts/domain/workoutDuration';
-import { isSameDay, startOfDay } from '@/src/lib/dates/weekBounds';
+import { isBeforeDay, isSameDay, startOfDay } from '@/src/lib/dates/weekBounds';
 import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
 import { PopoverMenu, type PopoverMenuItem } from '@/src/ui/shared/components/PopoverMenu';
 import { PlannedExerciseRow } from '@/src/ui/workouts/components/PlannedExerciseRow';
@@ -17,9 +17,10 @@ import {
 import type { PlannerState } from '@/src/ui/workouts/hooks/usePlannerState';
 import type { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
 import {
-  ArchiveIcon,
+  CheckCircleIcon,
   ChevronDownIcon,
   CopyIcon,
+  RotateCcwIcon,
   SkipForwardIcon,
   Trash2Icon,
 } from 'lucide-react-native';
@@ -41,65 +42,116 @@ type PlannedWorkoutCardProps = {
   mutations: ReturnType<typeof useWorkoutMutations>;
 };
 
-function buildMenuItems(
+function buildDeleteMenuItem(onDelete: () => void): PopoverMenuItem {
+  return {
+    label: 'Delete',
+    icon: Trash2Icon,
+    destructive: true,
+    testID: 'delete-workout',
+    onPress: onDelete,
+  };
+}
+
+function buildRevertMenuItem(
+  workoutId: string,
+  mutations: ReturnType<typeof useWorkoutMutations>
+): PopoverMenuItem {
+  return {
+    label: 'Mark as planned',
+    icon: RotateCcwIcon,
+    testID: 'revert-workout',
+    onPress: () => mutations.revertWorkoutToPlanned.mutate(workoutId),
+  };
+}
+
+function buildMarkCompletedMenuItem(
+  workoutId: string,
+  mutations: ReturnType<typeof useWorkoutMutations>
+): PopoverMenuItem {
+  return {
+    label: 'Mark as Completed',
+    icon: CheckCircleIcon,
+    testID: 'complete-workout',
+    onPress: () => mutations.completeWorkout.mutate(workoutId),
+  };
+}
+
+function buildMarkSkippedMenuItem(
+  workoutId: string,
+  mutations: ReturnType<typeof useWorkoutMutations>
+): PopoverMenuItem {
+  return {
+    label: 'Mark as Skipped',
+    icon: SkipForwardIcon,
+    testID: 'skip-workout',
+    onPress: () => mutations.skipWorkout.mutate(workoutId),
+  };
+}
+
+function buildDuplicateMenuItem(
+  workout: Workout,
+  plannerState: PlannerState
+): PopoverMenuItem {
+  return {
+    label: 'Duplicate',
+    icon: CopyIcon,
+    testID: 'duplicate-workout',
+    onPress: () =>
+      plannerState.openSheet({ type: 'duplicateWorkout', workoutId: workout.id }),
+  };
+}
+
+function buildPastWorkoutMenuItems(
   workout: Workout,
   plannerState: PlannerState,
   mutations: ReturnType<typeof useWorkoutMutations>,
   onDelete: () => void
 ): PopoverMenuItem[] {
+  const items: PopoverMenuItem[] = [];
+
+  if (workout.status !== 'completed') {
+    items.push(buildMarkCompletedMenuItem(workout.id, mutations));
+  }
+
+  if (workout.status !== 'skipped') {
+    items.push(buildMarkSkippedMenuItem(workout.id, mutations));
+  }
+
+  items.push(buildDeleteMenuItem(onDelete), buildDuplicateMenuItem(workout, plannerState));
+
+  return items;
+}
+
+function buildMenuItems(
+  workout: Workout,
+  plannerState: PlannerState,
+  mutations: ReturnType<typeof useWorkoutMutations>,
+  onDelete: () => void,
+  referenceDate: Date = new Date()
+): PopoverMenuItem[] {
+  const isPast = isBeforeDay(workout.date, referenceDate);
+
+  if (isPast && workout.status !== 'draft' && workout.status !== 'archived') {
+    return buildPastWorkoutMenuItems(workout, plannerState, mutations, onDelete);
+  }
+
   switch (workout.status) {
     case 'draft':
-      return [
-        {
-          label: 'Delete',
-          icon: Trash2Icon,
-          destructive: true,
-          testID: 'delete-workout',
-          onPress: onDelete,
-        },
-      ];
+      return [buildDeleteMenuItem(onDelete)];
     case 'planned':
-      return [
-        {
-          label: 'Duplicate',
-          icon: CopyIcon,
-          testID: 'duplicate-workout',
-          onPress: () =>
-            plannerState.openSheet({ type: 'duplicateWorkout', workoutId: workout.id }),
-        },
-        {
-          label: 'Delete',
-          icon: Trash2Icon,
-          destructive: true,
-          testID: 'delete-workout',
-          onPress: onDelete,
-        },
-      ];
+      return [buildDuplicateMenuItem(workout, plannerState), buildDeleteMenuItem(onDelete)];
     case 'inProgress':
       return [
-        {
-          label: 'Skip',
-          icon: SkipForwardIcon,
-          testID: 'skip-workout',
-          onPress: () => mutations.skipWorkout.mutate(workout.id),
-        },
+        buildMarkSkippedMenuItem(workout.id, mutations),
+        buildRevertMenuItem(workout.id, mutations),
+        buildDeleteMenuItem(onDelete),
       ];
     case 'completed':
     case 'skipped':
       return [
-        {
-          label: 'Duplicate',
-          icon: CopyIcon,
-          testID: 'duplicate-workout',
-          onPress: () =>
-            plannerState.openSheet({ type: 'duplicateWorkout', workoutId: workout.id }),
-        },
-        {
-          label: 'Archive',
-          icon: ArchiveIcon,
-          testID: 'archive-workout',
-          onPress: () => mutations.archiveWorkout.mutate(workout.id),
-        },
+        buildDuplicateMenuItem(workout, plannerState),
+        buildRevertMenuItem(workout.id, mutations),
+        buildDeleteMenuItem(onDelete),
       ];
     default:
       return [];
@@ -113,6 +165,7 @@ export function PlannedWorkoutCard({
   mutations,
 }: PlannedWorkoutCardProps) {
   const [pendingDate, setPendingDate] = React.useState<Date | null>(null);
+  const [pendingPastStatusDate, setPendingPastStatusDate] = React.useState<Date | null>(null);
   const [pendingDelete, setPendingDelete] = React.useState(false);
   const isEditing = plannerState.editingWorkoutId === workout.id;
   const isExpanded = plannerState.expandedWorkoutId === workout.id;
@@ -125,21 +178,37 @@ export function PlannedWorkoutCard({
   const moveRule = React.useMemo(() => canMoveWorkoutToDate(workout), [workout]);
 
   const applyDateChange = React.useCallback(
-    async (date: Date) => {
-      await mutations.moveWorkout.mutateAsync({
-        workoutId: workout.id,
-        date,
-        confirmed: moveRule.allowed && moveRule.requiresConfirmation ? true : undefined,
-      });
+    async (date: Date, pastStatus?: 'completed' | 'skipped') => {
+      if (pastStatus) {
+        await mutations.updateWorkout.mutateAsync({
+          ...workout,
+          date,
+          status: pastStatus,
+          activeSession: false,
+        });
+      } else {
+        await mutations.moveWorkout.mutateAsync({
+          workoutId: workout.id,
+          date,
+          confirmed: moveRule.allowed && moveRule.requiresConfirmation ? true : undefined,
+        });
+      }
+
       plannerState.setWeekAnchor(startOfDay(date));
       setPendingDate(null);
+      setPendingPastStatusDate(null);
     },
-    [mutations.moveWorkout, moveRule, plannerState, workout.id]
+    [mutations.moveWorkout, mutations.updateWorkout, moveRule, plannerState, workout]
   );
 
   const handleDateChange = React.useCallback(
     (date: Date) => {
       if (isSameDay(date, workout.date) || !moveRule.allowed) {
+        return;
+      }
+
+      if (workout.status === 'planned' && isBeforeDay(date, new Date())) {
+        setPendingPastStatusDate(date);
         return;
       }
 
@@ -150,7 +219,7 @@ export function PlannedWorkoutCard({
 
       void applyDateChange(date);
     },
-    [applyDateChange, moveRule, workout.date]
+    [applyDateChange, moveRule, workout.date, workout.status]
   );
 
   const canToggleEdit = canEnterEditMode(workout.status);
@@ -158,7 +227,7 @@ export function PlannedWorkoutCard({
   const cardRef = React.useRef<View>(null);
   const measureExpandedBounds = useRegisterExpandedWorkoutSwipeBlock(
     workout.id,
-    isExpanded,
+    isEditing,
     cardRef
   );
 
@@ -221,7 +290,7 @@ export function PlannedWorkoutCard({
       <View
         ref={cardRef}
         collapsable={false}
-        onLayout={isExpanded ? measureExpandedBounds : undefined}>
+        onLayout={isEditing ? measureExpandedBounds : undefined}>
         <WorkoutCard
           name={workout.name}
           status={workout.status}
@@ -233,10 +302,14 @@ export function PlannedWorkoutCard({
           {isEditing ? (
             <WorkoutEditPanel
               workoutDate={workout.date}
+              workoutName={workout.name}
               canChangeDate={moveRule.allowed}
               dateChangeDisabledMessage={!moveRule.allowed ? moveRule.message : undefined}
               exercises={workout.exercises}
               exercisesById={exercisesById}
+              onNameChange={(name) =>
+                mutations.updateWorkout.mutate({ ...workout, name })
+              }
               onAddExercise={() =>
                 plannerState.openSheet({ type: 'addExercise', workoutId: workout.id })
               }
@@ -264,7 +337,9 @@ export function PlannedWorkoutCard({
                 <PlannedExerciseRow
                   key={exercise.id}
                   workoutExercise={exercise}
-                  exerciseName={exercisesById.get(exercise.exerciseId)?.name ?? 'Unknown exercise'}
+                  exerciseName={
+                    exercisesById.get(exercise.exerciseId)?.name ?? 'Unknown exercise'
+                  }
                 />
               ))}
             </View>
@@ -273,12 +348,56 @@ export function PlannedWorkoutCard({
       </View>
 
       <ConfirmDialog
+        confirmLabel="Move"
+        description="This workout is currently in progress. Moving it to another date will keep your session data."
+        hideTrigger
+        open={Boolean(pendingDate)}
+        title="Move in-progress workout?"
+        triggerLabel="Move"
+        onConfirm={() => {
+          if (pendingDate) {
+            void applyDateChange(pendingDate);
+          }
+        }}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingDate(null);
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        confirmLabel="Mark as Completed"
+        cancelLabel="Mark as Skipped"
+        description="Past workouts cannot stay planned. Choose how to record this workout."
+        hideTrigger
+        open={Boolean(pendingPastStatusDate)}
+        title="Move to a past date?"
+        triggerLabel="Mark as Completed"
+        onConfirm={() => {
+          if (pendingPastStatusDate) {
+            void applyDateChange(pendingPastStatusDate, 'completed');
+          }
+        }}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingPastStatusDate(null);
+          }
+        }}
+        onCancel={() => {
+          if (pendingPastStatusDate) {
+            void applyDateChange(pendingPastStatusDate, 'skipped');
+          }
+        }}
+      />
+
+      <ConfirmDialog
         confirmLabel="Delete"
-        description={`"${workout.name}" will be permanently deleted. This cannot be undone.`}
+        description="This will remove it from your history, dashboard metrics, and progress tracking."
         destructive
         hideTrigger
         open={pendingDelete}
-        title="Delete this workout?"
+        title="Delete workout?"
         triggerLabel="Delete"
         onConfirm={() => {
           mutations.deleteWorkout.mutate(workout.id);

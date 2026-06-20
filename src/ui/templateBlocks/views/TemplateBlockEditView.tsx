@@ -22,7 +22,7 @@ export function TemplateBlockEditView() {
   if (blockLoading || exercisesLoading) {
     return (
       <ScreenContainer scrollable={false}>
-        <LoadingState message="Loading template block..." />
+        <LoadingState />
       </ScreenContainer>
     );
   }

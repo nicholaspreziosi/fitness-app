@@ -1,6 +1,7 @@
 import {
   canAddExerciseToWorkout,
   canAddTemplateBlockToWorkout,
+  canEditWorkoutExercises,
   canMoveExerciseBetweenWorkouts,
   canMoveWorkoutToDate,
   canReorderWorkoutExercises,
@@ -27,22 +28,22 @@ describe('planner.rules', () => {
     expect(result.allowed).toBe(false);
   });
 
-  it('prevents move into completed workout', () => {
+  it('allows move into completed workout', () => {
     const source = createMockWorkout({ status: 'planned' });
     const target = createMockWorkout({ id: 'workout-2', status: 'completed', exercises: [] });
 
     const result = canMoveExerciseBetweenWorkouts(source, target, 'exercise-2');
 
-    expect(result.allowed).toBe(false);
+    expect(result.allowed).toBe(true);
   });
 
-  it('prevents move out of skipped workout', () => {
+  it('allows move out of skipped workout', () => {
     const source = createMockWorkout({ status: 'skipped' });
     const target = createMockWorkout({ id: 'workout-2', status: 'planned', exercises: [] });
 
     const result = canMoveExerciseBetweenWorkouts(source, target, 'exercise-1');
 
-    expect(result.allowed).toBe(false);
+    expect(result.allowed).toBe(true);
   });
 
   it('allows move between editable workouts', () => {
@@ -60,6 +61,17 @@ describe('planner.rules', () => {
     expect(result).toEqual({ allowed: true, requiresConfirmation: false });
   });
 
+  it('allows moving completed and skipped workouts to another date', () => {
+    expect(canMoveWorkoutToDate({ status: 'completed' })).toEqual({
+      allowed: true,
+      requiresConfirmation: false,
+    });
+    expect(canMoveWorkoutToDate({ status: 'skipped' })).toEqual({
+      allowed: true,
+      requiresConfirmation: false,
+    });
+  });
+
   it('requires confirmation for in-progress workout move', () => {
     const result = canMoveWorkoutToDate({ status: 'inProgress' });
 
@@ -72,8 +84,16 @@ describe('planner.rules', () => {
     expect(result.allowed).toBe(false);
   });
 
-  it('allows reorder for editable workouts', () => {
+  it('allows edit and reorder for completed and skipped workouts', () => {
+    expect(canEditWorkoutExercises('completed')).toEqual({ allowed: true });
+    expect(canEditWorkoutExercises('skipped')).toEqual({ allowed: true });
     expect(canReorderWorkoutExercises({ status: 'planned' }).allowed).toBe(true);
-    expect(canReorderWorkoutExercises({ status: 'completed' }).allowed).toBe(false);
+    expect(canReorderWorkoutExercises({ status: 'completed' }).allowed).toBe(true);
+    expect(canReorderWorkoutExercises({ status: 'skipped' }).allowed).toBe(true);
+  });
+
+  it('prevents edit and reorder for archived workouts', () => {
+    expect(canEditWorkoutExercises('archived').allowed).toBe(false);
+    expect(canReorderWorkoutExercises({ status: 'archived' }).allowed).toBe(false);
   });
 });

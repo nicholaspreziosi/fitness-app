@@ -1,5 +1,6 @@
 import { Text } from '@/components/ui/text';
 import type { Exercise } from '@/src/contexts/exercises/domain/exercise.model';
+import { formatExercisePrescription } from '@/src/contexts/exercises/domain/exercisePresentation';
 import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
 import { FavoriteButton } from '@/src/ui/shared/components/FavoriteButton';
 import {
@@ -64,6 +65,8 @@ export function ExerciseListItem({
           },
         ];
 
+  const prescription = formatExercisePrescription(exercise);
+
   return (
     <>
       <SwipeableListRow
@@ -73,7 +76,12 @@ export function ExerciseListItem({
         className={cn(exercise.status === 'archived' && 'opacity-80')}
         onPress={onPress}>
         <View className="min-w-0 flex-1 flex-row items-center justify-between gap-2">
-          <Text className="min-w-0 flex-1 font-medium text-foreground">{exercise.name}</Text>
+          <View className="min-w-0 flex-1">
+            <Text className="font-medium text-foreground">{exercise.name}</Text>
+            {prescription ? (
+              <Text className="mt-0.5 text-xs text-muted-foreground">{prescription}</Text>
+            ) : null}
+          </View>
           <FavoriteButton
             favorite={exercise.favorite ?? false}
             testID={`favorite-exercise-${exercise.id}`}

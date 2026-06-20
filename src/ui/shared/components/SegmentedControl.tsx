@@ -1,6 +1,8 @@
 import { Text } from '@/components/ui/text';
+import { THEME } from '@/lib/theme';
 import { cn } from '@/lib/utils';
-import { Pressable, View } from 'react-native';
+import { useColorScheme } from 'nativewind';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 export type SegmentedControlOption<T extends string> = {
   label: string;
@@ -22,10 +24,14 @@ export function SegmentedControl<T extends string>({
   testID,
   className,
 }: SegmentedControlProps<T>) {
+  const { colorScheme } = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
+
   return (
     <View
       testID={testID}
-      className={cn('flex-row rounded-lg border border-border bg-muted/50 p-1', className)}>
+      className={cn('flex-row rounded-lg p-1', className)}
+      style={{ backgroundColor: theme.muted }}>
       {options.map((option) => {
         const selected = value === option.value;
 
@@ -35,14 +41,20 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="button"
             accessibilityState={{ selected }}
             testID={testID ? `${testID}-${option.value}` : undefined}
-            className="flex-1 items-center rounded-md border border-border bg-card px-3 py-2"
-            style={{ opacity: selected ? 1 : 0.55 }}
+            style={[
+              styles.segment,
+              {
+                backgroundColor: selected ? theme.card : 'transparent',
+                opacity: selected ? 1 : 0.55,
+              },
+            ]}
             onPress={() => onChange(option.value)}>
             <Text
-              className={cn(
-                'text-sm font-medium',
-                selected ? 'text-foreground' : 'text-muted-foreground'
-              )}>
+              style={{
+                fontSize: 14,
+                fontWeight: '500',
+                color: selected ? theme.foreground : theme.mutedForeground,
+              }}>
               {option.label}
             </Text>
           </Pressable>
@@ -51,3 +63,13 @@ export function SegmentedControl<T extends string>({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  segment: {
+    flex: 1,
+    alignItems: 'center',
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+});

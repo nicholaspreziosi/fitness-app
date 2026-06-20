@@ -55,7 +55,7 @@ describe('ExerciseDetailView', () => {
 
     render(<ExerciseDetailView />);
 
-    expect(screen.getByText('Loading exercise...')).toBeTruthy();
+    expect(screen.getByLabelText('loading')).toBeTruthy();
   });
 
   it('renders exercise details and navigates to edit', () => {
@@ -74,7 +74,7 @@ describe('ExerciseDetailView', () => {
     render(<ExerciseDetailView />);
 
     expect(screen.getByText('Pendulum Squat')).toBeTruthy();
-    expect(screen.getAllByText('2 × 8 @ 100 lbs').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('2 x 8 • 100 lbs').length).toBeGreaterThan(0);
     expect(screen.getByText('Upper Legs')).toBeTruthy();
     expect(screen.getByText('Quads')).toBeTruthy();
     expect(screen.getByText('Keep chest tall.')).toBeTruthy();

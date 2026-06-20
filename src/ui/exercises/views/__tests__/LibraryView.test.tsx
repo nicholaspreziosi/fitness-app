@@ -129,7 +129,7 @@ describe('LibraryView', () => {
 
     render(<LibraryView />);
 
-    expect(screen.getByText('Loading exercises...')).toBeTruthy();
+    expect(screen.getByLabelText('loading')).toBeTruthy();
   });
 
   it('renders empty state with create action', () => {

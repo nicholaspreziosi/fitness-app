@@ -1,4 +1,5 @@
 import { Text } from '@/components/ui/text';
+import { formatExercisePrescription } from '@/src/contexts/exercises/domain/exercisePresentation';
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
 import { canAddExerciseToWorkout } from '@/src/contexts/workouts/domain/planner.rules';
 import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
@@ -37,15 +38,22 @@ export function ExercisePickerSheet({ workout, onClose }: ExercisePickerSheetPro
       ) : (
         <ScrollView className="max-h-72">
           <View className="gap-1">
-            {exercises.map((exercise) => (
-              <Pressable
-                key={exercise.id}
-                accessibilityRole="button"
-                className="rounded-lg border border-border px-3 py-3"
-                onPress={() => handleSelect(exercise.id)}>
-                <Text className="text-sm text-foreground">{exercise.name}</Text>
-              </Pressable>
-            ))}
+            {exercises.map((exercise) => {
+              const prescription = formatExercisePrescription(exercise);
+
+              return (
+                <Pressable
+                  key={exercise.id}
+                  accessibilityRole="button"
+                  className="rounded-lg border border-border px-3 py-3"
+                  onPress={() => handleSelect(exercise.id)}>
+                  <Text className="text-sm text-foreground">{exercise.name}</Text>
+                  {prescription ? (
+                    <Text className="mt-0.5 text-xs text-muted-foreground">{prescription}</Text>
+                  ) : null}
+                </Pressable>
+              );
+            })}
           </View>
         </ScrollView>
       )}

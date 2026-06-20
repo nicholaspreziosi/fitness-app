@@ -87,6 +87,10 @@ export function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
+export function isBeforeDay(date: Date, referenceDate: Date): boolean {
+  return startOfDay(date).getTime() < startOfDay(referenceDate).getTime();
+}
+
 export function addWeeks(date: Date, weeks: number): Date {
   const result = new Date(date);
   result.setDate(result.getDate() + weeks * 7);

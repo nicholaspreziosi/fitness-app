@@ -5,6 +5,7 @@ export interface WorkoutRepository {
   update(workout: Workout): Promise<void>;
   findById(id: string): Promise<Workout | null>;
   listByWeek(weekStart: Date, weekEnd: Date): Promise<Workout[]>;
+  listByDateRange(rangeStart: Date, rangeEnd: Date): Promise<Workout[]>;
   listDrafts(): Promise<Workout[]>;
   listAll(): Promise<Workout[]>;
   archive(id: string): Promise<void>;

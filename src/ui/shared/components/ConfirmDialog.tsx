@@ -26,6 +26,7 @@ type ConfirmDialogProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onConfirm?: () => void;
+  onCancel?: () => void;
 };
 
 export function ConfirmDialog({
@@ -40,6 +41,7 @@ export function ConfirmDialog({
   open,
   onOpenChange,
   onConfirm,
+  onCancel,
 }: ConfirmDialogProps) {
   const icon = triggerIcon ?? (destructive ? Trash2 : LogOut);
 
@@ -60,7 +62,7 @@ export function ConfirmDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>
+          <AlertDialogCancel onPress={onCancel}>
             <Text>{cancelLabel}</Text>
           </AlertDialogCancel>
           <AlertDialogAction

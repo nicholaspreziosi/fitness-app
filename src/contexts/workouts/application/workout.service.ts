@@ -4,6 +4,7 @@ import { ServiceError } from '@/src/contexts/shared/domain/service.errors';
 import {
   canAddExerciseToWorkout,
   canAddTemplateBlockToWorkout,
+  canEditWorkoutExercises,
   canMoveExerciseBetweenWorkouts,
   canMoveWorkoutToDate,
   canReorderWorkoutExercises,
@@ -18,13 +19,16 @@ import {
   removeWorkoutExercise,
   reorderWorkoutExercises,
 } from '@/src/contexts/workouts/domain/planner.helpers';
-import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
+import type { Workout, WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
 import type { WorkoutRepository } from '@/src/contexts/workouts/domain/workout.repository';
 import {
   canHardDeleteWorkout,
-  shouldArchiveWorkoutInsteadOfDelete,
+  canRevertWorkoutToPlanned,
+  canUsePlannedStatusForWorkout,
+  isPastWorkoutDate,
 } from '@/src/contexts/workouts/domain/workout.rules';
 import { workoutSchema } from '@/src/contexts/workouts/domain/workout.schema';
+import { seedWorkoutActualsFromPlanned } from '@/src/contexts/workouts/domain/workoutPresentation';
 import { createId } from '@/src/lib/id/createId';
 
 export class WorkoutService {
@@ -38,7 +42,7 @@ export class WorkoutService {
     id: string;
     name: string;
     date: Date;
-    status?: Extract<Workout['status'], 'draft' | 'planned'>;
+    status?: Extract<Workout['status'], 'draft' | 'planned' | 'completed' | 'skipped'>;
     templateBlockIds?: string[];
     exerciseIds?: string[];
   }): Promise<Workout> {
@@ -97,13 +101,20 @@ export class WorkoutService {
     }
 
     const now = new Date();
+    const status = params.status ?? 'planned';
+    const plannedRule = canUsePlannedStatusForWorkout({ date: params.date, status }, now);
+
+    if (!plannedRule.allowed) {
+      throw new ServiceError(plannedRule.message, 'invalid_operation');
+    }
+
     const workout: Workout = {
       id: params.id,
       name: params.name,
       createdAt: now,
       updatedAt: now,
       date: params.date,
-      status: params.status ?? 'planned',
+      status,
       exercises: workoutExercises,
       sourceTemplateBlockIds: templateBlockIds.length > 0 ? templateBlockIds : undefined,
     };
@@ -309,12 +320,65 @@ export class WorkoutService {
       targetDate,
     });
 
-    await this.workoutRepository.create(duplicated);
-    return duplicated;
+    const resolvedStatus = isPastWorkoutDate(targetDate)
+      ? workout.status === 'completed' || workout.status === 'skipped'
+        ? workout.status
+        : 'completed'
+      : 'planned';
+
+    const normalized: Workout = {
+      ...duplicated,
+      status: resolvedStatus,
+      activeSession: false,
+    };
+
+    await this.workoutRepository.create(normalized);
+    return normalized;
   }
 
   async updateWorkout(workout: Workout): Promise<Workout> {
     return this.saveWorkout({ ...workout, updatedAt: new Date() });
+  }
+
+  async updateWorkoutExercise(
+    workoutId: string,
+    workoutExerciseId: string,
+    patch: Partial<
+      Pick<
+        WorkoutExercise,
+        | 'completed'
+        | 'actualSets'
+        | 'actualReps'
+        | 'actualHoldSeconds'
+        | 'actualWeight'
+        | 'notes'
+      >
+    >
+  ): Promise<Workout> {
+    const workout = await this.requireWorkout(workoutId);
+    const rule = canEditWorkoutExercises(workout.status);
+
+    if (!rule.allowed) {
+      throw new ServiceError(rule.message, 'invalid_operation');
+    }
+
+    const exerciseIndex = workout.exercises.findIndex(
+      (exercise) => exercise.id === workoutExerciseId
+    );
+
+    if (exerciseIndex === -1) {
+      throw new ServiceError('Workout exercise not found.', 'not_found');
+    }
+
+    const updated: Workout = {
+      ...workout,
+      exercises: workout.exercises.map((exercise) =>
+        exercise.id === workoutExerciseId ? { ...exercise, ...patch } : exercise
+      ),
+      updatedAt: new Date(),
+    };
+
+    return this.saveWorkout(updated);
   }
 
   async startWorkout(id: string): Promise<Workout> {
@@ -324,6 +388,7 @@ export class WorkoutService {
       ...workout,
       status: 'inProgress',
       activeSession: true,
+      exercises: seedWorkoutActualsFromPlanned(workout.exercises),
       updatedAt: new Date(),
     };
 
@@ -340,6 +405,23 @@ export class WorkoutService {
     const updated: Workout = {
       ...workout,
       activeSession: true,
+      exercises: seedWorkoutActualsFromPlanned(workout.exercises),
+      updatedAt: new Date(),
+    };
+
+    return this.saveWorkout(updated);
+  }
+
+  async exitWorkout(id: string): Promise<Workout> {
+    const workout = await this.requireWorkout(id);
+
+    if (workout.status !== 'inProgress') {
+      throw new ServiceError('Workout is not in progress.', 'invalid_operation');
+    }
+
+    const updated: Workout = {
+      ...workout,
+      activeSession: false,
       updatedAt: new Date(),
     };
 
@@ -372,21 +454,37 @@ export class WorkoutService {
     return this.saveWorkout(updated);
   }
 
-  async archiveWorkout(id: string): Promise<void> {
+  async revertWorkoutToPlanned(id: string): Promise<Workout> {
     const workout = await this.requireWorkout(id);
+    const rule = canRevertWorkoutToPlanned(workout);
 
-    if (!shouldArchiveWorkoutInsteadOfDelete(workout.status)) {
-      throw new ServiceError('This workout cannot be archived.', 'invalid_operation');
+    if (!rule.allowed) {
+      throw new ServiceError(rule.message, 'invalid_operation');
     }
 
-    await this.workoutRepository.archive(id);
+    const updated: Workout = {
+      ...workout,
+      status: 'planned',
+      activeSession: false,
+      updatedAt: new Date(),
+    };
+
+    return this.saveWorkout(updated);
   }
 
   async deleteWorkout(id: string): Promise<void> {
     const workout = await this.requireWorkout(id);
 
     if (!canHardDeleteWorkout(workout.status)) {
-      throw new ServiceError('Completed or skipped workouts must be archived.', 'invalid_operation');
+      throw new ServiceError('This workout cannot be deleted.', 'invalid_operation');
+    }
+
+    if (workout.status === 'inProgress' && workout.activeSession) {
+      await this.saveWorkout({
+        ...workout,
+        activeSession: false,
+        updatedAt: new Date(),
+      });
     }
 
     await this.workoutRepository.hardDelete(id);
@@ -394,6 +492,10 @@ export class WorkoutService {
 
   async listWorkoutsByWeek(weekStart: Date, weekEnd: Date): Promise<Workout[]> {
     return this.workoutRepository.listByWeek(weekStart, weekEnd);
+  }
+
+  async listWorkoutsByDateRange(rangeStart: Date, rangeEnd: Date): Promise<Workout[]> {
+    return this.workoutRepository.listByDateRange(rangeStart, rangeEnd);
   }
 
   async getWorkout(id: string): Promise<Workout | null> {
@@ -411,6 +513,12 @@ export class WorkoutService {
   }
 
   private async saveWorkout(workout: Workout): Promise<Workout> {
+    const plannedRule = canUsePlannedStatusForWorkout(workout);
+
+    if (!plannedRule.allowed) {
+      throw new ServiceError(plannedRule.message, 'invalid_operation');
+    }
+
     const parsed = workoutSchema.safeParse(workout);
 
     if (!parsed.success) {

@@ -1,5 +1,5 @@
-import { WorkoutModeView } from '@/src/ui/workouts/views/WorkoutModeView';
+import { WorkoutTabView } from '@/src/ui/workouts/views/WorkoutTabView';
 
 export default function WorkoutScreen() {
-  return <WorkoutModeView />;
+  return <WorkoutTabView />;
 }

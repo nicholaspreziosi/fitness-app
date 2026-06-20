@@ -16,13 +16,13 @@ import {
   ExpandedWorkoutSwipeBlockProvider,
   useExpandedWorkoutSwipeBlock,
 } from '@/src/ui/workouts/hooks/useExpandedWorkoutSwipeBlock';
-import { useWeekSwipeGesture } from '@/src/ui/workouts/hooks/useWeekSwipeGesture';
+import { useWeekSwipeWithScrollGesture } from '@/src/ui/workouts/hooks/useWeekSwipeGesture';
 import { useWeeklyWorkouts } from '@/src/ui/workouts/hooks/useWeeklyWorkouts';
 import { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
 import * as React from 'react';
 import { Modal, Pressable, View } from 'react-native';
-import { GestureDetector } from 'react-native-gesture-handler';
+import { GestureDetector, ScrollView } from 'react-native-gesture-handler';
 
 export function CalendarView() {
   return (
@@ -88,7 +88,7 @@ function CalendarViewContent() {
     plannerState.setWeekAnchor(addWeeks(plannerState.weekAnchor, 1));
   }, [plannerState]);
 
-  const weekSwipeGesture = useWeekSwipeGesture({
+  const scrollWeekSwipeGesture = useWeekSwipeWithScrollGesture({
     weekAnchor: plannerState.weekAnchor,
     onWeekChange: plannerState.setWeekAnchor,
     blockedRects,
@@ -154,9 +154,13 @@ function CalendarViewContent() {
   };
 
   return (
-    <ScreenContainer>
-      <GestureDetector gesture={weekSwipeGesture}>
-        <View className="flex-1">
+    <ScreenContainer scrollable={false}>
+      <GestureDetector gesture={scrollWeekSwipeGesture}>
+        <ScrollView
+          className="flex-1"
+          contentContainerClassName="gap-6 pb-8"
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
           <PageHeader
             title="Calendar"
             description="Plan workouts for the week."
@@ -175,11 +179,11 @@ function CalendarViewContent() {
           />
 
           {isLoading ? (
-            <LoadingState message="Loading workouts..." />
+            <LoadingState className="flex-none py-20" />
           ) : isError ? (
-            <Text className="mt-4 text-sm text-destructive">Unable to load workouts.</Text>
+            <Text className="text-sm text-destructive">Unable to load workouts.</Text>
           ) : (
-            <View className="mt-4 gap-6 pb-8">
+            <View className="gap-6">
               {weekDays.map((day) => (
                 <DaySection
                   key={day.toISOString()}
@@ -192,7 +196,7 @@ function CalendarViewContent() {
               ))}
             </View>
           )}
-        </View>
+        </ScrollView>
       </GestureDetector>
 
       <Modal

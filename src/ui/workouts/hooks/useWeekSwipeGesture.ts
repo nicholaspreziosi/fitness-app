@@ -2,13 +2,11 @@ import { addWeeks } from '@/src/lib/dates/weekBounds';
 import type { ExpandedWorkoutBounds } from '@/src/ui/workouts/hooks/useExpandedWorkoutSwipeBlock';
 import * as React from 'react';
 import { Gesture } from 'react-native-gesture-handler';
-import type { SharedValue } from 'react-native-reanimated';
-import { runOnJS } from 'react-native-worklets';
+import { runOnJS, useSharedValue, type SharedValue } from 'react-native-reanimated';
 
 type UseWeekSwipeGestureOptions = {
   weekAnchor: Date;
   onWeekChange: (nextAnchor: Date) => void;
-  enabled?: boolean;
   blockedRects?: SharedValue<ExpandedWorkoutBounds[]>;
 };
 
@@ -36,50 +34,71 @@ function isPointInsideBounds(
 export function useWeekSwipeGesture({
   weekAnchor,
   onWeekChange,
-  enabled = true,
   blockedRects,
 }: UseWeekSwipeGestureOptions) {
-  const goToPreviousWeek = React.useCallback(() => {
-    onWeekChange(addWeeks(weekAnchor, -1));
-  }, [onWeekChange, weekAnchor]);
+  const startedInBlockedArea = useSharedValue(false);
 
-  const goToNextWeek = React.useCallback(() => {
-    onWeekChange(addWeeks(weekAnchor, 1));
-  }, [onWeekChange, weekAnchor]);
+  const changeWeek = React.useCallback(
+    (direction: -1 | 1) => {
+      onWeekChange(addWeeks(weekAnchor, direction));
+    },
+    [onWeekChange, weekAnchor]
+  );
+
+  return React.useMemo(() => {
+    const goToPreviousWeek = () => changeWeek(-1);
+    const goToNextWeek = () => changeWeek(1);
+
+    const handleEnd = (translationX: number) => {
+      'worklet';
+
+      if (translationX > 50) {
+        runOnJS(goToPreviousWeek)();
+      } else if (translationX < -50) {
+        runOnJS(goToNextWeek)();
+      }
+    };
+
+    return Gesture.Pan()
+      .activeOffsetX([-30, 30])
+      .failOffsetY([-20, 20])
+      .onTouchesDown((event) => {
+        'worklet';
+
+        const touch = event.allTouches[0];
+
+        if (!touch || !blockedRects || blockedRects.value.length === 0) {
+          startedInBlockedArea.value = false;
+          return;
+        }
+
+        startedInBlockedArea.value = isPointInsideBounds(
+          touch.absoluteX,
+          touch.absoluteY,
+          blockedRects.value
+        );
+      })
+      .onEnd((event) => {
+        'worklet';
+
+        if (startedInBlockedArea.value) {
+          return;
+        }
+
+        handleEnd(event.translationX);
+      });
+  }, [blockedRects, changeWeek, startedInBlockedArea, weekAnchor]);
+}
+
+export function useWeekSwipeWithScrollGesture({
+  weekAnchor,
+  onWeekChange,
+  blockedRects,
+}: UseWeekSwipeGestureOptions) {
+  const weekSwipePan = useWeekSwipeGesture({ weekAnchor, onWeekChange, blockedRects });
 
   return React.useMemo(
-    () =>
-      Gesture.Pan()
-        .enabled(enabled)
-        .manualActivation(!!blockedRects)
-        .activeOffsetX([-30, 30])
-        .failOffsetY([-20, 20])
-        .onTouchesDown((event, state) => {
-          if (!blockedRects) {
-            return;
-          }
-
-          const touch = event.allTouches[0];
-
-          if (!touch) {
-            state.fail();
-            return;
-          }
-
-          if (isPointInsideBounds(touch.absoluteX, touch.absoluteY, blockedRects.value)) {
-            state.fail();
-            return;
-          }
-
-          state.begin();
-        })
-        .onEnd((event) => {
-          if (event.translationX > 50) {
-            runOnJS(goToPreviousWeek)();
-          } else if (event.translationX < -50) {
-            runOnJS(goToNextWeek)();
-          }
-        }),
-    [blockedRects, enabled, goToNextWeek, goToPreviousWeek]
+    () => Gesture.Simultaneous(Gesture.Native(), weekSwipePan),
+    [weekSwipePan]
   );
 }
