@@ -1,5 +1,4 @@
 import { THEME } from '@/lib/theme';
-import { AppHeaderActions } from '@/src/ui/shared/components/AppHeaderActions';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { Platform, type ViewStyle } from 'react-native';
 
@@ -43,9 +42,9 @@ export function createDetailStackScreenOptions(
 
   return {
     headerShown: true,
+    headerTitle: '',
     headerStyle: createHeaderStyle(colorScheme) as NativeStackNavigationOptions['headerStyle'],
     headerShadowVisible: Platform.OS === 'ios',
     headerTintColor: theme.foreground,
-    headerRight: () => <AppHeaderActions />,
   };
 }

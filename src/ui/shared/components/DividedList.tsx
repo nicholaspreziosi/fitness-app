@@ -15,7 +15,10 @@ export function DividedList({ children, className }: DividedListProps) {
       {items.map((child, index) => (
         <View
           key={index}
-          className={index < items.length - 1 ? 'border-b border-border' : undefined}>
+          className={cn(
+            'overflow-hidden',
+            index < items.length - 1 ? 'border-b border-border' : undefined
+          )}>
           {child}
         </View>
       ))}

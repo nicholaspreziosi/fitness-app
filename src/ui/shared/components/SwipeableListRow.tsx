@@ -1,7 +1,16 @@
+import { THEME } from '@/lib/theme';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
-import { Alert, Platform, Pressable, View } from 'react-native';
+import {
+  Alert,
+  Platform,
+  Pressable,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 export type ListRowAction = {
@@ -61,15 +70,30 @@ export function SwipeableListRow({
   containerClassName,
 }: SwipeableListRowProps) {
   const swipeableRef = React.useRef<Swipeable>(null);
+  const { colorScheme } = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
+  const surfaceColor = contained ? theme.card : theme.background;
 
-  const closeSwipe = () => {
+  const rowSurfaceStyle = React.useMemo<StyleProp<ViewStyle>>(
+    () => ({
+      width: '100%',
+      backgroundColor: surfaceColor,
+      opacity: 1,
+    }),
+    [surfaceColor]
+  );
+
+  const closeSwipe = React.useCallback(() => {
     swipeableRef.current?.close();
-  };
+  }, []);
 
-  const runAction = (action: ListRowAction) => {
-    closeSwipe();
-    action.onPress();
-  };
+  const runAction = React.useCallback(
+    (action: ListRowAction) => {
+      closeSwipe();
+      action.onPress();
+    },
+    [closeSwipe]
+  );
 
   const showActionSheet = React.useCallback(() => {
     if (actions.length === 0) {
@@ -91,26 +115,25 @@ export function SwipeableListRow({
     );
   }, [actions]);
 
-  const renderRightActions = () => (
-    <View className={cn('flex-row', contained && 'h-full')}>
-      {actions.map((action) => (
-        <SwipeActionButton
-          key={action.label}
-          contained={contained}
-          action={{
-            ...action,
-            onPress: () => runAction(action),
-          }}
-        />
-      ))}
-    </View>
+  const renderRightActions = React.useCallback(
+    () => (
+      <View className={cn('flex-row', contained && 'h-full')}>
+        {actions.map((action) => (
+          <SwipeActionButton
+            key={action.label}
+            contained={contained}
+            action={{
+              ...action,
+              onPress: () => runAction(action),
+            }}
+          />
+        ))}
+      </View>
+    ),
+    [actions, contained, runAction]
   );
 
-  const rowClassName = cn(
-    contained ? 'bg-card' : 'bg-background px-1 py-3.5',
-    onPress && 'active:bg-muted/40',
-    className
-  );
+  const rowInnerClassName = cn(contained ? undefined : 'px-1 py-3.5', className);
 
   const row = onPress ? (
     <Pressable
@@ -124,7 +147,10 @@ export function SwipeableListRow({
           : undefined
       }
       testID={testID}
-      className={rowClassName}
+      style={({ pressed }) => [
+        rowSurfaceStyle,
+        pressed ? { backgroundColor: theme.muted } : null,
+      ]}
       onPress={onPress}
       onLongPress={actions.length > 0 && Platform.OS !== 'web' ? showActionSheet : undefined}
       onContextMenu={
@@ -135,10 +161,10 @@ export function SwipeableListRow({
             }
           : undefined
       }>
-      {children}
+      <View className={rowInnerClassName}>{children}</View>
     </Pressable>
   ) : (
-    <View accessibilityLabel={accessibilityLabel} testID={testID} className={rowClassName}>
+    <View style={rowSurfaceStyle} className={rowInnerClassName}>
       {children}
     </View>
   );
@@ -156,7 +182,13 @@ export function SwipeableListRow({
   }
 
   const swipeable = (
-    <Swipeable ref={swipeableRef} overshootRight={false} renderRightActions={renderRightActions}>
+    <Swipeable
+      ref={swipeableRef}
+      overshootRight={false}
+      useNativeAnimations={Platform.OS !== 'web'}
+      childrenContainerStyle={rowSurfaceStyle}
+      containerStyle={rowSurfaceStyle}
+      renderRightActions={renderRightActions}>
       {row}
     </Swipeable>
   );

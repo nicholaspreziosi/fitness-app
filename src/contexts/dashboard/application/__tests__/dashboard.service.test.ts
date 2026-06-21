@@ -1,10 +1,11 @@
 import { DashboardService } from '@/src/contexts/dashboard/application/dashboard.service';
+import { getDashboardRangeLabel } from '@/src/contexts/dashboard/domain/dashboardPeriod';
 import { createMockWorkout, createMockWorkoutExercise } from '@/test-utils/mockData';
 import { createTestDate, FIXED_DATE } from '@/test-utils/testDates';
 
 describe('DashboardService', () => {
   const service = new DashboardService();
-  const referenceDate = FIXED_DATE;
+  const anchorDate = FIXED_DATE;
 
   it('getDashboardSummary returns the full summary shape', () => {
     const workouts = [
@@ -24,11 +25,11 @@ describe('DashboardService', () => {
       }),
     ];
 
-    const summary = service.getDashboardSummary(workouts, 'thisWeek', referenceDate);
+    const summary = service.getDashboardSummary(workouts, 'week', anchorDate);
 
     expect(summary).toMatchObject({
-      period: 'thisWeek',
-      periodLabel: 'This Week',
+      viewMode: 'week',
+      rangeLabel: getDashboardRangeLabel('week', anchorDate),
       workoutStats: { completed: 1, total: 2 },
       exerciseStats: { completed: 1, total: 3 },
       completionPercentage: 33,
@@ -98,9 +99,9 @@ describe('DashboardService', () => {
       createMockWorkout({ id: 'completed', status: 'completed', date: createTestDate(1) }),
     ];
 
-    expect(service.getUpcomingWorkouts(workouts, 'thisWeek', referenceDate).map((w) => w.id)).toEqual(
-      ['planned']
-    );
+    expect(service.getUpcomingWorkouts(workouts, 'week', anchorDate).map((w) => w.id)).toEqual([
+      'planned',
+    ]);
   });
 
   it('does not mutate workouts', () => {
@@ -113,7 +114,7 @@ describe('DashboardService', () => {
     ];
     const snapshot = JSON.stringify(workouts);
 
-    service.getDashboardSummary(workouts, 'thisWeek', referenceDate);
+    service.getDashboardSummary(workouts, 'week', anchorDate);
 
     expect(JSON.stringify(workouts)).toBe(snapshot);
   });
@@ -137,13 +138,13 @@ describe('DashboardService', () => {
 
     const withCompleted = service.getDashboardSummary(
       [completedWorkout, plannedWorkout],
-      'thisWeek',
-      referenceDate
+      'week',
+      anchorDate
     );
     const withoutCompleted = service.getDashboardSummary(
       [plannedWorkout],
-      'thisWeek',
-      referenceDate
+      'week',
+      anchorDate
     );
 
     expect(withCompleted.workoutStats).toEqual({ completed: 1, total: 2 });
@@ -158,11 +159,11 @@ describe('DashboardService', () => {
   });
 
   it('returns stable empty defaults', () => {
-    const summary = service.getDashboardSummary([], 'thisWeek', referenceDate);
+    const summary = service.getDashboardSummary([], 'week', anchorDate);
 
     expect(summary).toEqual({
-      period: 'thisWeek',
-      periodLabel: 'This Week',
+      viewMode: 'week',
+      rangeLabel: getDashboardRangeLabel('week', anchorDate),
       workoutStats: { completed: 0, total: 0 },
       exerciseStats: { completed: 0, total: 0 },
       completionPercentage: 0,

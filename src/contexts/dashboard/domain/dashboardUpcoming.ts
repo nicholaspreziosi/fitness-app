@@ -1,18 +1,20 @@
 import type { Workout, WorkoutStatus } from '@/src/contexts/workouts/domain/workout.model';
+import type { WeekStartDay } from '@/src/lib/dates/weekBounds';
 
-import { filterWorkoutsByPeriod } from './dashboardPeriod';
-import type { DashboardPeriod } from './dashboard.types';
+import { filterWorkoutsByViewMode } from './dashboardPeriod';
+import type { DashboardViewMode } from './dashboard.types';
 
 const UPCOMING_WORKOUT_STATUSES: WorkoutStatus[] = ['planned', 'inProgress'];
 
 export function getUpcomingWorkouts(
   workouts: Workout[],
-  period: DashboardPeriod,
-  referenceDate: Date = new Date()
+  viewMode: DashboardViewMode,
+  anchorDate: Date = new Date(),
+  weekStartDay: WeekStartDay = 1
 ): Workout[] {
-  const inPeriod = filterWorkoutsByPeriod(workouts, period, referenceDate);
+  const inRange = filterWorkoutsByViewMode(workouts, viewMode, anchorDate, weekStartDay);
 
-  return inPeriod
+  return inRange
     .filter((workout) => UPCOMING_WORKOUT_STATUSES.includes(workout.status))
     .sort((a, b) => {
       const aTime = a.date?.getTime() ?? 0;

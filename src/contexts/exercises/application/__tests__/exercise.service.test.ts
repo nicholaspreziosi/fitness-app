@@ -126,6 +126,19 @@ describe('ExerciseService', () => {
     expect(repository.hardDelete).toHaveBeenCalledWith('exercise-1');
   });
 
+  it('lists exercise ids that are referenced in template blocks or workouts', async () => {
+    const repository = createExerciseRepositoryMock();
+    const service = new ExerciseService(
+      repository,
+      async () => false,
+      async () => new Set(['exercise-1', 'exercise-2'])
+    );
+
+    await expect(service.listUsedExerciseIds()).resolves.toEqual(
+      new Set(['exercise-1', 'exercise-2'])
+    );
+  });
+
   it('gets exercise by id', async () => {
     const existing = createMockExercise({ id: 'exercise-1' });
     const repository = createExerciseRepositoryMock({

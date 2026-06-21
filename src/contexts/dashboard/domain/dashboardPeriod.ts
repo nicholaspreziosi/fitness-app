@@ -1,37 +1,38 @@
+import { formatMonthLabel, getMonthBounds } from '@/src/lib/dates/monthBounds';
+import {
+  endOfDay,
+  formatWeekLabel,
+  getWeekBounds,
+  startOfDay,
+  type WeekStartDay,
+} from '@/src/lib/dates/weekBounds';
 import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
-import type { WeekStartDay } from '@/src/lib/dates/weekBounds';
-import { getMonthBounds } from '@/src/lib/dates/monthBounds';
-import { addWeeks, endOfDay, getWeekBounds, startOfDay } from '@/src/lib/dates/weekBounds';
 
-import type { DashboardPeriod } from './dashboard.types';
+import type { DashboardViewMode } from './dashboard.types';
 
-export type PeriodRange = {
+export type DashboardRange = {
   start: Date;
   end: Date;
 };
 
-export function getPeriodRange(
-  period: DashboardPeriod,
-  referenceDate: Date = new Date(),
+export function getDashboardRange(
+  viewMode: DashboardViewMode,
+  anchorDate: Date = new Date(),
   weekStartDay: WeekStartDay = 1
-): PeriodRange {
-  switch (period) {
-    case 'thisWeek': {
-      const { weekStart, weekEnd } = getWeekBounds(referenceDate, weekStartDay);
+): DashboardRange {
+  switch (viewMode) {
+    case 'week': {
+      const { weekStart, weekEnd } = getWeekBounds(anchorDate, weekStartDay);
       return { start: weekStart, end: weekEnd };
     }
-    case 'nextWeek': {
-      const { weekStart, weekEnd } = getWeekBounds(addWeeks(referenceDate, 1), weekStartDay);
-      return { start: weekStart, end: weekEnd };
-    }
-    case 'thisMonth': {
-      const { monthStart, monthEnd } = getMonthBounds(referenceDate);
+    case 'month': {
+      const { monthStart, monthEnd } = getMonthBounds(anchorDate);
       return { start: monthStart, end: monthEnd };
     }
   }
 }
 
-function isWorkoutInRange(workout: Workout, range: PeriodRange): boolean {
+function isWorkoutInRange(workout: Workout, range: DashboardRange): boolean {
   if (!workout.date) {
     return false;
   }
@@ -40,58 +41,41 @@ function isWorkoutInRange(workout: Workout, range: PeriodRange): boolean {
   return workoutDate >= range.start && workoutDate <= range.end;
 }
 
-export function filterWorkoutsByPeriod(
+export function filterWorkoutsByViewMode(
   workouts: Workout[],
-  period: DashboardPeriod,
-  referenceDate: Date = new Date(),
+  viewMode: DashboardViewMode,
+  anchorDate: Date = new Date(),
   weekStartDay: WeekStartDay = 1
 ): Workout[] {
-  const range = getPeriodRange(period, referenceDate, weekStartDay);
+  const range = getDashboardRange(viewMode, anchorDate, weekStartDay);
 
   return workouts.filter(
     (workout) => workout.status !== 'archived' && isWorkoutInRange(workout, range)
   );
 }
 
-export function getPeriodLabel(
-  period: DashboardPeriod,
-  referenceDate: Date = new Date(),
+export function getDashboardRangeLabel(
+  viewMode: DashboardViewMode,
+  anchorDate: Date = new Date(),
   weekStartDay: WeekStartDay = 1
 ): string {
-  const range = getPeriodRange(period, referenceDate, weekStartDay);
-
-  switch (period) {
-    case 'thisWeek':
-      return 'This Week';
-    case 'nextWeek':
-      return 'Next Week';
-    case 'thisMonth': {
-      const monthNames = [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
-      ];
-      return monthNames[range.start.getMonth()] ?? 'This Month';
+  switch (viewMode) {
+    case 'week': {
+      const { weekStart, weekEnd } = getWeekBounds(anchorDate, weekStartDay);
+      return formatWeekLabel(weekStart, weekEnd);
     }
+    case 'month':
+      return formatMonthLabel(anchorDate);
   }
 }
 
-export function isDateInPeriod(
+export function isDateInViewMode(
   date: Date,
-  period: DashboardPeriod,
-  referenceDate: Date,
+  viewMode: DashboardViewMode,
+  anchorDate: Date,
   weekStartDay: WeekStartDay = 1
 ): boolean {
-  const range = getPeriodRange(period, referenceDate, weekStartDay);
+  const range = getDashboardRange(viewMode, anchorDate, weekStartDay);
   const normalized = startOfDay(date);
   return normalized >= range.start && normalized <= endOfDay(range.end);
 }

@@ -148,12 +148,6 @@ export function ScreenContainer({
     </View>
   );
 
-  if (!scrollable) {
-    return (
-      <View className={cn('flex-1 bg-background', className)}>{content}</View>
-    );
-  }
-
   const useHeaderScroll = showAppHeader && headerScroll;
   const scrollHandler = useHeaderScroll ? headerScroll.scrollHandler : onScroll;
   const iosRefreshScrollProps = React.useMemo(() => {
@@ -166,6 +160,12 @@ export function ScreenContainer({
       contentInsetAdjustmentBehavior: 'never' as const,
     };
   }, [topPadding, useIosRefreshInset]);
+
+  if (!scrollable) {
+    return (
+      <View className={cn('flex-1 bg-background', className)}>{content}</View>
+    );
+  }
 
   const wrapWithScrollGesture = (scrollView: React.ReactElement) =>
     scrollGesture != null ? (

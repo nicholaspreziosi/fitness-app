@@ -100,6 +100,7 @@ function mockLibrary(overrides: Partial<ReturnType<typeof useExerciseLibrary>> =
     restoreExercise: jest.fn(),
     toggleFavorite: jest.fn(),
     deleteExercise: jest.fn(),
+    usedExerciseIds: new Set<string>(),
     ...overrides,
   });
 }
@@ -112,6 +113,7 @@ function mockTemplates(overrides: Partial<ReturnType<typeof useTemplateBlocks>> 
     error: null,
     archiveTemplateBlock: jest.fn(),
     restoreTemplateBlock: jest.fn(),
+    deleteTemplateBlock: jest.fn(),
     toggleFavorite: jest.fn(),
     ...overrides,
   });
@@ -351,5 +353,30 @@ describe('LibraryView', () => {
     fireEvent.press(screen.getByTestId('archive-template-block-1'));
 
     expect(screen.getByText('Archive this template block?')).toBeTruthy();
+  });
+
+  it('shows delete action for template blocks', () => {
+    mockTemplates({
+      templateBlocks: [createMockTemplateBlock({ id: 'block-1', name: 'Shoulder Rehab' })],
+    });
+
+    render(<LibraryView />);
+
+    fireEvent.press(screen.getByTestId('library-segmented-control-templates'));
+    fireEvent.press(screen.getByTestId('delete-template-block-1'));
+
+    expect(screen.getByText('Delete this template block?')).toBeTruthy();
+  });
+
+  it('hides delete action for used exercises', () => {
+    mockLibrary({
+      exercises: [createMockExercise({ id: '1', name: 'Used Exercise', status: 'active' })],
+      usedExerciseIds: new Set(['1']),
+    });
+
+    render(<LibraryView />);
+
+    expect(screen.getByTestId('archive-exercise-1')).toBeTruthy();
+    expect(screen.queryByTestId('delete-exercise-1')).toBeNull();
   });
 });

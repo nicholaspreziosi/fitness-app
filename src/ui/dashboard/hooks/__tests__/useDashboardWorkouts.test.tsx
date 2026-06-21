@@ -1,5 +1,5 @@
 import { createWorkoutService } from '@/src/contexts/workouts/application/createWorkoutService';
-import { getPeriodRange } from '@/src/contexts/dashboard/domain/dashboardPeriod';
+import { getDashboardRange } from '@/src/contexts/dashboard/domain/dashboardPeriod';
 import { dashboardQueryKeys } from '@/src/ui/dashboard/hooks/dashboardQueryKeys';
 import { useDashboardWorkouts } from '@/src/ui/dashboard/hooks/useDashboardWorkouts';
 import { createMockWorkout } from '@/test-utils/mockData';
@@ -18,6 +18,10 @@ jest.mock('@/src/ui/shared/providers/AuthProvider', () => ({
   useAuth: () => ({ user: { id: 'user-1' } }),
 }));
 
+jest.mock('@/src/ui/profile/hooks/useWeekStartDay', () => ({
+  useWeekStartDay: () => 1,
+}));
+
 const createWorkoutServiceMock = createWorkoutService as jest.MockedFunction<
   typeof createWorkoutService
 >;
@@ -30,7 +34,7 @@ function createWrapper(queryClient: QueryClient) {
 
 describe('useDashboardWorkouts', () => {
   let queryClient: QueryClient;
-  const referenceDate = FIXED_DATE;
+  const anchorDate = FIXED_DATE;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -47,13 +51,12 @@ describe('useDashboardWorkouts', () => {
     queryClient.clear();
   });
 
-  it('fetches workouts for the selected period range', async () => {
-    const { start, end } = getPeriodRange('thisWeek', referenceDate);
+  it('fetches workouts for the selected week range', async () => {
+    const { start, end } = getDashboardRange('week', anchorDate, 1);
 
-    const { result } = renderHook(
-      () => useDashboardWorkouts('thisWeek', { referenceDate }),
-      { wrapper: createWrapper(queryClient) }
-    );
+    const { result } = renderHook(() => useDashboardWorkouts('week', { anchorDate }), {
+      wrapper: createWrapper(queryClient),
+    });
 
     await waitFor(() => {
       expect(result.current.workouts).toHaveLength(1);
@@ -64,11 +67,25 @@ describe('useDashboardWorkouts', () => {
     expect(result.current.rangeEnd).toEqual(end);
   });
 
-  it('uses period-specific query keys', async () => {
-    const { start } = getPeriodRange('nextWeek', referenceDate);
-    const expectedKey = dashboardQueryKeys('user-1').period('nextWeek', start.toISOString());
+  it('fetches workouts for the selected month range', async () => {
+    const { start, end } = getDashboardRange('month', anchorDate, 1);
 
-    renderHook(() => useDashboardWorkouts('nextWeek', { referenceDate }), {
+    const { result } = renderHook(() => useDashboardWorkouts('month', { anchorDate }), {
+      wrapper: createWrapper(queryClient),
+    });
+
+    await waitFor(() => {
+      expect(result.current.workouts).toHaveLength(1);
+    });
+
+    expect(mockListWorkoutsByDateRange).toHaveBeenCalledWith(start, end);
+  });
+
+  it('uses view-mode-specific query keys', async () => {
+    const { start } = getDashboardRange('week', anchorDate, 1);
+    const expectedKey = dashboardQueryKeys('user-1').viewMode('week', start.toISOString());
+
+    renderHook(() => useDashboardWorkouts('week', { anchorDate }), {
       wrapper: createWrapper(queryClient),
     });
 
@@ -77,16 +94,15 @@ describe('useDashboardWorkouts', () => {
     });
   });
 
-  it('updates when the period changes', async () => {
-    const thisWeekRange = getPeriodRange('thisWeek', referenceDate);
-    const nextWeekRange = getPeriodRange('nextWeek', referenceDate);
+  it('updates when the anchor date changes', async () => {
+    const thisWeekRange = getDashboardRange('week', anchorDate, 1);
+    const nextWeekRange = getDashboardRange('week', createTestDate(7), 1);
 
     const { rerender } = renderHook(
-      ({ period }: { period: 'thisWeek' | 'nextWeek' }) =>
-        useDashboardWorkouts(period, { referenceDate }),
+      ({ date }: { date: Date }) => useDashboardWorkouts('week', { anchorDate: date }),
       {
         wrapper: createWrapper(queryClient),
-        initialProps: { period: 'thisWeek' as const },
+        initialProps: { date: anchorDate },
       }
     );
 
@@ -97,7 +113,7 @@ describe('useDashboardWorkouts', () => {
       );
     });
 
-    rerender({ period: 'nextWeek' });
+    rerender({ date: createTestDate(7) });
 
     await waitFor(() => {
       expect(mockListWorkoutsByDateRange).toHaveBeenCalledWith(

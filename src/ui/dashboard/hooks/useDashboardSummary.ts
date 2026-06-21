@@ -1,24 +1,26 @@
 import { createDashboardService } from '@/src/contexts/dashboard/application/createDashboardService';
-import type { DashboardPeriod } from '@/src/contexts/dashboard/domain/dashboard.types';
+import type { DashboardViewMode } from '@/src/contexts/dashboard/domain/dashboard.types';
 import { useDashboardWorkouts } from '@/src/ui/dashboard/hooks/useDashboardWorkouts';
+import { useWeekStartDay } from '@/src/ui/profile/hooks/useWeekStartDay';
 import { useMemo } from 'react';
 
 type UseDashboardSummaryOptions = {
-  referenceDate?: Date;
+  anchorDate?: Date;
 };
 
 export function useDashboardSummary(
-  period: DashboardPeriod,
+  viewMode: DashboardViewMode,
   options: UseDashboardSummaryOptions = {}
 ) {
+  const weekStartDay = useWeekStartDay();
+  const anchorDate = options.anchorDate ?? new Date();
   const { workouts, isLoading, isRefreshing, isError, error, refetch, rangeStart, rangeEnd } =
-    useDashboardWorkouts(period, options);
-  const referenceDate = options.referenceDate ?? new Date();
+    useDashboardWorkouts(viewMode, { anchorDate });
 
   const summary = useMemo(() => {
     const service = createDashboardService();
-    return service.getDashboardSummary(workouts, period, referenceDate);
-  }, [workouts, period, referenceDate]);
+    return service.getDashboardSummary(workouts, viewMode, anchorDate, weekStartDay);
+  }, [workouts, viewMode, anchorDate, weekStartDay]);
 
   return {
     summary,

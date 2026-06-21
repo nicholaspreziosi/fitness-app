@@ -8,11 +8,13 @@ import { exerciseSchema } from '@/src/contexts/exercises/domain/exercise.schema'
 import { ServiceError } from '@/src/contexts/shared/domain/service.errors';
 
 export type ExerciseUsageChecker = (exerciseId: string) => Promise<boolean>;
+export type UsedExerciseIdsLoader = () => Promise<ReadonlySet<string>>;
 
 export class ExerciseService {
   constructor(
     private readonly exerciseRepository: ExerciseRepository,
-    private readonly isExerciseUsed: ExerciseUsageChecker = async () => false
+    private readonly isExerciseUsed: ExerciseUsageChecker = async () => false,
+    private readonly loadUsedExerciseIds: UsedExerciseIdsLoader = async () => new Set()
   ) {}
 
   async listExercises(): Promise<Exercise[]> {
@@ -86,6 +88,10 @@ export class ExerciseService {
     }
 
     await this.exerciseRepository.hardDelete(id);
+  }
+
+  async listUsedExerciseIds(): Promise<ReadonlySet<string>> {
+    return this.loadUsedExerciseIds();
   }
 
   private async requireExercise(id: string): Promise<Exercise> {

@@ -1,5 +1,5 @@
-import { getPeriodRange } from '@/src/contexts/dashboard/domain/dashboardPeriod';
-import type { DashboardPeriod } from '@/src/contexts/dashboard/domain/dashboard.types';
+import { getDashboardRange } from '@/src/contexts/dashboard/domain/dashboardPeriod';
+import type { DashboardViewMode } from '@/src/contexts/dashboard/domain/dashboard.types';
 import { createWorkoutService } from '@/src/contexts/workouts/application/createWorkoutService';
 import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
 import { useWeekStartDay } from '@/src/ui/profile/hooks/useWeekStartDay';
@@ -8,22 +8,22 @@ import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { useQuery } from '@tanstack/react-query';
 
 type UseDashboardWorkoutsOptions = {
-  referenceDate?: Date;
+  anchorDate?: Date;
 };
 
 export function useDashboardWorkouts(
-  period: DashboardPeriod,
+  viewMode: DashboardViewMode,
   options: UseDashboardWorkoutsOptions = {}
 ) {
   const { user } = useAuth();
   const userId = user?.id;
   const weekStartDay = useWeekStartDay();
-  const referenceDate = options.referenceDate ?? new Date();
-  const { start, end } = getPeriodRange(period, referenceDate, weekStartDay);
+  const anchorDate = options.anchorDate ?? new Date();
+  const { start, end } = getDashboardRange(viewMode, anchorDate, weekStartDay);
   const rangeStartIso = start.toISOString();
 
   const query = useQuery({
-    queryKey: dashboardQueryKeys(userId ?? '').period(period, rangeStartIso),
+    queryKey: dashboardQueryKeys(userId ?? '').viewMode(viewMode, rangeStartIso),
     enabled: Boolean(userId),
     retry: false,
     queryFn: async (): Promise<Workout[]> => {

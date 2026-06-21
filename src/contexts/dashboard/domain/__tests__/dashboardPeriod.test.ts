@@ -1,67 +1,75 @@
 import {
-  filterWorkoutsByPeriod,
-  getPeriodRange,
-  isDateInPeriod,
+  filterWorkoutsByViewMode,
+  getDashboardRange,
+  getDashboardRangeLabel,
+  isDateInViewMode,
 } from '@/src/contexts/dashboard/domain/dashboardPeriod';
 import { createMockWorkout } from '@/test-utils/mockData';
 import { createTestDate, FIXED_DATE } from '@/test-utils/testDates';
 import { getWeekBounds } from '@/src/lib/dates/weekBounds';
 import { getMonthBounds } from '@/src/lib/dates/monthBounds';
 
-describe('getPeriodRange', () => {
-  const referenceDate = FIXED_DATE;
+describe('getDashboardRange', () => {
+  const anchorDate = FIXED_DATE;
 
-  it('defaults to current week', () => {
-    const range = getPeriodRange('thisWeek', referenceDate);
-    const { weekStart, weekEnd } = getWeekBounds(referenceDate);
-
-    expect(range.start).toEqual(weekStart);
-    expect(range.end).toEqual(weekEnd);
-  });
-
-  it('returns next week bounds', () => {
-    const range = getPeriodRange('nextWeek', referenceDate);
-    const { weekStart, weekEnd } = getWeekBounds(createTestDate(7));
+  it('returns week bounds using the preferred week start day', () => {
+    const range = getDashboardRange('week', anchorDate, 0);
+    const { weekStart, weekEnd } = getWeekBounds(anchorDate, 0);
 
     expect(range.start).toEqual(weekStart);
     expect(range.end).toEqual(weekEnd);
   });
 
-  it('returns this month bounds', () => {
-    const range = getPeriodRange('thisMonth', referenceDate);
-    const { monthStart, monthEnd } = getMonthBounds(referenceDate);
+  it('returns month bounds for month view', () => {
+    const range = getDashboardRange('month', anchorDate);
+    const { monthStart, monthEnd } = getMonthBounds(anchorDate);
 
     expect(range.start).toEqual(monthStart);
     expect(range.end).toEqual(monthEnd);
   });
+
+  it('supports navigating to a different week via anchor date', () => {
+    const nextWeekAnchor = createTestDate(7);
+    const range = getDashboardRange('week', nextWeekAnchor);
+    const { weekStart, weekEnd } = getWeekBounds(nextWeekAnchor);
+
+    expect(range.start).toEqual(weekStart);
+    expect(range.end).toEqual(weekEnd);
+  });
 });
 
-describe('filterWorkoutsByPeriod', () => {
-  const referenceDate = FIXED_DATE;
+describe('getDashboardRangeLabel', () => {
+  it('formats week labels', () => {
+    const anchorDate = createTestDate(0);
+    const { weekStart, weekEnd } = getWeekBounds(anchorDate, 1);
 
-  it('filters workouts for this week', () => {
+    expect(getDashboardRangeLabel('week', anchorDate, 1)).toBe(
+      `Jun ${weekStart.getDate()} - ${weekEnd.getDate()}`
+    );
+  });
+
+  it('formats month labels', () => {
+    expect(getDashboardRangeLabel('month', FIXED_DATE)).toBe('June 2024');
+  });
+});
+
+describe('filterWorkoutsByViewMode', () => {
+  const anchorDate = FIXED_DATE;
+
+  it('filters workouts for the selected week', () => {
     const inWeek = createMockWorkout({ id: 'in-week', date: createTestDate(1) });
     const outOfWeek = createMockWorkout({ id: 'out-of-week', date: createTestDate(14) });
 
-    const result = filterWorkoutsByPeriod([inWeek, outOfWeek], 'thisWeek', referenceDate);
+    const result = filterWorkoutsByViewMode([inWeek, outOfWeek], 'week', anchorDate);
 
     expect(result.map((workout) => workout.id)).toEqual(['in-week']);
   });
 
-  it('filters workouts for next week', () => {
-    const thisWeek = createMockWorkout({ id: 'this-week', date: createTestDate(1) });
-    const nextWeek = createMockWorkout({ id: 'next-week', date: createTestDate(8) });
-
-    const result = filterWorkoutsByPeriod([thisWeek, nextWeek], 'nextWeek', referenceDate);
-
-    expect(result.map((workout) => workout.id)).toEqual(['next-week']);
-  });
-
-  it('filters workouts for this month', () => {
+  it('filters workouts for the selected month', () => {
     const inMonth = createMockWorkout({ id: 'in-month', date: createTestDate(5) });
     const outOfMonth = createMockWorkout({ id: 'out-of-month', date: createTestDate(45) });
 
-    const result = filterWorkoutsByPeriod([inMonth, outOfMonth], 'thisMonth', referenceDate);
+    const result = filterWorkoutsByViewMode([inMonth, outOfMonth], 'month', anchorDate);
 
     expect(result.map((workout) => workout.id)).toEqual(['in-month']);
   });
@@ -70,7 +78,7 @@ describe('filterWorkoutsByPeriod', () => {
     const noDate = createMockWorkout({ id: 'no-date', date: undefined });
     const withDate = createMockWorkout({ id: 'with-date', date: createTestDate(1) });
 
-    const result = filterWorkoutsByPeriod([noDate, withDate], 'thisWeek', referenceDate);
+    const result = filterWorkoutsByViewMode([noDate, withDate], 'week', anchorDate);
 
     expect(result.map((workout) => workout.id)).toEqual(['with-date']);
   });
@@ -83,17 +91,17 @@ describe('filterWorkoutsByPeriod', () => {
     });
     const planned = createMockWorkout({ id: 'planned', status: 'planned', date: createTestDate(1) });
 
-    const result = filterWorkoutsByPeriod([archived, planned], 'thisWeek', referenceDate);
+    const result = filterWorkoutsByViewMode([archived, planned], 'week', anchorDate);
 
     expect(result.map((workout) => workout.id)).toEqual(['planned']);
   });
 });
 
-describe('isDateInPeriod', () => {
-  const referenceDate = FIXED_DATE;
+describe('isDateInViewMode', () => {
+  const anchorDate = FIXED_DATE;
 
-  it('checks whether a date falls in the selected period', () => {
-    expect(isDateInPeriod(createTestDate(1), 'thisWeek', referenceDate)).toBe(true);
-    expect(isDateInPeriod(createTestDate(14), 'thisWeek', referenceDate)).toBe(false);
+  it('checks whether a date falls in the selected range', () => {
+    expect(isDateInViewMode(createTestDate(1), 'week', anchorDate)).toBe(true);
+    expect(isDateInViewMode(createTestDate(14), 'week', anchorDate)).toBe(false);
   });
 });

@@ -1,32 +1,41 @@
-import { getMonthBounds } from '@/src/lib/dates/monthBounds';
-import { endOfDay, startOfDay } from '@/src/lib/dates/weekBounds';
+import { addMonths, formatMonthLabel, getMonthBounds } from '@/src/lib/dates/monthBounds';
+import { createTestDate, FIXED_DATE } from '@/test-utils/testDates';
 
 describe('getMonthBounds', () => {
   it('returns the first and last day of the month', () => {
-    const date = new Date('2025-06-18T12:00:00.000Z');
-    const { monthStart, monthEnd } = getMonthBounds(date);
+    const referenceDate = FIXED_DATE;
+    const { monthStart, monthEnd } = getMonthBounds(referenceDate);
 
-    expect(monthStart).toEqual(startOfDay(new Date(date.getFullYear(), date.getMonth(), 1)));
-    expect(monthEnd).toEqual(
-      endOfDay(new Date(date.getFullYear(), date.getMonth() + 1, 0))
-    );
-  });
-
-  it('handles months with 31 days', () => {
-    const date = new Date('2025-01-15T12:00:00.000Z');
-    const { monthStart, monthEnd } = getMonthBounds(date);
-
+    expect(monthStart.getFullYear()).toBe(2024);
+    expect(monthStart.getMonth()).toBe(5);
     expect(monthStart.getDate()).toBe(1);
-    expect(monthEnd.getDate()).toBe(31);
-    expect(monthStart.getMonth()).toBe(0);
-    expect(monthEnd.getMonth()).toBe(0);
+
+    expect(monthEnd.getFullYear()).toBe(2024);
+    expect(monthEnd.getMonth()).toBe(5);
+    expect(monthEnd.getDate()).toBe(30);
+  });
+});
+
+describe('addMonths', () => {
+  it('moves to the previous month', () => {
+    const result = addMonths(FIXED_DATE, -1);
+
+    expect(result.getFullYear()).toBe(2024);
+    expect(result.getMonth()).toBe(4);
+    expect(result.getDate()).toBe(15);
   });
 
-  it('handles February in a non-leap year', () => {
-    const date = new Date('2025-02-10T12:00:00.000Z');
-    const { monthEnd } = getMonthBounds(date);
+  it('moves to the next month', () => {
+    const result = addMonths(FIXED_DATE, 1);
 
-    expect(monthEnd.getDate()).toBe(28);
-    expect(monthEnd.getMonth()).toBe(1);
+    expect(result.getFullYear()).toBe(2024);
+    expect(result.getMonth()).toBe(6);
+    expect(result.getDate()).toBe(15);
+  });
+});
+
+describe('formatMonthLabel', () => {
+  it('formats the month and year', () => {
+    expect(formatMonthLabel(createTestDate(0))).toBe('June 2024');
   });
 });

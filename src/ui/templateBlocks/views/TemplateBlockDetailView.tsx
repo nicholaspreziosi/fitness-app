@@ -109,7 +109,7 @@ export function TemplateBlockDetailView() {
                 accessibilityLabel={exercise.name}
                 testID={`template-exercise-row-${exercise.id}`}
                 onPress={() => router.push(`/library/exercises/${exercise.id}`)}>
-                <View className="min-w-0 flex-1">
+                <View className="min-w-0">
                   <Text className="text-sm font-medium text-foreground">{exercise.name}</Text>
                   {exercise.prescription ? (
                     <Text className="mt-0.5 text-xs text-muted-foreground">

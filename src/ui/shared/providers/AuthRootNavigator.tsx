@@ -2,28 +2,22 @@ import {
   canAccessAppRoutes,
   canAccessAuthRoutes,
 } from '@/src/contexts/auth/domain/authNavigation.rules';
+import { SplashView } from '@/src/ui/shared/components/SplashView';
+import { useAppSplash } from '@/src/ui/shared/hooks/useAppSplash';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { NAV_THEME } from '@/lib/theme';
 import { ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
-import { ActivityIndicator, View } from 'react-native';
-
-export function AuthLoadingScreen() {
-  return (
-    <View testID="auth-loading-screen" className="flex-1 items-center justify-center bg-background">
-      <ActivityIndicator size="large" />
-    </View>
-  );
-}
 
 export function AuthRootNavigator() {
   const { user, loading } = useAuth();
   const { colorScheme } = useColorScheme();
+  const { onSplashReady, showSplash } = useAppSplash(!loading);
 
-  if (loading) {
-    return <AuthLoadingScreen />;
+  if (showSplash) {
+    return <SplashView onReady={onSplashReady} />;
   }
 
   return (

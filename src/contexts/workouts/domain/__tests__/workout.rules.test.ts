@@ -6,7 +6,6 @@ import {
 import {
   canHardDeleteTemplateBlock,
   isSelectableTemplateBlock,
-  shouldArchiveTemplateBlockInsteadOfDelete,
 } from '@/src/contexts/templateBlocks/domain/templateBlock.rules';
 import {
   canHardDeleteWorkout,
@@ -37,13 +36,8 @@ describe('archive and delete domain rules', () => {
   });
 
   describe('template blocks', () => {
-    it('should be archived instead of hard deleted once used', () => {
-      expect(shouldArchiveTemplateBlockInsteadOfDelete(true)).toBe(true);
-      expect(canHardDeleteTemplateBlock(true)).toBe(false);
-    });
-
-    it('can be hard deleted when never used', () => {
-      expect(canHardDeleteTemplateBlock(false)).toBe(true);
+    it('can always be hard deleted because workouts store exercise copies', () => {
+      expect(canHardDeleteTemplateBlock()).toBe(true);
     });
 
     it('archived template blocks should not appear in normal selection', () => {

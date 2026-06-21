@@ -1,20 +1,13 @@
 import type { ExerciseRepository } from '@/src/contexts/exercises/domain/exercise.repository';
 import type { TemplateBlock } from '@/src/contexts/templateBlocks/domain/templateBlock.model';
 import type { TemplateBlockRepository } from '@/src/contexts/templateBlocks/domain/templateBlock.repository';
-import {
-  canHardDeleteTemplateBlock,
-  shouldArchiveTemplateBlockInsteadOfDelete,
-} from '@/src/contexts/templateBlocks/domain/templateBlock.rules';
 import { templateBlockSchema } from '@/src/contexts/templateBlocks/domain/templateBlock.schema';
 import { ServiceError } from '@/src/contexts/shared/domain/service.errors';
-
-export type TemplateBlockUsageChecker = (templateBlockId: string) => Promise<boolean>;
 
 export class TemplateBlockService {
   constructor(
     private readonly templateBlockRepository: TemplateBlockRepository,
-    private readonly exerciseRepository?: ExerciseRepository,
-    private readonly isTemplateBlockUsed: TemplateBlockUsageChecker = async () => false
+    private readonly exerciseRepository?: ExerciseRepository
   ) {}
 
   async listTemplateBlocks(): Promise<TemplateBlock[]> {
@@ -122,19 +115,6 @@ export class TemplateBlockService {
 
   async deleteTemplateBlock(id: string): Promise<void> {
     await this.requireTemplateBlock(id);
-
-    const hasBeenUsed = await this.isTemplateBlockUsed(id);
-
-    if (
-      shouldArchiveTemplateBlockInsteadOfDelete(hasBeenUsed) ||
-      !canHardDeleteTemplateBlock(hasBeenUsed)
-    ) {
-      throw new ServiceError(
-        'Archive this template block instead of deleting it.',
-        'invalid_operation'
-      );
-    }
-
     await this.templateBlockRepository.hardDelete(id);
   }
 

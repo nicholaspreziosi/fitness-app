@@ -281,24 +281,11 @@ describe('TemplateBlockService', () => {
     expect(updated.exerciseIds).toEqual(['exercise-3', 'exercise-1', 'exercise-2']);
   });
 
-  it('prevents unsafe hard delete if template block has been used', async () => {
+  it('hard deletes template block even when it has been used in workouts', async () => {
     const repository = createTemplateBlockRepositoryMock({
       findById: jest.fn().mockResolvedValue(createMockTemplateBlock({ id: 'block-1' })),
     });
-    const service = new TemplateBlockService(repository, undefined, async () => true);
-
-    await expect(service.deleteTemplateBlock('block-1')).rejects.toMatchObject({
-      message: 'Archive this template block instead of deleting it.',
-      code: 'invalid_operation',
-    });
-    expect(repository.hardDelete).not.toHaveBeenCalled();
-  });
-
-  it('hard deletes template block when it has never been used', async () => {
-    const repository = createTemplateBlockRepositoryMock({
-      findById: jest.fn().mockResolvedValue(createMockTemplateBlock({ id: 'block-1' })),
-    });
-    const service = new TemplateBlockService(repository, undefined, async () => false);
+    const service = new TemplateBlockService(repository);
 
     await service.deleteTemplateBlock('block-1');
 

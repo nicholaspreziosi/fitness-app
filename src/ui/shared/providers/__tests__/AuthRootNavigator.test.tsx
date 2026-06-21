@@ -22,21 +22,31 @@ jest.mock('nativewind', () => ({
   useColorScheme: () => ({ colorScheme: 'light' }),
 }));
 
+jest.mock('@/src/ui/shared/hooks/useAppSplash', () => ({
+  useAppSplash: jest.fn(),
+}));
+
 jest.mock('@/src/ui/shared/providers/AuthProvider', () => ({
   useAuth: jest.fn(),
 }));
 
+import { useAppSplash } from '@/src/ui/shared/hooks/useAppSplash';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 
 const useAuthMock = useAuth as jest.MockedFunction<typeof useAuth>;
+const useAppSplashMock = useAppSplash as jest.MockedFunction<typeof useAppSplash>;
 
 describe('AuthRootNavigator', () => {
   beforeEach(() => {
     routeGuards.length = 0;
     jest.clearAllMocks();
+    useAppSplashMock.mockReturnValue({
+      onSplashReady: jest.fn(),
+      showSplash: false,
+    });
   });
 
-  it('shows a loading screen while auth state resolves', () => {
+  it('shows the splash screen while startup is in progress', () => {
     useAuthMock.mockReturnValue({
       user: null,
       loading: true,
@@ -44,10 +54,14 @@ describe('AuthRootNavigator', () => {
       signUp: jest.fn(),
       signOut: jest.fn(),
     });
+    useAppSplashMock.mockReturnValue({
+      onSplashReady: jest.fn(),
+      showSplash: true,
+    });
 
     render(<AuthRootNavigator />);
 
-    expect(screen.getByTestId('auth-loading-screen')).toBeTruthy();
+    expect(screen.getByTestId('splash-screen')).toBeTruthy();
     expect(routeGuards).toHaveLength(0);
   });
 

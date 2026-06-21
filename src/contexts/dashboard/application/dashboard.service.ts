@@ -4,16 +4,20 @@ import {
   calculateWorkoutCompletionStats,
 } from '@/src/contexts/dashboard/domain/dashboardCompletion';
 import { aggregateBodyPartCoverage } from '@/src/contexts/dashboard/domain/dashboardCoverage';
-import { filterWorkoutsByPeriod, getPeriodLabel } from '@/src/contexts/dashboard/domain/dashboardPeriod';
+import {
+  filterWorkoutsByViewMode,
+  getDashboardRangeLabel,
+} from '@/src/contexts/dashboard/domain/dashboardPeriod';
 import type {
   CompletionStats,
   CoverageItem,
   DashboardEmptyStates,
-  DashboardPeriod,
   DashboardSummary,
+  DashboardViewMode,
 } from '@/src/contexts/dashboard/domain/dashboard.types';
 import { getUpcomingWorkouts } from '@/src/contexts/dashboard/domain/dashboardUpcoming';
 import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
+import type { WeekStartDay } from '@/src/lib/dates/weekBounds';
 
 export class DashboardService {
   getCompletionStats(workouts: Workout[]): {
@@ -36,33 +40,35 @@ export class DashboardService {
 
   getUpcomingWorkouts(
     workouts: Workout[],
-    period: DashboardPeriod,
-    referenceDate: Date = new Date()
+    viewMode: DashboardViewMode,
+    anchorDate: Date = new Date(),
+    weekStartDay: WeekStartDay = 1
   ): Workout[] {
-    return getUpcomingWorkouts(workouts, period, referenceDate);
+    return getUpcomingWorkouts(workouts, viewMode, anchorDate, weekStartDay);
   }
 
   getDashboardSummary(
     workouts: Workout[],
-    period: DashboardPeriod,
-    referenceDate: Date = new Date()
+    viewMode: DashboardViewMode,
+    anchorDate: Date = new Date(),
+    weekStartDay: WeekStartDay = 1
   ): DashboardSummary {
-    const periodWorkouts = filterWorkoutsByPeriod(workouts, period, referenceDate);
-    const { workoutStats, exerciseStats } = this.getCompletionStats(periodWorkouts);
-    const coverage = this.getCoverageData(periodWorkouts);
-    const upcoming = this.getUpcomingWorkouts(workouts, period, referenceDate);
-    const completionPercentage = this.getCompletionPercentage(periodWorkouts);
+    const rangeWorkouts = filterWorkoutsByViewMode(workouts, viewMode, anchorDate, weekStartDay);
+    const { workoutStats, exerciseStats } = this.getCompletionStats(rangeWorkouts);
+    const coverage = this.getCoverageData(rangeWorkouts);
+    const upcoming = this.getUpcomingWorkouts(workouts, viewMode, anchorDate, weekStartDay);
+    const completionPercentage = this.getCompletionPercentage(rangeWorkouts);
 
     const emptyStates: DashboardEmptyStates = {
-      noWorkouts: periodWorkouts.length === 0,
+      noWorkouts: rangeWorkouts.length === 0,
       noCompletedData: workoutStats.completed === 0,
       noUpcoming: upcoming.length === 0,
       noChartData: coverage.length === 0,
     };
 
     return {
-      period,
-      periodLabel: getPeriodLabel(period, referenceDate),
+      viewMode,
+      rangeLabel: getDashboardRangeLabel(viewMode, anchorDate, weekStartDay),
       workoutStats,
       exerciseStats,
       completionPercentage,

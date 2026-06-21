@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F8FAFC"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -31,7 +31,16 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F8FAFC",
+          "dark": {
+            "backgroundColor": "#020617"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

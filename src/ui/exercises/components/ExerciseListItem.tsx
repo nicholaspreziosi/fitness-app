@@ -13,6 +13,7 @@ import { View } from 'react-native';
 
 type ExerciseListItemProps = {
   exercise: Exercise;
+  canDelete: boolean;
   onPress: () => void;
   onArchive: (id: string) => void;
   onRestore: (id: string) => void;
@@ -24,6 +25,7 @@ type PendingConfirmAction = 'archive' | 'delete';
 
 export function ExerciseListItem({
   exercise,
+  canDelete,
   onPress,
   onArchive,
   onRestore,
@@ -36,34 +38,45 @@ export function ExerciseListItem({
     setPendingAction(null);
   };
 
-  const actions: ListRowAction[] =
-    exercise.status === 'archived'
-      ? [
-          {
-            label: 'Restore',
-            testID: `restore-exercise-${exercise.id}`,
-            onPress: () => onRestore(exercise.id),
-          },
-          {
-            label: 'Delete',
-            destructive: true,
-            testID: `delete-exercise-${exercise.id}`,
-            onPress: () => setPendingAction('delete'),
-          },
-        ]
-      : [
-          {
-            label: 'Archive',
-            testID: `archive-exercise-${exercise.id}`,
-            onPress: () => setPendingAction('archive'),
-          },
-          {
-            label: 'Delete',
-            destructive: true,
-            testID: `delete-exercise-${exercise.id}`,
-            onPress: () => setPendingAction('delete'),
-          },
-        ];
+  const actions = React.useMemo<ListRowAction[]>(
+    () =>
+      exercise.status === 'archived'
+        ? [
+            {
+              label: 'Restore',
+              testID: `restore-exercise-${exercise.id}`,
+              onPress: () => onRestore(exercise.id),
+            },
+            ...(canDelete
+              ? [
+                  {
+                    label: 'Delete',
+                    destructive: true,
+                    testID: `delete-exercise-${exercise.id}`,
+                    onPress: () => setPendingAction('delete'),
+                  },
+                ]
+              : []),
+          ]
+        : [
+            {
+              label: 'Archive',
+              testID: `archive-exercise-${exercise.id}`,
+              onPress: () => setPendingAction('archive'),
+            },
+            ...(canDelete
+              ? [
+                  {
+                    label: 'Delete',
+                    destructive: true,
+                    testID: `delete-exercise-${exercise.id}`,
+                    onPress: () => setPendingAction('delete'),
+                  },
+                ]
+              : []),
+          ],
+    [canDelete, exercise.id, exercise.status, onRestore]
+  );
 
   const prescription = formatExercisePrescription(exercise);
 
@@ -73,11 +86,16 @@ export function ExerciseListItem({
         actions={actions}
         testID={`exercise-row-${exercise.id}`}
         accessibilityLabel={exercise.name}
-        className={cn(exercise.status === 'archived' && 'opacity-80')}
         onPress={onPress}>
         <View className="min-w-0 flex-1 flex-row items-center justify-between gap-2">
           <View className="min-w-0 flex-1">
-            <Text className="font-medium text-foreground">{exercise.name}</Text>
+            <Text
+              className={cn(
+                'font-medium',
+                exercise.status === 'archived' ? 'text-muted-foreground' : 'text-foreground'
+              )}>
+              {exercise.name}
+            </Text>
             {prescription ? (
               <Text className="mt-0.5 text-xs text-muted-foreground">{prescription}</Text>
             ) : null}
@@ -110,7 +128,7 @@ export function ExerciseListItem({
 
       <ConfirmDialog
         confirmLabel="Delete"
-        description="Only unused exercises can be deleted. Exercises used in workouts or template blocks must be archived instead."
+        description="This permanently removes the exercise. Used exercises must be archived instead."
         destructive
         hideTrigger
         open={pendingAction === 'delete'}

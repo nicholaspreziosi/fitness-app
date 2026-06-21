@@ -15,35 +15,58 @@ type TemplateBlockListItemProps = {
   onPress: () => void;
   onArchive: (id: string) => void;
   onRestore: (id: string) => void;
+  onDelete: (id: string) => void;
   onToggleFavorite: (id: string, isFavorite: boolean) => void;
 };
+
+type PendingConfirmAction = 'archive' | 'delete';
 
 export function TemplateBlockListItem({
   block,
   onPress,
   onArchive,
   onRestore,
+  onDelete,
   onToggleFavorite,
 }: TemplateBlockListItemProps) {
-  const [pendingArchive, setPendingArchive] = React.useState(false);
+  const [pendingAction, setPendingAction] = React.useState<PendingConfirmAction | null>(null);
   const exerciseCount = block.exerciseIds.length;
 
-  const actions: ListRowAction[] =
-    block.status === 'archived'
-      ? [
-          {
-            label: 'Restore',
-            testID: `restore-template-${block.id}`,
-            onPress: () => onRestore(block.id),
-          },
-        ]
-      : [
-          {
-            label: 'Archive',
-            testID: `archive-template-${block.id}`,
-            onPress: () => setPendingArchive(true),
-          },
-        ];
+  const closeConfirm = () => {
+    setPendingAction(null);
+  };
+
+  const actions = React.useMemo<ListRowAction[]>(
+    () =>
+      block.status === 'archived'
+        ? [
+            {
+              label: 'Restore',
+              testID: `restore-template-${block.id}`,
+              onPress: () => onRestore(block.id),
+            },
+            {
+              label: 'Delete',
+              destructive: true,
+              testID: `delete-template-${block.id}`,
+              onPress: () => setPendingAction('delete'),
+            },
+          ]
+        : [
+            {
+              label: 'Archive',
+              testID: `archive-template-${block.id}`,
+              onPress: () => setPendingAction('archive'),
+            },
+            {
+              label: 'Delete',
+              destructive: true,
+              testID: `delete-template-${block.id}`,
+              onPress: () => setPendingAction('delete'),
+            },
+          ],
+    [block.id, block.status, onRestore]
+  );
 
   return (
     <>
@@ -51,11 +74,16 @@ export function TemplateBlockListItem({
         actions={actions}
         testID={`template-row-${block.id}`}
         accessibilityLabel={block.name}
-        className={cn(block.status === 'archived' && 'opacity-80')}
         onPress={onPress}>
         <View className="min-w-0 flex-1 flex-row items-start justify-between gap-2">
           <View className="min-w-0 flex-1">
-            <Text className="font-medium text-foreground">{block.name}</Text>
+            <Text
+              className={cn(
+                'font-medium',
+                block.status === 'archived' ? 'text-muted-foreground' : 'text-foreground'
+              )}>
+              {block.name}
+            </Text>
             <Text className="mt-0.5 text-sm text-muted-foreground">
               {exerciseCount} exercise{exerciseCount === 1 ? '' : 's'}
             </Text>
@@ -77,16 +105,35 @@ export function TemplateBlockListItem({
         confirmLabel="Archive"
         description="Archived template blocks stay available in historical workouts but are hidden from normal selection."
         hideTrigger
-        open={pendingArchive}
+        open={pendingAction === 'archive'}
         title="Archive this template block?"
         triggerLabel="Archive"
         onConfirm={() => {
           onArchive(block.id);
-          setPendingArchive(false);
+          closeConfirm();
         }}
         onOpenChange={(open) => {
           if (!open) {
-            setPendingArchive(false);
+            closeConfirm();
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        confirmLabel="Delete"
+        description="Deleting a template block removes it permanently. Workouts already created from this block keep their exercise copies."
+        destructive
+        hideTrigger
+        open={pendingAction === 'delete'}
+        title="Delete this template block?"
+        triggerLabel="Delete"
+        onConfirm={() => {
+          onDelete(block.id);
+          closeConfirm();
+        }}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeConfirm();
           }
         }}
       />

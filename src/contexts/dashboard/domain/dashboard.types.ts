@@ -1,6 +1,6 @@
-export const DASHBOARD_PERIODS = ['thisWeek', 'nextWeek', 'thisMonth'] as const;
+export const DASHBOARD_VIEW_MODES = ['week', 'month'] as const;
 
-export type DashboardPeriod = (typeof DASHBOARD_PERIODS)[number];
+export type DashboardViewMode = (typeof DASHBOARD_VIEW_MODES)[number];
 
 export type CompletionStats = {
   completed: number;
@@ -20,8 +20,8 @@ export type DashboardEmptyStates = {
 };
 
 export type DashboardSummary = {
-  period: DashboardPeriod;
-  periodLabel: string;
+  viewMode: DashboardViewMode;
+  rangeLabel: string;
   workoutStats: CompletionStats;
   exerciseStats: CompletionStats;
   completionPercentage: number;

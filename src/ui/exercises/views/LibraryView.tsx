@@ -48,6 +48,7 @@ export function LibraryView() {
     restoreExercise,
     deleteExercise,
     toggleFavorite: toggleExerciseFavorite,
+    usedExerciseIds,
   } = useExerciseLibrary();
 
   const {
@@ -58,6 +59,7 @@ export function LibraryView() {
     refetch: refetchTemplateBlocks,
     archiveTemplateBlock,
     restoreTemplateBlock,
+    deleteTemplateBlock,
     toggleFavorite: toggleTemplateFavorite,
   } = useTemplateBlocks({ enabled: tab === 'templates' });
 
@@ -196,6 +198,7 @@ export function LibraryView() {
                 {filteredExercises.map((exercise) => (
                   <ExerciseListItem
                     key={exercise.id}
+                    canDelete={!usedExerciseIds.has(exercise.id)}
                     exercise={exercise}
                     onArchive={archiveExercise}
                     onDelete={deleteExercise}
@@ -225,6 +228,7 @@ export function LibraryView() {
                   key={block.id}
                   block={block}
                   onArchive={archiveTemplateBlock}
+                  onDelete={deleteTemplateBlock}
                   onPress={() => openTemplateDetail(block.id)}
                   onRestore={restoreTemplateBlock}
                   onToggleFavorite={toggleTemplateFavorite}

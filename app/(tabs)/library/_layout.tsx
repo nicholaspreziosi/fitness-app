@@ -12,7 +12,6 @@ export default function LibraryStackLayout() {
         name="exercises/new"
         options={{
           ...createDetailStackScreenOptions(colorScheme),
-          headerTitle: 'New Exercise',
           headerBackTitle: 'Library',
         }}
       />
@@ -20,7 +19,6 @@ export default function LibraryStackLayout() {
         name="exercises/[id]/index"
         options={{
           ...createDetailStackScreenOptions(colorScheme),
-          headerTitle: 'Exercise',
           headerBackTitle: 'Library',
         }}
       />
@@ -28,7 +26,6 @@ export default function LibraryStackLayout() {
         name="exercises/[id]/edit"
         options={{
           ...createDetailStackScreenOptions(colorScheme),
-          headerTitle: 'Edit Exercise',
           headerBackTitle: 'Exercise',
         }}
       />
@@ -36,7 +33,6 @@ export default function LibraryStackLayout() {
         name="template-blocks/new"
         options={{
           ...createDetailStackScreenOptions(colorScheme),
-          headerTitle: 'New Template',
           headerBackTitle: 'Library',
         }}
       />
@@ -44,7 +40,6 @@ export default function LibraryStackLayout() {
         name="template-blocks/[id]/index"
         options={{
           ...createDetailStackScreenOptions(colorScheme),
-          headerTitle: 'Template',
           headerBackTitle: 'Library',
         }}
       />
@@ -52,7 +47,6 @@ export default function LibraryStackLayout() {
         name="template-blocks/[id]/edit"
         options={{
           ...createDetailStackScreenOptions(colorScheme),
-          headerTitle: 'Edit Template',
           headerBackTitle: 'Template',
         }}
       />

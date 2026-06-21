@@ -1,6 +1,7 @@
-import type { DashboardPeriod } from '@/src/contexts/dashboard/domain/dashboard.types';
+import type { DashboardViewMode } from '@/src/contexts/dashboard/domain/dashboard.types';
 import { useDashboardSummary } from '@/src/ui/dashboard/hooks/useDashboardSummary';
 import { DashboardView } from '@/src/ui/dashboard/views/DashboardView';
+import { useHorizontalSwipeWithScrollGesture } from '@/src/ui/shared/hooks/useHorizontalSwipeWithScrollGesture';
 import { createMockWorkout } from '@/test-utils/mockData';
 import { createTestDate } from '@/test-utils/testDates';
 import { fireEvent, render, screen } from '@testing-library/react-native';
@@ -10,21 +11,84 @@ jest.mock('@/src/ui/dashboard/hooks/useDashboardSummary', () => ({
   useDashboardSummary: jest.fn(),
 }));
 
+jest.mock('@/src/ui/shared/hooks/useHorizontalSwipeWithScrollGesture', () => ({
+  useHorizontalSwipeWithScrollGesture: jest.fn(() => ({ type: 'dashboard-swipe-gesture' })),
+}));
+
 jest.mock('@/src/ui/shared/components/ScreenContainer', () => {
   const React = require('react');
   const { View } = require('react-native');
 
   return {
-    ScreenContainer: ({ children }: { children: React.ReactNode }) => <View>{children}</View>,
+    ScreenContainer: ({
+      children,
+      scrollGesture,
+    }: {
+      children: React.ReactNode;
+      scrollGesture?: unknown;
+    }) => (
+      <View testID={scrollGesture ? 'screen-with-swipe' : 'screen'}>{children}</View>
+    ),
+  };
+});
+
+jest.mock('@/src/ui/workouts/components/WeekNavigator', () => {
+  const React = require('react');
+  const { Pressable, Text, View } = require('react-native');
+
+  return {
+    WeekNavigator: ({
+      onPreviousWeek,
+      onNextWeek,
+      onOpenWeekPicker,
+    }: {
+      onPreviousWeek: () => void;
+      onNextWeek: () => void;
+      onOpenWeekPicker: () => void;
+    }) => (
+      <View testID="week-navigator">
+        <Pressable testID="week-navigator-previous" onPress={onPreviousWeek} />
+        <Pressable testID="week-navigator-label" onPress={onOpenWeekPicker}>
+          <Text>Jun 10 - 16</Text>
+        </Pressable>
+        <Pressable testID="week-navigator-next" onPress={onNextWeek} />
+      </View>
+    ),
+  };
+});
+
+jest.mock('@/src/ui/shared/components/MonthNavigator', () => {
+  const React = require('react');
+  const { Pressable, Text, View } = require('react-native');
+
+  return {
+    MonthNavigator: ({
+      onPreviousMonth,
+      onNextMonth,
+      onOpenMonthPicker,
+    }: {
+      onPreviousMonth: () => void;
+      onNextMonth: () => void;
+      onOpenMonthPicker: () => void;
+    }) => (
+      <View testID="month-navigator">
+        <Pressable testID="month-navigator-previous" onPress={onPreviousMonth} />
+        <Pressable testID="month-navigator-label" onPress={onOpenMonthPicker}>
+          <Text>June 2024</Text>
+        </Pressable>
+        <Pressable testID="month-navigator-next" onPress={onNextMonth} />
+      </View>
+    ),
   };
 });
 
 const useDashboardSummaryMock = jest.mocked(useDashboardSummary);
+const useHorizontalSwipeWithScrollGestureMock = jest.mocked(useHorizontalSwipeWithScrollGesture);
 
 function createSummary(overrides: Partial<ReturnType<typeof useDashboardSummary>['summary']> = {}) {
   return {
-    period: 'thisWeek' as DashboardPeriod,
-    periodLabel: 'This Week',
+    viewMode: 'week' as DashboardViewMode,
+    rangeLabel: 'Jun 10 - 16',
     workoutStats: { completed: 1, total: 2 },
     exerciseStats: { completed: 3, total: 4 },
     completionPercentage: 75,
@@ -55,12 +119,14 @@ describe('DashboardView', () => {
     });
   });
 
-  it('renders page header, filter, stat cards, charts, and upcoming workouts', () => {
+  it('renders page header, view mode filter, week navigator, stat cards, charts, and upcoming workouts', () => {
     render(<DashboardView />);
 
+    expect(screen.getByTestId('screen-with-swipe')).toBeTruthy();
     expect(screen.getByText('Dashboard')).toBeTruthy();
     expect(screen.getByText('Track training consistency and coverage.')).toBeTruthy();
-    expect(screen.getByTestId('dashboard-period-filter')).toBeTruthy();
+    expect(screen.getByTestId('dashboard-view-mode-filter')).toBeTruthy();
+    expect(screen.getByTestId('week-navigator')).toBeTruthy();
     expect(screen.getByText('1 / 2')).toBeTruthy();
     expect(screen.getByText('3 / 4')).toBeTruthy();
     expect(screen.getByTestId('completion-donut-chart')).toBeTruthy();
@@ -69,18 +135,42 @@ describe('DashboardView', () => {
     expect(screen.getByText('Lower Body')).toBeTruthy();
   });
 
-  it('defaults to this week', () => {
+  it('defaults to week view with the current anchor date', () => {
     render(<DashboardView />);
 
-    expect(useDashboardSummaryMock).toHaveBeenCalledWith('thisWeek');
+    expect(useDashboardSummaryMock).toHaveBeenCalledWith('week', expect.objectContaining({
+      anchorDate: expect.any(Date),
+    }));
   });
 
-  it('updates dashboard data when the period filter changes', () => {
+  it('updates dashboard data when the view mode changes to month', () => {
     render(<DashboardView />);
 
-    fireEvent.press(screen.getByTestId('dashboard-period-filter-nextWeek'));
+    fireEvent.press(screen.getByTestId('dashboard-view-mode-filter-month'));
 
-    expect(useDashboardSummaryMock).toHaveBeenLastCalledWith('nextWeek');
+    expect(useDashboardSummaryMock).toHaveBeenLastCalledWith('month', expect.objectContaining({
+      anchorDate: expect.any(Date),
+    }));
+    expect(screen.getByTestId('month-navigator')).toBeTruthy();
+  });
+
+  it('wires horizontal swipe navigation to the dashboard date range', () => {
+    render(<DashboardView />);
+
+    expect(useHorizontalSwipeWithScrollGestureMock).toHaveBeenCalledWith({
+      onSwipePrevious: expect.any(Function),
+      onSwipeNext: expect.any(Function),
+    });
+  });
+
+  it('updates dashboard data when navigating to another week', () => {
+    render(<DashboardView />);
+
+    fireEvent.press(screen.getByTestId('week-navigator-next'));
+
+    expect(useDashboardSummaryMock).toHaveBeenLastCalledWith('week', expect.objectContaining({
+      anchorDate: expect.any(Date),
+    }));
   });
 
   it('shows loading state', () => {

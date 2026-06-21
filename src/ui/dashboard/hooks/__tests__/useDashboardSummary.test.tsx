@@ -2,6 +2,10 @@ jest.mock('@/src/ui/dashboard/hooks/useDashboardWorkouts', () => ({
   useDashboardWorkouts: jest.fn(),
 }));
 
+jest.mock('@/src/ui/profile/hooks/useWeekStartDay', () => ({
+  useWeekStartDay: () => 1,
+}));
+
 import { createDashboardService } from '@/src/contexts/dashboard/application/createDashboardService';
 import { useDashboardSummary } from '@/src/ui/dashboard/hooks/useDashboardSummary';
 import { useDashboardWorkouts } from '@/src/ui/dashboard/hooks/useDashboardWorkouts';
@@ -12,7 +16,7 @@ import { renderHook } from '@testing-library/react-native';
 const useDashboardWorkoutsMock = jest.mocked(useDashboardWorkouts);
 
 describe('useDashboardSummary', () => {
-  const referenceDate = FIXED_DATE;
+  const anchorDate = FIXED_DATE;
   const workouts = [
     createMockWorkout({
       status: 'completed',
@@ -35,11 +39,9 @@ describe('useDashboardSummary', () => {
 
   it('derives summary from fetched workouts', () => {
     const service = createDashboardService();
-    const expected = service.getDashboardSummary(workouts, 'thisWeek', referenceDate);
+    const expected = service.getDashboardSummary(workouts, 'week', anchorDate, 1);
 
-    const { result } = renderHook(() =>
-      useDashboardSummary('thisWeek', { referenceDate })
-    );
+    const { result } = renderHook(() => useDashboardSummary('week', { anchorDate }));
 
     expect(result.current.summary).toEqual(expected);
   });
@@ -55,9 +57,7 @@ describe('useDashboardSummary', () => {
       refetch: jest.fn(),
     });
 
-    const { result } = renderHook(() =>
-      useDashboardSummary('thisWeek', { referenceDate })
-    );
+    const { result } = renderHook(() => useDashboardSummary('week', { anchorDate }));
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.isError).toBe(true);
