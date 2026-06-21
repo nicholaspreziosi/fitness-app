@@ -10,6 +10,7 @@ import { mergeVisibleExerciseReorder } from '@/src/contexts/workouts/domain/work
 import { PageHeader } from '@/src/ui/shared/components/PageHeader';
 import { PopoverMenu } from '@/src/ui/shared/components/PopoverMenu';
 import { ScreenContainer } from '@/src/ui/shared/components/ScreenContainer';
+import { BottomSheet } from '@/src/ui/shared/components/BottomSheet';
 import { useRefreshGuard } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import { useUiPreferences } from '@/src/ui/shared/hooks/useUiPreferences';
 import { ExercisePickerSheet } from '@/src/ui/workouts/components/ExercisePickerSheet';
@@ -18,7 +19,7 @@ import { WorkoutExerciseReorderList } from '@/src/ui/workouts/components/workout
 import { WorkoutProgressCard } from '@/src/ui/workouts/components/WorkoutProgressCard';
 import { ChevronDownIcon, PlusIcon } from 'lucide-react-native';
 import * as React from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 type WorkoutExercisePatch = Partial<
   Pick<
@@ -190,18 +191,9 @@ export function WorkoutModeView({
         </View>
       </ScreenContainer>
 
-      <Modal
-        visible={activeSheet !== 'none'}
-        transparent
-        animationType="none"
-        onRequestClose={closeSheet}>
-        <View className="flex-1">
-          <Pressable className="absolute inset-0 bg-black/40" onPress={closeSheet} />
-          <View className="flex-1 justify-end" pointerEvents="box-none">
-            <Pressable onPress={(event) => event.stopPropagation()}>{renderSheet()}</Pressable>
-          </View>
-        </View>
-      </Modal>
+      <BottomSheet visible={activeSheet !== 'none'} onClose={closeSheet}>
+        {renderSheet()}
+      </BottomSheet>
     </>
   );
 }

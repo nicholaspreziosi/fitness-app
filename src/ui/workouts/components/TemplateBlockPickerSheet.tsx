@@ -10,8 +10,9 @@ import { canAddTemplateBlocksToWorkout } from '@/src/contexts/workouts/domain/pl
 import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
 import { useTemplateBlocks } from '@/src/ui/templateBlocks/hooks/useTemplateBlocks';
 import { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
+import { useKeyboardInset } from '@/src/ui/shared/hooks/useKeyboardInset';
 import * as React from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, useWindowDimensions, View } from 'react-native';
 
 type TemplateBlockPickerSheetProps = {
   workout: Workout;
@@ -34,7 +35,11 @@ function getEmptyMessage(availableCount: number, search: string): string {
   return 'No template blocks available to add.';
 }
 
+const TEMPLATE_SHEET_CHROME_HEIGHT = 220;
+
 export function TemplateBlockPickerSheet({ workout, onClose }: TemplateBlockPickerSheetProps) {
+  const { height: windowHeight } = useWindowDimensions();
+  const keyboardHeight = useKeyboardInset();
   const { templateBlocks, isLoading } = useTemplateBlocks();
   const { addTemplateBlocks } = useWorkoutMutations();
   const [search, setSearch] = React.useState('');
@@ -108,9 +113,23 @@ export function TemplateBlockPickerSheet({ workout, onClose }: TemplateBlockPick
   };
 
   const selectedCount = selectedIds.size;
+  const { sheetMaxHeight, listMaxHeight } = React.useMemo(() => {
+    const availableHeight =
+      keyboardHeight > 0 ? windowHeight - keyboardHeight : windowHeight;
+    const maxSheetHeight = Math.round(Math.min(windowHeight * 0.85, availableHeight));
+    const maxListHeight = Math.max(96, maxSheetHeight - TEMPLATE_SHEET_CHROME_HEIGHT);
+    const defaultListHeight = Math.round(windowHeight * 0.48);
+
+    return {
+      sheetMaxHeight: maxSheetHeight,
+      listMaxHeight: Math.min(defaultListHeight, maxListHeight),
+    };
+  }, [keyboardHeight, windowHeight]);
 
   return (
-    <View className="gap-3 rounded-t-2xl border border-border bg-card p-4">
+    <View
+      className="gap-3 rounded-t-2xl border border-border bg-card p-4"
+      style={{ maxHeight: sheetMaxHeight }}>
       <View className="gap-1">
         <Text className="text-lg font-semibold text-foreground">Add Template Blocks</Text>
         <Text className="text-sm text-muted-foreground">
@@ -129,7 +148,11 @@ export function TemplateBlockPickerSheet({ workout, onClose }: TemplateBlockPick
             value={search}
             onChangeText={setSearch}
           />
-          <ScrollView className="max-h-72">
+          <ScrollView
+            style={{ maxHeight: listMaxHeight }}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            showsVerticalScrollIndicator={false}>
             {filteredBlocks.length === 0 ? (
               <Text className="py-4 text-center text-sm text-muted-foreground">
                 {getEmptyMessage(availableBlocks.length, search)}

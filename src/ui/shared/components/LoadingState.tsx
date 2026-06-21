@@ -7,11 +7,7 @@ type LoadingStateProps = {
 
 export function LoadingState({ className }: LoadingStateProps) {
   return (
-    <View
-      className={cn(
-        'flex-1 h-full items-center justify-center px-6 py-10',
-        className
-      )}>
+    <View className={cn('items-center py-6', className)} testID="loading-state">
       <ActivityIndicator accessibilityLabel="loading" size="large" />
     </View>
   );

@@ -91,6 +91,7 @@ export function SettingsView() {
   if (isLoading && !profile) {
     return (
       <ScreenContainer>
+        <PageHeader title="Settings" description="Preferences and account management for Flow." />
         <LoadingState />
       </ScreenContainer>
     );

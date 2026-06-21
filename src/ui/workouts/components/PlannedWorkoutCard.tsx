@@ -16,6 +16,7 @@ import {
 } from '@/src/ui/workouts/components/WorkoutEditPanel';
 import type { PlannerState } from '@/src/ui/workouts/hooks/usePlannerState';
 import type { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
+import { cn } from '@/lib/utils';
 import {
   CheckCircleIcon,
   ChevronDownIcon,
@@ -26,11 +27,6 @@ import {
 } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import {
   useRegisterExpandedWorkoutSwipeBlock,
 } from '@/src/ui/workouts/hooks/useExpandedWorkoutSwipeBlock';
@@ -233,16 +229,6 @@ export function PlannedWorkoutCard({
     cardRef
   );
 
-  const chevronRotation = useSharedValue(isExpanded ? 180 : 0);
-
-  React.useEffect(() => {
-    chevronRotation.value = withTiming(isExpanded ? 180 : 0, { duration: 200 });
-  }, [chevronRotation, isExpanded]);
-
-  const chevronAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${chevronRotation.value}deg` }],
-  }));
-
   const handleToggleExpand = React.useCallback(() => {
     if (isEditing) {
       plannerState.exitEditMode();
@@ -274,9 +260,13 @@ export function PlannedWorkoutCard({
         testID={isExpanded ? 'workout-collapse' : 'workout-expand'}
         variant="ghost"
         onPress={handleToggleExpand}>
-        <Animated.View style={chevronAnimatedStyle}>
-          <Icon as={ChevronDownIcon} className="size-6 text-muted-foreground" />
-        </Animated.View>
+        <Icon
+          as={ChevronDownIcon}
+          className={cn(
+            'size-6 text-muted-foreground transition-transform',
+            isExpanded && 'rotate-180'
+          )}
+        />
       </Button>
       {menuItems.length > 0 ? (
         <>

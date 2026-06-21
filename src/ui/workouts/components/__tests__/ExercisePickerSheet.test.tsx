@@ -8,21 +8,11 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react-nativ
 
 const mockAddExercises = jest.fn();
 const mockOnClose = jest.fn();
+const mockUseExerciseLibrary = jest.fn();
 
-jest.mock('@/src/ui/exercises/hooks/useExerciseLibrary', () => {
-  const { createMockExercise } = require('@/test-utils/mockData');
-
-  return {
-    useExerciseLibrary: () => ({
-      exercises: [
-        createMockExercise({ id: 'exercise-1', name: 'Pendulum Squat' }),
-        createMockExercise({ id: 'exercise-2', name: 'Leg Extension' }),
-        createMockExercise({ id: 'exercise-3', name: 'Archived Exercise', status: 'archived' }),
-      ],
-      isLoading: false,
-    }),
-  };
-});
+jest.mock('@/src/ui/exercises/hooks/useExerciseLibrary', () => ({
+  useExerciseLibrary: () => mockUseExerciseLibrary(),
+}));
 
 jest.mock('@/src/ui/workouts/hooks/useWorkoutMutations', () => ({
   useWorkoutMutations: () => ({
@@ -37,6 +27,14 @@ describe('ExercisePickerSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddExercises.mockResolvedValue(undefined);
+    mockUseExerciseLibrary.mockReturnValue({
+      exercises: [
+        createMockExercise({ id: 'exercise-1', name: 'Pendulum Squat' }),
+        createMockExercise({ id: 'exercise-2', name: 'Leg Extension' }),
+        createMockExercise({ id: 'exercise-3', name: 'Archived Exercise', status: 'archived' }),
+      ],
+      isLoading: false,
+    });
   });
 
   it('adds multiple selected exercises at once', async () => {
@@ -112,5 +110,51 @@ describe('ExercisePickerSheet', () => {
 
     expect(screen.queryByText('Pendulum Squat')).toBeNull();
     expect(screen.getByText('Leg Extension')).toBeTruthy();
+  });
+
+  it('filters exercises by favorites', () => {
+    mockUseExerciseLibrary.mockReturnValue({
+      exercises: [
+        createMockExercise({ id: 'exercise-1', name: 'Pendulum Squat', favorite: true }),
+        createMockExercise({ id: 'exercise-2', name: 'Leg Extension', favorite: false }),
+      ],
+      isLoading: false,
+    });
+
+    render(
+      <ExercisePickerSheet
+        workout={createMockWorkout({ id: 'workout-1', exercises: [] })}
+        onClose={mockOnClose}
+      />
+    );
+
+    fireEvent(screen.getByLabelText('Favorites only'), 'onCheckedChange', true);
+
+    expect(screen.getByText('Pendulum Squat')).toBeTruthy();
+    expect(screen.queryByText('Leg Extension')).toBeNull();
+  });
+
+  it('filters exercises by body part chips', () => {
+    mockUseExerciseLibrary.mockReturnValue({
+      exercises: [
+        createMockExercise({ id: 'exercise-1', name: 'Pendulum Squat', bodyPart: 'Upper Legs' }),
+        createMockExercise({ id: 'exercise-2', name: 'Leg Extension', bodyPart: 'Upper Legs' }),
+        createMockExercise({ id: 'exercise-4', name: 'Ab Roller', bodyPart: 'Core' }),
+      ],
+      isLoading: false,
+    });
+
+    render(
+      <ExercisePickerSheet
+        workout={createMockWorkout({ id: 'workout-1', exercises: [] })}
+        onClose={mockOnClose}
+      />
+    );
+
+    fireEvent.press(screen.getByTestId('exercise-picker-body-part-Core'));
+
+    expect(screen.getByText('Ab Roller')).toBeTruthy();
+    expect(screen.queryByText('Pendulum Squat')).toBeNull();
+    expect(screen.queryByText('Leg Extension')).toBeNull();
   });
 });

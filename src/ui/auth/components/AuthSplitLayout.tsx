@@ -1,8 +1,16 @@
 import { Text } from '@/components/ui/text';
 import { FlowLogo } from '@/src/ui/shared/components/FlowLogo';
+import { useKeyboardInset } from '@/src/ui/shared/hooks/useKeyboardInset';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
-import { ActivityIndicator, ScrollView, useWindowDimensions, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MD_BREAKPOINT = 768;
@@ -69,6 +77,46 @@ function DesktopBrandPanel() {
   );
 }
 
+function MobileAuthLayout({
+  children,
+  formTitle,
+  formDescription,
+}: AuthSplitLayoutProps) {
+  const insets = useSafeAreaInsets();
+  const keyboardHeight = useKeyboardInset();
+
+  return (
+    <KeyboardAvoidingView
+      className="flex-1 bg-background"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      style={{ flex: 1 }}>
+      <ScrollView
+        className="flex-1 bg-background"
+        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingTop: insets.top,
+          paddingBottom:
+            Math.max(insets.bottom, 24) + (Platform.OS === 'android' ? keyboardHeight : 0),
+        }}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        testID="auth-mobile-scroll">
+        <View
+          className="min-h-[24vh] items-center justify-center px-6 py-10"
+          testID="auth-mobile-logo">
+          <FlowLogo variant="auth-mobile" />
+        </View>
+
+        <AuthFormSection formDescription={formDescription} formTitle={formTitle}>
+          {children}
+        </AuthFormSection>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
 export function AuthSplitLayout({ children, formTitle, formDescription }: AuthSplitLayoutProps) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -99,22 +147,9 @@ export function AuthSplitLayout({ children, formTitle, formDescription }: AuthSp
   }
 
   return (
-    <ScrollView
-      className="flex-1 bg-background"
-      contentContainerStyle={{
-        flexGrow: 1,
-        paddingTop: insets.top,
-        paddingBottom: Math.max(insets.bottom, 24),
-      }}
-      keyboardShouldPersistTaps="handled">
-      <View className="min-h-[36vh] items-center justify-center px-6 py-12">
-        <FlowLogo variant="auth-mobile" />
-      </View>
-
-      <AuthFormSection formDescription={formDescription} formTitle={formTitle}>
-        {children}
-      </AuthFormSection>
-    </ScrollView>
+    <MobileAuthLayout formDescription={formDescription} formTitle={formTitle}>
+      {children}
+    </MobileAuthLayout>
   );
 }
 

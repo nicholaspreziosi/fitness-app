@@ -2,8 +2,10 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { addWeeks, getWeekDays, isSameDay, startOfDay } from '@/src/lib/dates/weekBounds';
 import { DatePickerSheet } from '@/src/ui/shared/components/DatePickerSheet';
+import { LoadingState } from '@/src/ui/shared/components/LoadingState';
 import { PageHeader } from '@/src/ui/shared/components/PageHeader';
 import { ScreenContainer } from '@/src/ui/shared/components/ScreenContainer';
+import { BottomSheet } from '@/src/ui/shared/components/BottomSheet';
 import { DaySection } from '@/src/ui/workouts/components/DaySection';
 import { DuplicateWorkoutSheet } from '@/src/ui/workouts/components/DuplicateWorkoutSheet';
 import { ExercisePickerSheet } from '@/src/ui/workouts/components/ExercisePickerSheet';
@@ -22,7 +24,7 @@ import { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
 import { RefreshGuardProvider, useRefreshGuard } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import * as React from 'react';
-import { ActivityIndicator, Modal, Pressable, View } from 'react-native';
+import { View } from 'react-native';
 
 export function CalendarView() {
   return (
@@ -207,9 +209,7 @@ function CalendarViewContent() {
         />
 
         {isLoading ? (
-          <View className="items-center py-6">
-            <ActivityIndicator accessibilityLabel="loading" size="large" />
-          </View>
+          <LoadingState />
         ) : isError ? (
           <Text className="text-sm text-destructive">Unable to load workouts.</Text>
         ) : (
@@ -229,21 +229,11 @@ function CalendarViewContent() {
         )}
       </ScreenContainer>
 
-      <Modal
+      <BottomSheet
         visible={plannerState.activeSheet.type !== 'none'}
-        transparent
-        animationType="none"
-        onRequestClose={plannerState.closeSheet}>
-        <View className="flex-1">
-          <Pressable
-            className="absolute inset-0 bg-black/40"
-            onPress={plannerState.closeSheet}
-          />
-          <View className="flex-1 justify-end" pointerEvents="box-none">
-            <Pressable onPress={(event) => event.stopPropagation()}>{renderSheet()}</Pressable>
-          </View>
-        </View>
-      </Modal>
+        onClose={plannerState.closeSheet}>
+        {renderSheet()}
+      </BottomSheet>
     </>
   );
 }

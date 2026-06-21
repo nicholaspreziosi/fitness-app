@@ -15,6 +15,10 @@ export function TemplateBlockCreateView() {
   if (isLoading) {
     return (
       <ScreenContainer scrollable={false}>
+        <PageHeader
+          title="New Template"
+          description="Group exercises into a reusable workout building block."
+        />
         <LoadingState />
       </ScreenContainer>
     );

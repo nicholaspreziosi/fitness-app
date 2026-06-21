@@ -20,6 +20,7 @@ export function ExerciseEditView() {
   if (isLoading) {
     return (
       <ScreenContainer scrollable={false}>
+        <PageHeader title="Edit Exercise" />
         <LoadingState />
       </ScreenContainer>
     );

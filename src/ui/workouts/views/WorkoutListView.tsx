@@ -32,6 +32,11 @@ export function WorkoutListView({
   if (isLoading) {
     return (
       <ScreenContainer>
+        <PageHeader
+          title="Workout"
+          description="Start or resume today's planned workouts."
+        />
+        <SectionHeader title="Today's Workout" />
         <LoadingState />
       </ScreenContainer>
     );

@@ -11,13 +11,13 @@ type FlowLogoProps = {
 
 const LOGO_TEXT_CLASS: Record<FlowLogoVariant, string> = {
   header: 'text-3xl font-semibold tracking-[-0.04em] text-foreground',
-  'auth-mobile': 'text-4xl font-semibold tracking-[-0.04em] text-foreground md:text-5xl',
+  'auth-mobile': 'text-3xl font-semibold tracking-[-0.04em] text-foreground',
   'auth-desktop': 'text-4xl font-semibold tracking-[-0.04em] text-auth-brand-foreground md:text-5xl',
 };
 
 const LOGO_ACCENT_CLASS: Record<FlowLogoVariant, string> = {
   header: 'mt-2 h-0.5 w-10',
-  'auth-mobile': 'mt-3 h-0.5 w-9',
+  'auth-mobile': 'mt-2 h-0.5 w-8',
   'auth-desktop': 'mt-3 h-0.5 w-9',
 };
 
