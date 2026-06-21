@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { addWeeks, getWeekDays, isSameDay, startOfDay } from '@/src/lib/dates/weekBounds';
 import { DatePickerSheet } from '@/src/ui/shared/components/DatePickerSheet';
-import { LoadingState } from '@/src/ui/shared/components/LoadingState';
 import { PageHeader } from '@/src/ui/shared/components/PageHeader';
 import { ScreenContainer } from '@/src/ui/shared/components/ScreenContainer';
 import { DaySection } from '@/src/ui/workouts/components/DaySection';
@@ -23,7 +22,7 @@ import { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
 import { RefreshGuardProvider, useRefreshGuard } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import * as React from 'react';
-import { Modal, Pressable, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, View } from 'react-native';
 
 export function CalendarView() {
   return (
@@ -208,7 +207,9 @@ function CalendarViewContent() {
         />
 
         {isLoading ? (
-          <LoadingState className="flex-none py-20" />
+          <View className="items-center py-6">
+            <ActivityIndicator accessibilityLabel="loading" size="large" />
+          </View>
         ) : isError ? (
           <Text className="text-sm text-destructive">Unable to load workouts.</Text>
         ) : (

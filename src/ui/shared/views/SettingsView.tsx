@@ -39,8 +39,13 @@ export function SettingsView() {
   const [health, setHealth] = React.useState<FirebaseHealthResult | null>(null);
 
   React.useEffect(() => {
-    checkFirebaseConnection().then(setHealth);
-  }, []);
+    if (!user?.id) {
+      return;
+    }
+
+    setHealth(null);
+    checkFirebaseConnection(user.id).then(setHealth);
+  }, [user?.id]);
 
   React.useEffect(() => {
     if (profile) {

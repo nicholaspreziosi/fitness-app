@@ -43,11 +43,55 @@ export function ScreenContainer({
   const topPadding = showAppHeader ? insets.top + APP_HEADER_BAR_HEIGHT : 0;
   const bottomPadding = Math.max(insets.bottom, 16);
   const scrollOffsetRef = React.useRef(0);
+  const scrollRef = React.useRef<ScrollView>(null);
   const [pullRefreshing, setPullRefreshing] = React.useState(false);
   const useIosRefreshInset = onRefresh != null && Platform.OS === 'ios' && topPadding > 0;
-  const [applyInitialContentOffset, setApplyInitialContentOffset] = React.useState(
-    () => useIosRefreshInset
-  );
+  const initialScrollY = useIosRefreshInset ? -topPadding : 0;
+  const needsInitialScrollRef = React.useRef(useIosRefreshInset);
+
+  React.useLayoutEffect(() => {
+    needsInitialScrollRef.current = useIosRefreshInset;
+  }, [useIosRefreshInset]);
+
+  const applyInitialScrollPosition = React.useCallback(() => {
+    scrollRef.current?.scrollTo({ x: 0, y: initialScrollY, animated: false });
+    scrollOffsetRef.current = Math.max(0, initialScrollY);
+    headerScroll?.resetHeaderScroll(scrollOffsetRef.current);
+  }, [headerScroll, initialScrollY]);
+
+  const handleContentSizeChange = React.useCallback(() => {
+    if (!needsInitialScrollRef.current) {
+      return;
+    }
+
+    applyInitialScrollPosition();
+    needsInitialScrollRef.current = false;
+  }, [applyInitialScrollPosition]);
+
+  React.useLayoutEffect(() => {
+    if (!scrollable) {
+      return;
+    }
+
+    let cancelled = false;
+    const frame = requestAnimationFrame(() => {
+      if (cancelled) {
+        return;
+      }
+
+      if (!scrollRef.current) {
+        return;
+      }
+
+      applyInitialScrollPosition();
+      needsInitialScrollRef.current = false;
+    });
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [applyInitialScrollPosition, scrollable]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -119,15 +163,9 @@ export function ScreenContainer({
 
     return {
       contentInset: { top: topPadding },
-      ...(applyInitialContentOffset ? { contentOffset: { x: 0, y: -topPadding } } : {}),
+      contentInsetAdjustmentBehavior: 'never' as const,
     };
-  }, [applyInitialContentOffset, topPadding, useIosRefreshInset]);
-
-  const handleScrollLayout = React.useCallback(() => {
-    if (applyInitialContentOffset) {
-      setApplyInitialContentOffset(false);
-    }
-  }, [applyInitialContentOffset]);
+  }, [topPadding, useIosRefreshInset]);
 
   const wrapWithScrollGesture = (scrollView: React.ReactElement) =>
     scrollGesture != null ? (
@@ -139,13 +177,14 @@ export function ScreenContainer({
   if (onRefresh != null) {
     return wrapWithScrollGesture(
       <AnimatedScrollView
+        ref={scrollRef}
         className={cn('flex-1 bg-background', className)}
         contentContainerStyle={[{ flexGrow: 1 }, contentContainerStyle]}
         contentContainerClassName="flex-grow"
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         refreshControl={refreshControl}
-        onLayout={handleScrollLayout}
+        onContentSizeChange={handleContentSizeChange}
         onScroll={scrollHandler}
         {...iosRefreshScrollProps}>
         {content}
@@ -155,10 +194,12 @@ export function ScreenContainer({
 
   return wrapWithScrollGesture(
     <Animated.ScrollView
+      ref={scrollRef}
       className={cn('flex-1 bg-background', className)}
       contentContainerStyle={[{ flexGrow: 1 }, contentContainerStyle]}
       contentContainerClassName="flex-grow"
       scrollEventThrottle={16}
+      onContentSizeChange={handleContentSizeChange}
       onScroll={scrollHandler}>
       {content}
     </Animated.ScrollView>

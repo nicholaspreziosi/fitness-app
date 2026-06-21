@@ -1,4 +1,4 @@
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, limit, query } from 'firebase/firestore';
 
 import { getFirebaseConfig } from './config';
 import { getFirebaseApp, getFirestoreDb } from './app';
@@ -9,7 +9,7 @@ export type FirebaseHealthResult =
   | { status: 'connected'; projectId: string }
   | { status: 'error'; message: string };
 
-export async function checkFirebaseConnection(): Promise<FirebaseHealthResult> {
+export async function checkFirebaseConnection(userId?: string): Promise<FirebaseHealthResult> {
   const config = getFirebaseConfig();
   if (!config) {
     return { status: 'missing_config' };
@@ -23,7 +23,9 @@ export async function checkFirebaseConnection(): Promise<FirebaseHealthResult> {
   }
 
   try {
-    await getDocs(collection(db, '__healthcheck__/probe'));
+    if (userId) {
+      await getDocs(query(collection(db, 'users', userId, 'exercises'), limit(1)));
+    }
 
     return { status: 'connected', projectId: config.projectId };
   } catch (error) {

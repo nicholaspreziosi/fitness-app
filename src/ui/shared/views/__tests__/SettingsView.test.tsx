@@ -48,7 +48,7 @@ jest.mock('@/src/ui/profile/hooks/useUpdateUserProfile', () => ({
 }));
 
 jest.mock('@/src/lib/firebase/health', () => ({
-  checkFirebaseConnection: jest.fn().mockResolvedValue({ status: 'ok', projectId: 'demo' }),
+  checkFirebaseConnection: jest.fn().mockResolvedValue({ status: 'connected', projectId: 'demo' }),
 }));
 
 jest.mock('@/src/ui/shared/components/ScreenContainer', () => {

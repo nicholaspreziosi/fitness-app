@@ -19,15 +19,6 @@ export function DashboardView() {
   const [period, setPeriod] = useState<DashboardPeriod>('thisWeek');
   const { summary, isLoading, isRefreshing, refetch } = useDashboardSummary(period);
 
-  if (isLoading) {
-    return (
-      <ScreenContainer>
-        <PageHeader title="Dashboard" description="Track training consistency and coverage." />
-        <LoadingState />
-      </ScreenContainer>
-    );
-  }
-
   return (
     <ScreenContainer
       refreshing={isRefreshing}
@@ -36,49 +27,53 @@ export function DashboardView() {
       }}>
       <PageHeader title="Dashboard" description="Track training consistency and coverage." />
 
-      <View className="gap-4">
-        <DashboardPeriodFilter value={period} onChange={setPeriod} />
+      {isLoading ? (
+        <LoadingState />
+      ) : (
+        <View className="gap-4">
+          <DashboardPeriodFilter value={period} onChange={setPeriod} />
 
-        {summary.emptyStates.noWorkouts ? (
-          <DashboardEmptyState message="No workouts planned for this period." />
-        ) : null}
+          {summary.emptyStates.noWorkouts ? (
+            <DashboardEmptyState message="No workouts planned for this period." />
+          ) : null}
 
-        {!summary.emptyStates.noWorkouts ? (
-          <>
-            <View className="flex-row gap-3">
-              <DashboardStatCard
-                completed={summary.workoutStats.completed}
-                total={summary.workoutStats.total}
-                label="Workouts"
-                testID="workout-stat-card"
+          {!summary.emptyStates.noWorkouts ? (
+            <>
+              <View className="flex-row gap-3">
+                <DashboardStatCard
+                  completed={summary.workoutStats.completed}
+                  total={summary.workoutStats.total}
+                  label="Workouts"
+                  testID="workout-stat-card"
+                />
+                <DashboardStatCard
+                  completed={summary.exerciseStats.completed}
+                  total={summary.exerciseStats.total}
+                  label="Exercises"
+                  testID="exercise-stat-card"
+                />
+              </View>
+
+              {summary.emptyStates.noCompletedData ? (
+                <DashboardEmptyState message="No completed workouts yet." />
+              ) : null}
+
+              <CompletionDonutChart
+                percentage={summary.completionPercentage}
+                isEmpty={summary.emptyStates.noChartData}
               />
-              <DashboardStatCard
-                completed={summary.exerciseStats.completed}
-                total={summary.exerciseStats.total}
-                label="Exercises"
-                testID="exercise-stat-card"
+
+              <CoverageBarChart coverage={summary.coverage} isEmpty={summary.emptyStates.noChartData} />
+
+              <UpcomingSectionHeader />
+              <UpcomingWorkoutList
+                workouts={summary.upcoming}
+                isEmpty={summary.emptyStates.noUpcoming}
               />
-            </View>
-
-            {summary.emptyStates.noCompletedData ? (
-              <DashboardEmptyState message="No completed workouts yet." />
-            ) : null}
-
-            <CompletionDonutChart
-              percentage={summary.completionPercentage}
-              isEmpty={summary.emptyStates.noChartData}
-            />
-
-            <CoverageBarChart coverage={summary.coverage} isEmpty={summary.emptyStates.noChartData} />
-
-            <UpcomingSectionHeader />
-            <UpcomingWorkoutList
-              workouts={summary.upcoming}
-              isEmpty={summary.emptyStates.noUpcoming}
-            />
-          </>
-        ) : null}
-      </View>
+            </>
+          ) : null}
+        </View>
+      )}
     </ScreenContainer>
   );
 }
