@@ -1,5 +1,6 @@
 import {
   formatWorkoutExercisePrescription,
+  formatWorkoutExerciseSummaryPrescription,
   seedActualsFromPlanned,
   seedWorkoutActualsFromPlanned,
 } from '@/src/contexts/workouts/domain/workoutPresentation';
@@ -15,6 +16,34 @@ describe('workoutPresentation', () => {
         plannedHoldSeconds: 5,
       })
     ).toBe('2 x 10 • 50 lbs • 5 Sec Hold');
+  });
+
+  it('formats actual prescription for completed exercises in collapsed cards', () => {
+    expect(
+      formatWorkoutExerciseSummaryPrescription({
+        completed: true,
+        plannedSets: 2,
+        plannedReps: 10,
+        plannedWeight: 50,
+        actualSets: 2,
+        actualReps: 12,
+        actualWeight: 55,
+      })
+    ).toBe('2 x 12 • 55 lbs');
+  });
+
+  it('uses planned values for incomplete exercises in collapsed cards', () => {
+    expect(
+      formatWorkoutExerciseSummaryPrescription({
+        completed: false,
+        plannedSets: 2,
+        plannedReps: 10,
+        plannedWeight: 50,
+        actualSets: 2,
+        actualReps: 12,
+        actualWeight: 55,
+      })
+    ).toBe('2 x 10 • 50 lbs');
   });
 
   it('seeds missing actual values from planned values', () => {

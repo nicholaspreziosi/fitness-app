@@ -77,6 +77,27 @@ jest.mock('@/src/ui/exercises/hooks/useExerciseLibrary', () => ({
   useExerciseLibrary: jest.fn(),
 }));
 
+jest.mock('@/src/ui/shared/providers/RefreshGuardProvider', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+
+  return {
+    RefreshGuardProvider: ({ children }: { children: React.ReactNode }) => <View>{children}</View>,
+    useRefreshGuard: () => ({
+      isDragging: false,
+      isInputFocused: false,
+      setDragging: jest.fn(),
+      setInputFocused: jest.fn(),
+    }),
+    useOptionalRefreshGuard: () => null,
+    useRefreshGuardFlag: jest.fn(),
+    useRefreshGuardInputHandlers: () => ({
+      onFocus: jest.fn(),
+      onBlur: jest.fn(),
+    }),
+  };
+});
+
 jest.mock('@/src/ui/shared/components/ScreenContainer', () => {
   const React = require('react');
   const { View } = require('react-native');
@@ -141,6 +162,7 @@ describe('CalendarView', () => {
       weekEnd: createTestDate(6),
       isLoading: false,
       isError: false,
+      isRefreshing: false,
       error: null,
       refetch: jest.fn(),
     });
@@ -160,6 +182,7 @@ describe('CalendarView', () => {
       skipWorkout: { mutate: jest.fn() } as never,
       updateWorkout: { mutateAsync: jest.fn() } as never,
       isReady: true,
+      isPending: false,
     });
 
     mockUseExerciseLibrary.mockReturnValue({
@@ -167,6 +190,7 @@ describe('CalendarView', () => {
       isLoading: false,
       isRefreshing: false,
       error: null,
+      refetch: jest.fn(),
       archiveExercise: jest.fn(),
       restoreExercise: jest.fn(),
       toggleFavorite: jest.fn(),

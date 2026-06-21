@@ -1,7 +1,7 @@
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
-import { formatWorkoutExercisePrescription } from '@/src/contexts/workouts/domain/workoutPresentation';
+import { formatWorkoutExerciseSummaryPrescription } from '@/src/contexts/workouts/domain/workoutPresentation';
 import type { WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
 import { useMeasurementSystem } from '@/src/ui/profile/hooks/useMeasurementSystem';
 import { GripVerticalIcon, XIcon } from 'lucide-react-native';
@@ -30,7 +30,9 @@ export function PlannedExerciseRow({
   className,
 }: PlannedExerciseRowProps) {
   const measurementSystem = useMeasurementSystem();
-  const prescription = formatWorkoutExercisePrescription(workoutExercise, { measurementSystem });
+  const prescription = formatWorkoutExerciseSummaryPrescription(workoutExercise, {
+    measurementSystem,
+  });
   const handleNode = showDragHandle
     ? dragHandle ?? <Icon as={GripVerticalIcon} className="size-4 text-muted-foreground" />
     : null;

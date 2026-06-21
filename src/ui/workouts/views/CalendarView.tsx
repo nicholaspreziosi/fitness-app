@@ -21,25 +21,34 @@ import { useCanUseTrainingFeatures } from '@/src/ui/profile/hooks/useCanUseTrain
 import { useWeeklyWorkouts } from '@/src/ui/workouts/hooks/useWeeklyWorkouts';
 import { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
+import { RefreshGuardProvider, useRefreshGuard } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import * as React from 'react';
 import { Modal, Pressable, View } from 'react-native';
-import { GestureDetector, ScrollView } from 'react-native-gesture-handler';
 
 export function CalendarView() {
   return (
     <ExpandedWorkoutSwipeBlockProvider>
-      <CalendarViewContent />
+      <RefreshGuardProvider>
+        <CalendarViewContent />
+      </RefreshGuardProvider>
     </ExpandedWorkoutSwipeBlockProvider>
   );
 }
 
 function CalendarViewContent() {
   const plannerState = usePlannerState();
+  const { isDragging, isInputFocused } = useRefreshGuard();
   const { blockedRects } = useExpandedWorkoutSwipeBlock();
-  const { workouts, weekStart, isLoading, isError } = useWeeklyWorkouts(plannerState.weekAnchor);
+  const { workouts, weekStart, isLoading, isError, isRefreshing, refetch } = useWeeklyWorkouts(
+    plannerState.weekAnchor
+  );
   const canUseTraining = useCanUseTrainingFeatures();
   const mutations = useWorkoutMutations();
-  const { exercises } = useExerciseLibrary();
+  const {
+    exercises,
+    isRefreshing: exercisesRefreshing,
+    refetch: refetchExercises,
+  } = useExerciseLibrary();
 
   const exercisesById = React.useMemo(
     () => new Map(exercises.map((exercise) => [exercise.id, exercise])),
@@ -95,6 +104,21 @@ function CalendarViewContent() {
     onWeekChange: plannerState.setWeekAnchor,
     blockedRects,
   });
+
+  const isEditingWorkout = plannerState.editingWorkoutId !== null;
+  const isSheetOpen = plannerState.activeSheet.type !== 'none';
+  const isSubmitting = mutations.isPending;
+  const refreshEnabled =
+    !isEditingWorkout &&
+    !isSheetOpen &&
+    !isDragging &&
+    !isSubmitting &&
+    !isInputFocused;
+  const isPullRefreshing = isRefreshing || exercisesRefreshing;
+
+  const handleRefresh = React.useCallback(async () => {
+    await Promise.all([refetch(), refetchExercises()]);
+  }, [refetch, refetchExercises]);
 
   const renderSheet = () => {
     switch (plannerState.activeSheet.type) {
@@ -156,54 +180,53 @@ function CalendarViewContent() {
   };
 
   return (
-    <ScreenContainer scrollable={false}>
-      <GestureDetector gesture={scrollWeekSwipeGesture}>
-        <ScrollView
-          className="flex-1"
-          contentContainerClassName="gap-6 pb-8"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
-          <PageHeader
-            title="Calendar"
-            description="Plan workouts for the week."
-            rightAction={
-              <Button
-                size="sm"
-                disabled={!canUseTraining}
-                onPress={() => plannerState.openSheet({ type: 'addWorkout' })}>
-                <Text>+ Add Workout</Text>
-              </Button>
-            }
-          />
+    <>
+      <ScreenContainer
+        contentClassName="gap-6"
+        scrollGesture={scrollWeekSwipeGesture}
+        refreshing={isPullRefreshing}
+        refreshEnabled={refreshEnabled}
+        onRefresh={handleRefresh}>
+        <PageHeader
+          title="Calendar"
+          description="Plan workouts for the week."
+          rightAction={
+            <Button
+              size="sm"
+              disabled={!canUseTraining}
+              onPress={() => plannerState.openSheet({ type: 'addWorkout' })}>
+              <Text>+ Add Workout</Text>
+            </Button>
+          }
+        />
 
-          <WeekNavigator
-            weekAnchor={plannerState.weekAnchor}
-            onPreviousWeek={goToPreviousWeek}
-            onNextWeek={goToNextWeek}
-            onOpenWeekPicker={() => plannerState.openSheet({ type: 'weekPicker' })}
-          />
+        <WeekNavigator
+          weekAnchor={plannerState.weekAnchor}
+          onPreviousWeek={goToPreviousWeek}
+          onNextWeek={goToNextWeek}
+          onOpenWeekPicker={() => plannerState.openSheet({ type: 'weekPicker' })}
+        />
 
-          {isLoading ? (
-            <LoadingState className="flex-none py-20" />
-          ) : isError ? (
-            <Text className="text-sm text-destructive">Unable to load workouts.</Text>
-          ) : (
-            <View className="gap-6">
-              {weekDays.map((day) => (
-                <DaySection
-                  key={day.toISOString()}
-                  date={day}
-                  workouts={workoutsByDay.get(day.toISOString()) ?? []}
-                  exercisesById={exercisesById}
-                  plannerState={plannerState}
-                  mutations={mutations}
-                  canUseTraining={canUseTraining}
-                />
-              ))}
-            </View>
-          )}
-        </ScrollView>
-      </GestureDetector>
+        {isLoading ? (
+          <LoadingState className="flex-none py-20" />
+        ) : isError ? (
+          <Text className="text-sm text-destructive">Unable to load workouts.</Text>
+        ) : (
+          <View className="gap-4">
+            {weekDays.map((day) => (
+              <DaySection
+                key={day.toISOString()}
+                date={day}
+                workouts={workoutsByDay.get(day.toISOString()) ?? []}
+                exercisesById={exercisesById}
+                plannerState={plannerState}
+                mutations={mutations}
+                canUseTraining={canUseTraining}
+              />
+            ))}
+          </View>
+        )}
+      </ScreenContainer>
 
       <Modal
         visible={plannerState.activeSheet.type !== 'none'}
@@ -220,6 +243,6 @@ function CalendarViewContent() {
           </View>
         </View>
       </Modal>
-    </ScreenContainer>
+    </>
   );
 }

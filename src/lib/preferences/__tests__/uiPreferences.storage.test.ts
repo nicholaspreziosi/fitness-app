@@ -26,4 +26,12 @@ describe('uiPreferences.storage', () => {
     await expect(loadUiPreferences()).resolves.toEqual(preferences);
     expect(AsyncStorage.setItem).toHaveBeenCalled();
   });
+
+  it('returns defaults when native storage is unavailable', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockRejectedValue(
+      new Error('Native module is null, cannot access legacy storage')
+    );
+
+    await expect(loadUiPreferences()).resolves.toEqual(DEFAULT_UI_PREFERENCES);
+  });
 });

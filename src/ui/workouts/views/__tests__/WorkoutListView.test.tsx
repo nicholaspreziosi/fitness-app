@@ -26,21 +26,6 @@ jest.mock('@/src/ui/shared/components/ScreenContainer', () => {
   return { ScreenContainer: ({ children }: { children: React.ReactNode }) => <View>{children}</View> };
 });
 
-jest.mock('@/src/ui/workouts/components/WorkoutCreateSheet', () => {
-  const React = require('react');
-  const { Pressable, Text, View } = require('react-native');
-  return {
-    WorkoutCreateSheet: ({ onClose }: { onClose: () => void }) => (
-      <View>
-        <Text>Create workout sheet</Text>
-        <Pressable onPress={onClose}>
-          <Text>Close sheet</Text>
-        </Pressable>
-      </View>
-    ),
-  };
-});
-
 import { useTodayActiveWorkouts } from '@/src/ui/workouts/hooks/useTodayActiveWorkouts';
 
 const useTodayActiveWorkoutsMock = useTodayActiveWorkouts as jest.MockedFunction<
@@ -58,6 +43,7 @@ describe('WorkoutListView', () => {
       isError: false,
       error: null,
       refetch: jest.fn(),
+      isRefreshing: false,
     });
   });
 
@@ -66,7 +52,7 @@ describe('WorkoutListView', () => {
 
     expect(screen.getByText("Today's Workout")).toBeTruthy();
     expect(screen.getByText('No planned or in-progress workouts today.')).toBeTruthy();
-    expect(screen.getByText('Create Workout')).toBeTruthy();
+    expect(screen.queryByText('Create Workout')).toBeNull();
   });
 
   it('renders planned and in-progress workout cards', () => {
@@ -79,6 +65,7 @@ describe('WorkoutListView', () => {
       isError: false,
       error: null,
       refetch: jest.fn(),
+      isRefreshing: false,
     });
 
     render(<WorkoutListView today={today} onNavigateToMode={jest.fn()} onNavigateToList={jest.fn()} />);
@@ -89,13 +76,6 @@ describe('WorkoutListView', () => {
     expect(screen.getByText('Resume Workout')).toBeTruthy();
   });
 
-  it('opens create workout sheet when Create Workout is pressed', () => {
-    render(<WorkoutListView today={today} onNavigateToMode={jest.fn()} onNavigateToList={jest.fn()} />);
-
-    fireEvent.press(screen.getByText('Create Workout'));
-    expect(screen.getByText('Create workout sheet')).toBeTruthy();
-  });
-
   it('starts workout through session hook', async () => {
     useTodayActiveWorkoutsMock.mockReturnValue({
       workouts: [createMockWorkout({ id: 'planned-1', status: 'planned', name: 'Lower Body' })],
@@ -103,6 +83,7 @@ describe('WorkoutListView', () => {
       isError: false,
       error: null,
       refetch: jest.fn(),
+      isRefreshing: false,
     });
 
     render(<WorkoutListView today={today} onNavigateToMode={jest.fn()} onNavigateToList={jest.fn()} />);

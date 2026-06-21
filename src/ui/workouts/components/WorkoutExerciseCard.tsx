@@ -7,12 +7,13 @@ import { Text } from '@/components/ui/text';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import {
-  formatWorkoutExercisePrescription,
+  formatWorkoutExerciseSummaryPrescription,
   seedActualsFromPlanned,
 } from '@/src/contexts/workouts/domain/workoutPresentation';
 import type { WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
 import { getActualWeightLabel } from '@/src/lib/measurements/labels';
 import { useMeasurementSystem } from '@/src/ui/profile/hooks/useMeasurementSystem';
+import { useRefreshGuardInputHandlers } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import { ChevronDownIcon, GripVerticalIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
@@ -32,6 +33,7 @@ type WorkoutExerciseCardProps = {
   dragHandleRight?: boolean;
   dragHandle?: React.ReactNode;
   className?: string;
+  embedded?: boolean;
 };
 
 function parseOptionalNumber(value: string): number | undefined {
@@ -48,10 +50,15 @@ function NumberField({
   label,
   value,
   onChangeValue,
+  inputHandlers,
 }: {
   label: string;
   value?: number;
   onChangeValue: (value: number | undefined) => void;
+  inputHandlers?: {
+    onFocus: () => void;
+    onBlur: () => void;
+  };
 }) {
   return (
     <View className="flex-1 gap-1">
@@ -61,6 +68,8 @@ function NumberField({
         keyboardType="numeric"
         value={value === undefined ? '' : String(value)}
         onChangeText={(text) => onChangeValue(parseOptionalNumber(text))}
+        onFocus={inputHandlers?.onFocus}
+        onBlur={inputHandlers?.onBlur}
       />
     </View>
   );
@@ -74,11 +83,13 @@ export function WorkoutExerciseCard({
   dragHandleRight = false,
   dragHandle,
   className,
+  embedded = false,
 }: WorkoutExerciseCardProps) {
   const measurementSystem = useMeasurementSystem();
+  const inputHandlers = useRefreshGuardInputHandlers();
   const [isExpanded, setIsExpanded] = React.useState(false);
   const displayExercise = React.useMemo(() => seedActualsFromPlanned(exercise), [exercise]);
-  const prescription = formatWorkoutExercisePrescription(exercise, { measurementSystem });
+  const prescription = formatWorkoutExerciseSummaryPrescription(exercise, { measurementSystem });
 
   const showSets = exercise.plannedSets !== undefined || exercise.actualSets !== undefined;
   const showReps = exercise.plannedReps !== undefined || exercise.actualReps !== undefined;
@@ -99,10 +110,17 @@ export function WorkoutExerciseCard({
   return (
     <View
       className={cn(
-        'rounded-lg border border-border bg-card px-3 py-3',
-        exercise.completed && 'border-success/20 bg-success/[0.03]',
+        embedded
+          ? 'relative bg-card px-3 py-3'
+          : 'rounded-lg border border-border bg-card px-3 py-3',
+        !embedded && exercise.completed && 'border-success/20 bg-success/[0.03]',
         className
       )}>
+      {embedded && exercise.completed ? (
+        <View className="pointer-events-none absolute inset-0 bg-success/[0.03]" />
+      ) : null}
+
+      <View className={embedded ? 'relative' : undefined}>
       <View className="flex-row items-center gap-3">
         {!dragHandleRight && showDragHandle ? handleNode : null}
 
@@ -155,6 +173,7 @@ export function WorkoutExerciseCard({
                 label="Actual Sets"
                 value={displayExercise.actualSets}
                 onChangeValue={(actualSets) => onChange({ actualSets })}
+                inputHandlers={inputHandlers}
               />
             ) : null}
             {showReps ? (
@@ -162,6 +181,7 @@ export function WorkoutExerciseCard({
                 label="Actual Reps"
                 value={displayExercise.actualReps}
                 onChangeValue={(actualReps) => onChange({ actualReps })}
+                inputHandlers={inputHandlers}
               />
             ) : null}
             {showHold ? (
@@ -169,6 +189,7 @@ export function WorkoutExerciseCard({
                 label="Actual Hold (sec)"
                 value={displayExercise.actualHoldSeconds}
                 onChangeValue={(actualHoldSeconds) => onChange({ actualHoldSeconds })}
+                inputHandlers={inputHandlers}
               />
             ) : null}
             {showWeight ? (
@@ -176,6 +197,7 @@ export function WorkoutExerciseCard({
                 label={getActualWeightLabel(measurementSystem)}
                 value={displayExercise.actualWeight}
                 onChangeValue={(actualWeight) => onChange({ actualWeight })}
+                inputHandlers={inputHandlers}
               />
             ) : null}
           </View>
@@ -186,10 +208,13 @@ export function WorkoutExerciseCard({
               value={exercise.notes ?? ''}
               onChangeText={(notes) => onChange({ notes })}
               placeholder="Optional notes"
+              onFocus={inputHandlers.onFocus}
+              onBlur={inputHandlers.onBlur}
             />
           </View>
         </View>
       ) : null}
+      </View>
     </View>
   );
 }

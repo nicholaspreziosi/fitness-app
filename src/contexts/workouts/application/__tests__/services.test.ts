@@ -654,6 +654,85 @@ describe('WorkoutService', () => {
     expect(workoutRepository.update).toHaveBeenCalled();
   });
 
+  it('adds multiple exercises to workout in one update', async () => {
+    const existing = createMockWorkout({ id: 'workout-1', exercises: [] });
+    const exercise2 = createMockExercise({ id: 'exercise-2', name: 'Exercise 2' });
+    const exercise3 = createMockExercise({ id: 'exercise-3', name: 'Exercise 3' });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(existing),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock({
+        findById: jest.fn().mockImplementation(async (id: string) => {
+          if (id === 'exercise-2') {
+            return exercise2;
+          }
+
+          if (id === 'exercise-3') {
+            return exercise3;
+          }
+
+          return null;
+        }),
+      })
+    );
+
+    const workout = await service.addExercisesToWorkout('workout-1', ['exercise-2', 'exercise-3']);
+
+    expect(workout.exercises).toHaveLength(2);
+    expect(workout.exercises.map((item) => item.exerciseId)).toEqual(['exercise-2', 'exercise-3']);
+    expect(workoutRepository.update).toHaveBeenCalledTimes(1);
+  });
+
+  it('adds multiple template blocks to workout in one update', async () => {
+    const existing = createMockWorkout({ id: 'workout-1', exercises: [] });
+    const exercise2 = createMockExercise({ id: 'exercise-2' });
+    const exercise3 = createMockExercise({ id: 'exercise-3' });
+    const block1 = createMockTemplateBlock({ id: 'block-1', exerciseIds: ['exercise-2'] });
+    const block2 = createMockTemplateBlock({ id: 'block-2', exerciseIds: ['exercise-3'] });
+    const workoutRepository = createWorkoutRepositoryMock({
+      findById: jest.fn().mockResolvedValue(existing),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock({
+        findById: jest.fn().mockImplementation(async (id: string) => {
+          if (id === 'block-1') {
+            return block1;
+          }
+
+          if (id === 'block-2') {
+            return block2;
+          }
+
+          return null;
+        }),
+      }),
+      createExerciseRepositoryMock({
+        findById: jest.fn().mockImplementation(async (id: string) => {
+          if (id === 'exercise-2') {
+            return exercise2;
+          }
+
+          if (id === 'exercise-3') {
+            return exercise3;
+          }
+
+          return null;
+        }),
+      })
+    );
+
+    const workout = await service.addTemplateBlocksToWorkout('workout-1', ['block-1', 'block-2']);
+
+    expect(workout.exercises).toHaveLength(2);
+    expect(workout.exercises.map((item) => item.exerciseId)).toEqual(['exercise-2', 'exercise-3']);
+    expect(workout.sourceTemplateBlockIds).toEqual(['block-1', 'block-2']);
+    expect(workoutRepository.update).toHaveBeenCalledTimes(1);
+  });
+
   it('moves workout to another date', async () => {
     const existing = createMockWorkout({ id: 'workout-1', status: 'planned' });
     const workoutRepository = createWorkoutRepositoryMock({

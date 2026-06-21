@@ -6,6 +6,14 @@ import type { UiPreferences } from './uiPreferences.types';
 
 const STORAGE_KEY = 'flow.uiPreferences';
 
+function canUseLocalStorage(): boolean {
+  return typeof localStorage !== 'undefined';
+}
+
+function shouldUseLocalStorage(): boolean {
+  return Platform.OS === 'web' || canUseLocalStorage();
+}
+
 export async function loadUiPreferences(): Promise<UiPreferences> {
   try {
     const raw = await readStorage();
@@ -26,24 +34,28 @@ export async function loadUiPreferences(): Promise<UiPreferences> {
 }
 
 export async function saveUiPreferences(preferences: UiPreferences): Promise<void> {
-  await writeStorage(JSON.stringify(preferences));
+  try {
+    await writeStorage(JSON.stringify(preferences));
+  } catch {
+    // Ignore persistence failures and keep in-memory preferences.
+  }
 }
 
 async function readStorage(): Promise<string | null> {
-  if (Platform.OS === 'web') {
-    if (typeof localStorage === 'undefined') {
-      return null;
-    }
-
-    return localStorage.getItem(STORAGE_KEY);
+  if (shouldUseLocalStorage()) {
+    return canUseLocalStorage() ? localStorage.getItem(STORAGE_KEY) : null;
   }
 
-  return AsyncStorage.getItem(STORAGE_KEY);
+  try {
+    return await AsyncStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
 }
 
 async function writeStorage(value: string): Promise<void> {
-  if (Platform.OS === 'web') {
-    if (typeof localStorage !== 'undefined') {
+  if (shouldUseLocalStorage()) {
+    if (canUseLocalStorage()) {
       localStorage.setItem(STORAGE_KEY, value);
     }
 

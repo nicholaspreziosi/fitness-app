@@ -1,6 +1,8 @@
 import {
   canAddExerciseToWorkout,
+  canAddExercisesToWorkout,
   canAddTemplateBlockToWorkout,
+  canAddTemplateBlocksToWorkout,
   canEditWorkoutExercises,
   canMoveExerciseBetweenWorkouts,
   canMoveWorkoutToDate,
@@ -22,8 +24,47 @@ describe('planner.rules', () => {
     }
   });
 
+  it('prevents adding multiple exercises when one already exists in workout', () => {
+    const result = canAddExercisesToWorkout(editableWorkout, ['exercise-2', 'exercise-1']);
+
+    expect(result.allowed).toBe(false);
+    if (!result.allowed) {
+      expect(result.message).toContain('already exist');
+    }
+  });
+
+  it('allows adding multiple new exercises', () => {
+    const result = canAddExercisesToWorkout(editableWorkout, ['exercise-2', 'exercise-3']);
+
+    expect(result.allowed).toBe(true);
+  });
+
+  it('requires at least one exercise when adding in bulk', () => {
+    const result = canAddExercisesToWorkout(editableWorkout, []);
+
+    expect(result.allowed).toBe(false);
+  });
+
   it('prevents adding template block when exercises already exist', () => {
     const result = canAddTemplateBlockToWorkout(editableWorkout, ['exercise-1', 'exercise-2']);
+
+    expect(result.allowed).toBe(false);
+  });
+
+  it('allows adding multiple template blocks when exercises do not overlap', () => {
+    const result = canAddTemplateBlocksToWorkout(editableWorkout, [
+      { exerciseIds: ['exercise-2'] },
+      { exerciseIds: ['exercise-3'] },
+    ]);
+
+    expect(result.allowed).toBe(true);
+  });
+
+  it('prevents adding template blocks with duplicate exercises across blocks', () => {
+    const result = canAddTemplateBlocksToWorkout(editableWorkout, [
+      { exerciseIds: ['exercise-2', 'exercise-3'] },
+      { exerciseIds: ['exercise-3', 'exercise-4'] },
+    ]);
 
     expect(result.allowed).toBe(false);
   });

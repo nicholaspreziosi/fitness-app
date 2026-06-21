@@ -27,22 +27,24 @@ export function DaySection({
   canUseTraining = true,
 }: DaySectionProps) {
   return (
-    <View className="gap-2">
+    <View className="gap-6">
       <Text className="text-sm font-semibold text-foreground">{formatDayLabel(date)}</Text>
 
       {workouts.length === 0 ? (
         <EmptyDayState />
       ) : (
-        workouts.map((workout) => (
-          <PlannedWorkoutCard
-            key={workout.id}
-            workout={workout}
-            exercisesById={exercisesById}
-            plannerState={plannerState}
-            mutations={mutations}
-            canUseTraining={canUseTraining}
-          />
-        ))
+        <View className="gap-1">
+          {workouts.map((workout) => (
+            <PlannedWorkoutCard
+              key={workout.id}
+              workout={workout}
+              exercisesById={exercisesById}
+              plannerState={plannerState}
+              mutations={mutations}
+              canUseTraining={canUseTraining}
+            />
+          ))}
+        </View>
       )}
     </View>
   );

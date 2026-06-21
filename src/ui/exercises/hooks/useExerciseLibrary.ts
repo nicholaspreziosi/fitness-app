@@ -68,8 +68,9 @@ export function useExerciseLibrary() {
   return {
     exercises: exercisesQuery.data ?? [],
     isLoading: isInitialLoading,
-    isRefreshing: exercisesQuery.isFetching && exercisesQuery.data !== undefined,
+    isRefreshing: exercisesQuery.isRefetching,
     error: exercisesQuery.error,
+    refetch: exercisesQuery.refetch,
     archiveExercise: archiveMutation.mutateAsync,
     restoreExercise: restoreMutation.mutateAsync,
     toggleFavorite,

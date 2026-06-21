@@ -31,4 +31,24 @@ describe('PlannedExerciseRow', () => {
     expect(screen.getByText('Short Foot')).toBeTruthy();
     expect(screen.queryByText(/x|sets|reps|lbs/)).toBeNull();
   });
+
+  it('renders actual prescription when the exercise is completed', () => {
+    render(
+      <PlannedExerciseRow
+        workoutExercise={createMockWorkoutExercise({
+          completed: true,
+          plannedSets: 2,
+          plannedReps: 8,
+          plannedWeight: 75,
+          actualSets: 2,
+          actualReps: 10,
+          actualWeight: 80,
+        })}
+        exerciseName="Leg Extension"
+      />
+    );
+
+    expect(screen.getByText('2 x 10 • 80 lbs')).toBeTruthy();
+    expect(screen.queryByText('2 x 8 • 75 lbs')).toBeNull();
+  });
 });

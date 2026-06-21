@@ -22,6 +22,36 @@ export function formatWorkoutExercisePrescription(
   );
 }
 
+export function formatWorkoutExerciseSummaryPrescription(
+  exercise: Pick<
+    WorkoutExercise,
+    | 'completed'
+    | 'plannedSets'
+    | 'plannedReps'
+    | 'plannedWeight'
+    | 'plannedHoldSeconds'
+    | 'actualSets'
+    | 'actualReps'
+    | 'actualWeight'
+    | 'actualHoldSeconds'
+  >,
+  options: PrescriptionFormatOptions = {}
+): string | undefined {
+  if (exercise.completed) {
+    return formatPrescription(
+      {
+        sets: exercise.actualSets ?? exercise.plannedSets,
+        reps: exercise.actualReps ?? exercise.plannedReps,
+        weight: exercise.actualWeight ?? exercise.plannedWeight,
+        holdSeconds: exercise.actualHoldSeconds ?? exercise.plannedHoldSeconds,
+      },
+      options
+    );
+  }
+
+  return formatWorkoutExercisePrescription(exercise, options);
+}
+
 export function seedActualsFromPlanned(exercise: WorkoutExercise): WorkoutExercise {
   return {
     ...exercise,

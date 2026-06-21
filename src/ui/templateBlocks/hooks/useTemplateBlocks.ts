@@ -61,8 +61,9 @@ export function useTemplateBlocks(options?: { enabled?: boolean }) {
   return {
     templateBlocks: templateBlocksQuery.data ?? [],
     isLoading: isInitialLoading,
-    isRefreshing: templateBlocksQuery.isFetching && templateBlocksQuery.data !== undefined,
+    isRefreshing: templateBlocksQuery.isRefetching,
     error: templateBlocksQuery.error,
+    refetch: templateBlocksQuery.refetch,
     archiveTemplateBlock: archiveMutation.mutateAsync,
     restoreTemplateBlock: restoreMutation.mutateAsync,
     toggleFavorite,

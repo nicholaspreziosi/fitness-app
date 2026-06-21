@@ -1,6 +1,8 @@
 import { WorkoutModeView } from '@/src/ui/workouts/views/WorkoutModeView';
+import { RefreshGuardProvider } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import { createMockWorkout, createMockWorkoutExercise } from '@/test-utils/mockData';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import * as React from 'react';
 
 const mockSetPreference = jest.fn();
 let mockShowCompleted = false;
@@ -23,6 +25,67 @@ jest.mock('@/src/ui/shared/components/ScreenContainer', () => {
   const React = require('react');
   const { View } = require('react-native');
   return { ScreenContainer: ({ children }: { children: React.ReactNode }) => <View>{children}</View> };
+});
+
+jest.mock('@/src/ui/shared/components/PopoverMenu', () => {
+  const React = require('react');
+  const { Pressable, Text, View } = require('react-native');
+
+  return {
+    PopoverMenu: ({
+      trigger,
+      items,
+    }: {
+      trigger?: React.ReactNode;
+      items: Array<{ label: string; onPress: () => void; testID?: string }>;
+    }) => (
+      <View>
+        {trigger}
+        {items.map((item) => (
+          <Pressable key={item.label} testID={item.testID} onPress={item.onPress}>
+            <Text>{item.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+    ),
+  };
+});
+
+jest.mock('@/src/ui/workouts/components/ExercisePickerSheet', () => ({
+  ExercisePickerSheet: () => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return <Text>Exercise picker sheet</Text>;
+  },
+}));
+
+jest.mock('@/src/ui/workouts/components/TemplateBlockPickerSheet', () => ({
+  TemplateBlockPickerSheet: () => {
+    const React = require('react');
+    const { Text } = require('react-native');
+    return <Text>Template picker sheet</Text>;
+  },
+}));
+
+jest.mock('react-native-gesture-handler', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+
+  return {
+    GestureHandlerRootView: View,
+    Swipeable: ({
+      children,
+      renderRightActions,
+    }: {
+      children: React.ReactNode;
+      renderRightActions?: () => React.ReactNode;
+    }) => (
+      <View>
+        {children}
+        {renderRightActions?.()}
+      </View>
+    ),
+  };
 });
 
 jest.mock('react-native-draggable-flatlist', () => {
@@ -49,6 +112,14 @@ jest.mock('react-native-draggable-flatlist', () => {
 });
 
 describe('WorkoutModeView', () => {
+  function renderView(props: React.ComponentProps<typeof WorkoutModeView>) {
+    return render(
+      <RefreshGuardProvider>
+        <WorkoutModeView {...props} />
+      </RefreshGuardProvider>
+    );
+  }
+
   beforeEach(() => {
     mockShowCompleted = false;
     mockSetPreference.mockClear();
@@ -70,17 +141,16 @@ describe('WorkoutModeView', () => {
   };
 
   it('shows header, progress card, toggle, exercise cards, and finish/skip actions', () => {
-    render(
-      <WorkoutModeView
-        workout={workout}
-        exerciseNames={exerciseNames}
-        onExit={jest.fn()}
-        onFinish={jest.fn()}
-        onSkip={jest.fn()}
-        onExerciseChange={jest.fn()}
-        onReorderExercises={jest.fn()}
-      />
-    );
+    renderView({
+      workout,
+      exerciseNames,
+      onExit: jest.fn(),
+      onFinish: jest.fn(),
+      onSkip: jest.fn(),
+      onRemoveExercise: jest.fn(),
+      onExerciseChange: jest.fn(),
+      onReorderExercises: jest.fn(),
+    });
 
     expect(screen.getByText('Lower Body')).toBeTruthy();
     expect(screen.getByText('In Progress')).toBeTruthy();
@@ -93,17 +163,16 @@ describe('WorkoutModeView', () => {
   });
 
   it('hides completed exercises by default', () => {
-    render(
-      <WorkoutModeView
-        workout={workout}
-        exerciseNames={exerciseNames}
-        onExit={jest.fn()}
-        onFinish={jest.fn()}
-        onSkip={jest.fn()}
-        onExerciseChange={jest.fn()}
-        onReorderExercises={jest.fn()}
-      />
-    );
+    renderView({
+      workout,
+      exerciseNames,
+      onExit: jest.fn(),
+      onFinish: jest.fn(),
+      onSkip: jest.fn(),
+      onRemoveExercise: jest.fn(),
+      onExerciseChange: jest.fn(),
+      onReorderExercises: jest.fn(),
+    });
 
     expect(screen.queryByText('Pendulum Squat')).toBeNull();
     expect(screen.getByText('Leg Press')).toBeTruthy();
@@ -112,17 +181,16 @@ describe('WorkoutModeView', () => {
   it('shows completed exercises when toggle is enabled', () => {
     mockShowCompleted = true;
 
-    render(
-      <WorkoutModeView
-        workout={workout}
-        exerciseNames={exerciseNames}
-        onExit={jest.fn()}
-        onFinish={jest.fn()}
-        onSkip={jest.fn()}
-        onExerciseChange={jest.fn()}
-        onReorderExercises={jest.fn()}
-      />
-    );
+    renderView({
+      workout,
+      exerciseNames,
+      onExit: jest.fn(),
+      onFinish: jest.fn(),
+      onSkip: jest.fn(),
+      onRemoveExercise: jest.fn(),
+      onExerciseChange: jest.fn(),
+      onReorderExercises: jest.fn(),
+    });
 
     fireEvent.press(screen.getByLabelText('Show completed exercises'));
     expect(screen.getByText('Pendulum Squat')).toBeTruthy();
@@ -133,17 +201,16 @@ describe('WorkoutModeView', () => {
     const onFinish = jest.fn();
     const onSkip = jest.fn();
 
-    render(
-      <WorkoutModeView
-        workout={workout}
-        exerciseNames={exerciseNames}
-        onExit={onExit}
-        onFinish={onFinish}
-        onSkip={onSkip}
-        onExerciseChange={jest.fn()}
-        onReorderExercises={jest.fn()}
-      />
-    );
+    renderView({
+      workout,
+      exerciseNames,
+      onExit: onExit,
+      onFinish: onFinish,
+      onSkip: onSkip,
+      onRemoveExercise: jest.fn(),
+      onExerciseChange: jest.fn(),
+      onReorderExercises: jest.fn(),
+    });
 
     fireEvent.press(screen.getByText('Exit Workout'));
     fireEvent.press(screen.getByText('Finish Workout'));
@@ -152,5 +219,42 @@ describe('WorkoutModeView', () => {
     expect(onExit).toHaveBeenCalled();
     expect(onFinish).toHaveBeenCalled();
     expect(onSkip).toHaveBeenCalled();
+  });
+
+  it('opens exercise and template picker sheets from add menu', () => {
+    renderView({
+      workout,
+      exerciseNames,
+      onExit: jest.fn(),
+      onFinish: jest.fn(),
+      onSkip: jest.fn(),
+      onRemoveExercise: jest.fn(),
+      onExerciseChange: jest.fn(),
+      onReorderExercises: jest.fn(),
+    });
+
+    fireEvent.press(screen.getByTestId('workout-mode-add-exercises'));
+    expect(screen.getByText('Exercise picker sheet')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('workout-mode-add-templates'));
+    expect(screen.getByText('Template picker sheet')).toBeTruthy();
+  });
+
+  it('calls onRemoveExercise when delete action is pressed', () => {
+    const onRemoveExercise = jest.fn();
+
+    renderView({
+      workout,
+      exerciseNames,
+      onExit: jest.fn(),
+      onFinish: jest.fn(),
+      onSkip: jest.fn(),
+      onRemoveExercise,
+      onExerciseChange: jest.fn(),
+      onReorderExercises: jest.fn(),
+    });
+
+    fireEvent.press(screen.getByTestId('delete-exercise-we-2'));
+    expect(onRemoveExercise).toHaveBeenCalledWith('we-2');
   });
 });

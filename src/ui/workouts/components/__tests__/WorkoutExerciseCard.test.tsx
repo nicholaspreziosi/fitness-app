@@ -37,6 +37,28 @@ describe('WorkoutExerciseCard', () => {
     expect(screen.getByText('2 x 10 • 50 lbs • 5 Sec Hold')).toBeTruthy();
   });
 
+  it('shows actual prescription summary when completed', () => {
+    render(
+      <WorkoutExerciseCard
+        exercise={createMockWorkoutExercise({
+          id: 'we-1',
+          completed: true,
+          plannedSets: 2,
+          plannedReps: 8,
+          plannedWeight: 100,
+          actualSets: 2,
+          actualReps: 10,
+          actualWeight: 105,
+        })}
+        exerciseName="Pendulum Squat"
+        onChange={jest.fn()}
+      />
+    );
+
+    expect(screen.getByText('2 x 10 • 105 lbs')).toBeTruthy();
+    expect(screen.queryByText('2 x 8 • 100 lbs')).toBeNull();
+  });
+
   it('expands to show actual fields when the summary is pressed', () => {
     render(
       <WorkoutExerciseCard

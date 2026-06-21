@@ -10,6 +10,7 @@ import { sortWorkoutExercises } from '@/src/contexts/workouts/domain/planner.hel
 import { DatePickerField } from '@/src/ui/shared/components/DatePickerField';
 import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
 import { PopoverMenu } from '@/src/ui/shared/components/PopoverMenu';
+import { useRefreshGuardInputHandlers } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import { ExerciseReorderList } from '@/src/ui/workouts/components/plannerDnD';
 import { ChevronDownIcon, PlusIcon } from 'lucide-react-native';
 import * as React from 'react';
@@ -51,6 +52,7 @@ export function WorkoutEditPanel({
   onCancelDateChange,
 }: WorkoutEditPanelProps) {
   const [name, setName] = React.useState(workoutName);
+  const inputHandlers = useRefreshGuardInputHandlers();
   const sorted = React.useMemo(() => sortWorkoutExercises(exercises), [exercises]);
 
   React.useEffect(() => {
@@ -96,7 +98,11 @@ export function WorkoutEditPanel({
           placeholder="Wednesday Lower Body"
           testID="workout-name-input"
           value={name}
-          onBlur={handleNameBlur}
+          onFocus={inputHandlers.onFocus}
+          onBlur={() => {
+            handleNameBlur();
+            inputHandlers.onBlur();
+          }}
           onChangeText={setName}
         />
       </View>

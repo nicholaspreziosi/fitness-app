@@ -43,6 +43,7 @@ export function LibraryView() {
     isLoading: exercisesLoading,
     isRefreshing: exercisesRefreshing,
     error: exercisesError,
+    refetch: refetchExercises,
     archiveExercise,
     restoreExercise,
     deleteExercise,
@@ -54,6 +55,7 @@ export function LibraryView() {
     isLoading: templatesLoading,
     isRefreshing: templatesRefreshing,
     error: templatesError,
+    refetch: refetchTemplateBlocks,
     archiveTemplateBlock,
     restoreTemplateBlock,
     toggleFavorite: toggleTemplateFavorite,
@@ -90,6 +92,15 @@ export function LibraryView() {
   const isRefreshing = isExercisesTab ? exercisesRefreshing : templatesRefreshing;
   const error = isExercisesTab ? exercisesError : templatesError;
 
+  const handleRefresh = React.useCallback(async () => {
+    if (isExercisesTab) {
+      await refetchExercises();
+      return;
+    }
+
+    await refetchTemplateBlocks();
+  }, [isExercisesTab, refetchExercises, refetchTemplateBlocks]);
+
   if (isLoading) {
     return (
       <ScreenContainer>
@@ -104,7 +115,7 @@ export function LibraryView() {
       error instanceof Error ? error.message : 'Check your connection and try again.';
 
     return (
-      <ScreenContainer>
+      <ScreenContainer refreshing={isRefreshing} onRefresh={handleRefresh}>
         <PageHeader title="Library" />
         <EmptyState
           icon={isExercisesTab ? DumbbellIcon : LayersIcon}
@@ -116,7 +127,7 @@ export function LibraryView() {
   }
 
   return (
-    <ScreenContainer>
+    <ScreenContainer refreshing={isRefreshing} onRefresh={handleRefresh}>
       <PageHeader title="Library" />
 
       <View className="gap-4">

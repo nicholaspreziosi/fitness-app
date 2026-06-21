@@ -69,6 +69,14 @@ jest.mock('@/src/ui/workouts/hooks/useWorkoutSession', () => ({
   })),
 }));
 
+jest.mock('@/src/ui/workouts/hooks/useWorkoutMutations', () => ({
+  useWorkoutMutations: () => ({
+    removeExercise: {
+      mutate: jest.fn(),
+    },
+  }),
+}));
+
 jest.mock('@/src/ui/workouts/hooks/useProgressionPrompt', () => ({
   useProgressionPrompt: jest.fn(() => ({
     reviews: [],

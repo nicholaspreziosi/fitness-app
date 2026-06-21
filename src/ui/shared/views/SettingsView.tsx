@@ -20,7 +20,6 @@ import { ProfileLocaleSection } from '@/src/ui/profile/components/ProfileLocaleS
 import { ProfilePreferencesSection } from '@/src/ui/profile/components/ProfilePreferencesSection';
 import { useUpdateUserProfile } from '@/src/ui/profile/hooks/useUpdateUserProfile';
 import { useUserProfile } from '@/src/ui/profile/hooks/useUserProfile';
-import { useUiPreferences } from '@/src/ui/shared/hooks/useUiPreferences';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { checkFirebaseConnection, type FirebaseHealthResult } from '@/src/lib/firebase/health';
 import { SaveIcon } from 'lucide-react-native';
@@ -31,7 +30,6 @@ export function SettingsView() {
   const { user, signOut } = useAuth();
   const { profile, isLoading } = useUserProfile();
   const { updateProfile, isUpdating } = useUpdateUserProfile();
-  const { preferences, setPreference } = useUiPreferences();
   const [formValues, setFormValues] = React.useState<UserProfileFormValues>(
     emptyUserProfileFormValues()
   );
@@ -114,12 +112,7 @@ export function SettingsView() {
 
       <ProfileLocaleSection values={formValues} onChange={handleChange} />
       <ProfileBodySection values={formValues} onChange={handleChange} />
-      <ProfilePreferencesSection
-        values={formValues}
-        showCompletedExercises={preferences.showCompletedExercises}
-        onChange={handleChange}
-        onShowCompletedChange={(value) => void setPreference('showCompletedExercises', value)}
-      />
+      <ProfilePreferencesSection values={formValues} onChange={handleChange} />
 
       <ComponentDemoSection title="Actions">
         {formError ? <Text className="text-sm text-destructive">{formError}</Text> : null}

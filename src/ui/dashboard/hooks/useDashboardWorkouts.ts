@@ -37,6 +37,7 @@ export function useDashboardWorkouts(
     rangeStart: start,
     rangeEnd: end,
     isLoading: query.isLoading && query.data === undefined,
+    isRefreshing: query.isRefetching,
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,

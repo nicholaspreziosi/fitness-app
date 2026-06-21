@@ -7,11 +7,13 @@ import { ProgressionPromptSheet } from '@/src/ui/workouts/components/Progression
 import { useProgressionPrompt } from '@/src/ui/workouts/hooks/useProgressionPrompt';
 import { useTodayActiveWorkouts } from '@/src/ui/workouts/hooks/useTodayActiveWorkouts';
 import { useWeeklyWorkouts } from '@/src/ui/workouts/hooks/useWeeklyWorkouts';
+import { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
 import { useWorkoutAutoSave } from '@/src/ui/workouts/hooks/useWorkoutAutoSave';
 import { useWorkoutSession } from '@/src/ui/workouts/hooks/useWorkoutSession';
 import { workoutQueryKeys } from '@/src/ui/workouts/hooks/workoutQueryKeys';
 import { WorkoutListView } from '@/src/ui/workouts/views/WorkoutListView';
 import { WorkoutModeView } from '@/src/ui/workouts/views/WorkoutModeView';
+import { RefreshGuardProvider } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import * as React from 'react';
 
@@ -39,19 +41,37 @@ function WorkoutModeContainer({
   onSkip,
 }: WorkoutModeContainerProps) {
   const autoSave = useWorkoutAutoSave({ workout, weekQueryKey });
+  const { removeExercise } = useWorkoutMutations();
+  const { refetch, isRefreshing } = useWeeklyWorkouts(workout.date ?? new Date());
+
+  const handleRemoveExercise = React.useCallback(
+    (workoutExerciseId: string) => {
+      removeExercise.mutate({ workoutId: workout.id, workoutExerciseId });
+    },
+    [removeExercise, workout.id]
+  );
+
+  const handleRefresh = React.useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   return (
-    <WorkoutModeView
-      workout={workout}
-      exerciseNames={exerciseNames}
-      saveStatus={autoSave.saveStatus}
-      saveError={autoSave.saveError}
-      onExit={onExit}
-      onFinish={onFinish}
-      onSkip={onSkip}
-      onExerciseChange={autoSave.saveExerciseChange}
-      onReorderExercises={autoSave.saveExerciseReorder}
-    />
+    <RefreshGuardProvider>
+      <WorkoutModeView
+        workout={workout}
+        exerciseNames={exerciseNames}
+        saveStatus={autoSave.saveStatus}
+        saveError={autoSave.saveError}
+        isRefreshing={isRefreshing}
+        onRefresh={handleRefresh}
+        onExit={onExit}
+        onFinish={onFinish}
+        onSkip={onSkip}
+        onExerciseChange={autoSave.saveExerciseChange}
+        onReorderExercises={autoSave.saveExerciseReorder}
+        onRemoveExercise={handleRemoveExercise}
+      />
+    </RefreshGuardProvider>
   );
 }
 

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { startOfDay } from '@/src/lib/dates/weekBounds';
+import { useRefreshGuardFlag } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
@@ -46,6 +47,8 @@ export function DatePickerField({
   const selectedDate = React.useMemo(() => startOfDay(value), [value.getTime()]);
   const [showNativePicker, setShowNativePicker] = React.useState(false);
   const [draftDate, setDraftDate] = React.useState(selectedDate);
+
+  useRefreshGuardFlag('inputFocused', showNativePicker);
 
   const openPicker = React.useCallback(() => {
     setDraftDate(selectedDate);

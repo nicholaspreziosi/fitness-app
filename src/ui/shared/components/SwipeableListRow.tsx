@@ -18,15 +18,24 @@ type SwipeableListRowProps = {
   testID?: string;
   accessibilityLabel?: string;
   className?: string;
+  contained?: boolean;
+  containerClassName?: string;
 };
 
-function SwipeActionButton({ action }: { action: ListRowAction }) {
+function SwipeActionButton({
+  action,
+  contained = false,
+}: {
+  action: ListRowAction;
+  contained?: boolean;
+}) {
   return (
     <Pressable
       accessibilityRole="button"
       testID={action.testID}
       className={cn(
         'min-w-[88px] items-center justify-center px-4',
+        contained && 'h-full self-stretch',
         action.destructive ? 'bg-destructive' : 'bg-muted'
       )}
       onPress={action.onPress}>
@@ -48,6 +57,8 @@ export function SwipeableListRow({
   testID,
   accessibilityLabel,
   className,
+  contained = false,
+  containerClassName,
 }: SwipeableListRowProps) {
   const swipeableRef = React.useRef<Swipeable>(null);
 
@@ -81,10 +92,11 @@ export function SwipeableListRow({
   }, [actions]);
 
   const renderRightActions = () => (
-    <View className="flex-row">
+    <View className={cn('flex-row', contained && 'h-full')}>
       {actions.map((action) => (
         <SwipeActionButton
           key={action.label}
+          contained={contained}
           action={{
             ...action,
             onPress: () => runAction(action),
@@ -94,7 +106,11 @@ export function SwipeableListRow({
     </View>
   );
 
-  const rowClassName = cn('bg-background px-1 py-3.5', onPress && 'active:bg-muted/40', className);
+  const rowClassName = cn(
+    contained ? 'bg-card' : 'bg-background px-1 py-3.5',
+    onPress && 'active:bg-muted/40',
+    className
+  );
 
   const row = onPress ? (
     <Pressable
@@ -128,12 +144,30 @@ export function SwipeableListRow({
   );
 
   if (actions.length === 0) {
+    if (contained) {
+      return (
+        <View className={cn('overflow-hidden rounded-lg border border-border', containerClassName)}>
+          {row}
+        </View>
+      );
+    }
+
     return row;
   }
 
-  return (
+  const swipeable = (
     <Swipeable ref={swipeableRef} overshootRight={false} renderRightActions={renderRightActions}>
       {row}
     </Swipeable>
   );
+
+  if (contained) {
+    return (
+      <View className={cn('overflow-hidden rounded-lg border border-border', containerClassName)}>
+        {swipeable}
+      </View>
+    );
+  }
+
+  return swipeable;
 }

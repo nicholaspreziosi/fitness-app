@@ -28,12 +28,32 @@ export function canAddExerciseToWorkout(
   workout: Pick<Workout, 'exercises' | 'status'>,
   exerciseId: string
 ): PlannerRuleResult {
+  return canAddExercisesToWorkout(workout, [exerciseId]);
+}
+
+export function canAddExercisesToWorkout(
+  workout: Pick<Workout, 'exercises' | 'status'>,
+  exerciseIds: string[]
+): PlannerRuleResult {
   if (!canEditWorkoutExercises(workout.status).allowed) {
     return canEditWorkoutExercises(workout.status);
   }
 
-  if (workoutContainsExerciseId(workout, exerciseId)) {
-    return { allowed: false, message: 'This exercise already exists in the workout.' };
+  const uniqueIds = [...new Set(exerciseIds)];
+
+  if (uniqueIds.length === 0) {
+    return { allowed: false, message: 'Select at least one exercise.' };
+  }
+
+  const existing = uniqueIds.filter((id) => workoutContainsExerciseId(workout, id));
+
+  if (existing.length > 0) {
+    const message =
+      uniqueIds.length === 1
+        ? 'This exercise already exists in the workout.'
+        : 'One or more selected exercises already exist in the workout.';
+
+    return { allowed: false, message };
   }
 
   return { allowed: true };
@@ -43,16 +63,50 @@ export function canAddTemplateBlockToWorkout(
   workout: Pick<Workout, 'exercises' | 'status'>,
   blockExerciseIds: string[]
 ): PlannerRuleResult {
+  return canAddTemplateBlocksToWorkout(workout, [{ exerciseIds: blockExerciseIds }]);
+}
+
+export function canAddTemplateBlocksToWorkout(
+  workout: Pick<Workout, 'exercises' | 'status'>,
+  blocks: { exerciseIds: string[] }[]
+): PlannerRuleResult {
   if (!canEditWorkoutExercises(workout.status).allowed) {
     return canEditWorkoutExercises(workout.status);
   }
 
-  const existing = blockExerciseIds.filter((id) => workoutContainsExerciseId(workout, id));
+  if (blocks.length === 0) {
+    return { allowed: false, message: 'Select at least one template block.' };
+  }
+
+  const allExerciseIds: string[] = [];
+
+  for (const block of blocks) {
+    allExerciseIds.push(...block.exerciseIds);
+  }
+
+  const seen = new Set<string>();
+
+  for (const exerciseId of allExerciseIds) {
+    if (seen.has(exerciseId)) {
+      return {
+        allowed: false,
+        message:
+          'One or more exercises would be duplicated across the selected template blocks.',
+      };
+    }
+
+    seen.add(exerciseId);
+  }
+
+  const existing = allExerciseIds.filter((id) => workoutContainsExerciseId(workout, id));
 
   if (existing.length > 0) {
     return {
       allowed: false,
-      message: 'One or more exercises from this template block already exist in the workout.',
+      message:
+        blocks.length === 1
+          ? 'One or more exercises from this template block already exist in the workout.'
+          : 'One or more exercises from the selected template blocks already exist in the workout.',
     };
   }
 

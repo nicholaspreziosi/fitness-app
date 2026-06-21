@@ -11,7 +11,7 @@ export function useDashboardSummary(
   period: DashboardPeriod,
   options: UseDashboardSummaryOptions = {}
 ) {
-  const { workouts, isLoading, isError, error, refetch, rangeStart, rangeEnd } =
+  const { workouts, isLoading, isRefreshing, isError, error, refetch, rangeStart, rangeEnd } =
     useDashboardWorkouts(period, options);
   const referenceDate = options.referenceDate ?? new Date();
 
@@ -26,6 +26,7 @@ export function useDashboardSummary(
     rangeStart,
     rangeEnd,
     isLoading,
+    isRefreshing,
     isError,
     error,
     refetch,

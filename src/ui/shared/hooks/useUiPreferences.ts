@@ -16,6 +16,11 @@ export function useUiPreferences() {
           setPreferences(loaded);
         }
       })
+      .catch(() => {
+        if (!cancelled) {
+          setPreferences(DEFAULT_UI_PREFERENCES);
+        }
+      })
       .finally(() => {
         if (!cancelled) {
           setIsLoading(false);

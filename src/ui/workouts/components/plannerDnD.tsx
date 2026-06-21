@@ -2,6 +2,7 @@ import { Icon } from '@/components/ui/icon';
 import type { Exercise } from '@/src/contexts/exercises/domain/exercise.model';
 import type { WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
 import { SwipeableListRow } from '@/src/ui/shared/components/SwipeableListRow';
+import { useOptionalRefreshGuard } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import { PlannedExerciseRow } from '@/src/ui/workouts/components/PlannedExerciseRow';
 import { GripVerticalIcon } from 'lucide-react-native';
 import * as React from 'react';
@@ -25,6 +26,8 @@ export function ExerciseReorderList({
   onReorder,
   onRemoveExercise,
 }: ExerciseReorderListProps) {
+  const refreshGuard = useOptionalRefreshGuard();
+
   return (
     <View className="gap-1">
       <DraggableFlatList
@@ -33,7 +36,11 @@ export function ExerciseReorderList({
         containerStyle={{ gap: 4 }}
         activationDistance={8}
         scrollEnabled={false}
-        onDragEnd={({ data }) => onReorder(data.map((item) => item.id))}
+        onDragBegin={() => refreshGuard?.setDragging(true)}
+        onDragEnd={({ data }) => {
+          refreshGuard?.setDragging(false);
+          onReorder(data.map((item) => item.id));
+        }}
         renderItem={({ item, drag, isActive }) => (
           <SwipeableListRow
             actions={[

@@ -47,9 +47,6 @@ jest.mock('@/src/ui/profile/hooks/useUpdateUserProfile', () => ({
   useUpdateUserProfile: jest.fn(),
 }));
 
-jest.mock('@/src/ui/shared/hooks/useUiPreferences', () => ({
-  useUiPreferences: jest.fn(),
-}));
 jest.mock('@/src/lib/firebase/health', () => ({
   checkFirebaseConnection: jest.fn().mockResolvedValue({ status: 'ok', projectId: 'demo' }),
 }));
@@ -63,7 +60,6 @@ jest.mock('@/src/ui/shared/components/ScreenContainer', () => {
 import { buildDefaultProfileFields } from '@/src/contexts/profile/domain/userProfile.rules';
 import { useUpdateUserProfile } from '@/src/ui/profile/hooks/useUpdateUserProfile';
 import { useUserProfile } from '@/src/ui/profile/hooks/useUserProfile';
-import { useUiPreferences } from '@/src/ui/shared/hooks/useUiPreferences';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { SettingsView } from '@/src/ui/shared/views/SettingsView';
 import { fireEvent, render, screen } from '@testing-library/react-native';
@@ -87,10 +83,6 @@ describe('SettingsView', () => {
     (useUpdateUserProfile as jest.Mock).mockReturnValue({
       updateProfile: jest.fn().mockResolvedValue(undefined),
       isUpdating: false,
-    });
-    (useUiPreferences as jest.Mock).mockReturnValue({
-      preferences: { showCompletedExercises: false },
-      setPreference: jest.fn(),
     });
   });
 

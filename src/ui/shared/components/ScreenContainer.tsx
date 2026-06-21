@@ -1,18 +1,27 @@
+import { THEME } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 import { APP_HEADER_BAR_HEIGHT } from '@/src/ui/shared/constants/appHeader';
 import { useShowAppHeader } from '@/src/ui/shared/hooks/useShowAppHeader';
 import { useOptionalAppHeaderScroll } from '@/src/ui/shared/providers/AppHeaderScrollProvider';
 import { useFocusEffect } from 'expo-router';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
-import { View, type ScrollViewProps } from 'react-native';
+import { Platform, RefreshControl, View, type ScrollViewProps } from 'react-native';
+import { GestureDetector, ScrollView } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 type ScreenContainerProps = {
   children: React.ReactNode;
   scrollable?: boolean;
   className?: string;
   contentClassName?: string;
+  refreshing?: boolean;
+  onRefresh?: () => void | Promise<unknown>;
+  refreshEnabled?: boolean;
+  scrollGesture?: React.ComponentProps<typeof GestureDetector>['gesture'];
 } & Pick<ScrollViewProps, 'contentContainerStyle'>;
 
 export function ScreenContainer({
@@ -21,13 +30,24 @@ export function ScreenContainer({
   className,
   contentClassName,
   contentContainerStyle,
+  refreshing = false,
+  onRefresh,
+  refreshEnabled = true,
+  scrollGesture,
 }: ScreenContainerProps) {
   const insets = useSafeAreaInsets();
+  const { colorScheme } = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
   const showAppHeader = useShowAppHeader();
   const headerScroll = useOptionalAppHeaderScroll();
   const topPadding = showAppHeader ? insets.top + APP_HEADER_BAR_HEIGHT : 0;
   const bottomPadding = Math.max(insets.bottom, 16);
   const scrollOffsetRef = React.useRef(0);
+  const [pullRefreshing, setPullRefreshing] = React.useState(false);
+  const useIosRefreshInset = onRefresh != null && Platform.OS === 'ios' && topPadding > 0;
+  const [applyInitialContentOffset, setApplyInitialContentOffset] = React.useState(
+    () => useIosRefreshInset
+  );
 
   useFocusEffect(
     React.useCallback(() => {
@@ -42,13 +62,44 @@ export function ScreenContainer({
     []
   );
 
+  const handleRefresh = React.useCallback(async () => {
+    if (!onRefresh || !refreshEnabled) {
+      return;
+    }
+
+    setPullRefreshing(true);
+
+    try {
+      await onRefresh();
+    } finally {
+      setPullRefreshing(false);
+    }
+  }, [onRefresh, refreshEnabled]);
+
+  const showRefreshing = pullRefreshing || refreshing;
+
+  const refreshControl =
+    onRefresh != null ? (
+      <RefreshControl
+        enabled={refreshEnabled}
+        refreshing={showRefreshing}
+        onRefresh={handleRefresh}
+        tintColor={theme.primary}
+        colors={[theme.primary]}
+        progressViewOffset={Platform.OS === 'android' ? topPadding : undefined}
+      />
+    ) : undefined;
+
   const content = (
     <View
       className={cn(
         'web:mx-auto web:w-full web:max-w-2xl flex-1 px-4',
         contentClassName
       )}
-      style={{ paddingTop: topPadding, paddingBottom: bottomPadding }}>
+      style={{
+        paddingTop: useIosRefreshInset ? 0 : topPadding,
+        paddingBottom: bottomPadding,
+      }}>
       {children}
     </View>
   );
@@ -60,14 +111,55 @@ export function ScreenContainer({
   }
 
   const useHeaderScroll = showAppHeader && headerScroll;
+  const scrollHandler = useHeaderScroll ? headerScroll.scrollHandler : onScroll;
+  const iosRefreshScrollProps = React.useMemo(() => {
+    if (!useIosRefreshInset) {
+      return undefined;
+    }
 
-  return (
+    return {
+      contentInset: { top: topPadding },
+      ...(applyInitialContentOffset ? { contentOffset: { x: 0, y: -topPadding } } : {}),
+    };
+  }, [applyInitialContentOffset, topPadding, useIosRefreshInset]);
+
+  const handleScrollLayout = React.useCallback(() => {
+    if (applyInitialContentOffset) {
+      setApplyInitialContentOffset(false);
+    }
+  }, [applyInitialContentOffset]);
+
+  const wrapWithScrollGesture = (scrollView: React.ReactElement) =>
+    scrollGesture != null ? (
+      <GestureDetector gesture={scrollGesture}>{scrollView}</GestureDetector>
+    ) : (
+      scrollView
+    );
+
+  if (onRefresh != null) {
+    return wrapWithScrollGesture(
+      <AnimatedScrollView
+        className={cn('flex-1 bg-background', className)}
+        contentContainerStyle={[{ flexGrow: 1 }, contentContainerStyle]}
+        contentContainerClassName="flex-grow"
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshControl}
+        onLayout={handleScrollLayout}
+        onScroll={scrollHandler}
+        {...iosRefreshScrollProps}>
+        {content}
+      </AnimatedScrollView>
+    );
+  }
+
+  return wrapWithScrollGesture(
     <Animated.ScrollView
       className={cn('flex-1 bg-background', className)}
       contentContainerStyle={[{ flexGrow: 1 }, contentContainerStyle]}
       contentContainerClassName="flex-grow"
       scrollEventThrottle={16}
-      onScroll={useHeaderScroll ? headerScroll.scrollHandler : onScroll}>
+      onScroll={scrollHandler}>
       {content}
     </Animated.ScrollView>
   );

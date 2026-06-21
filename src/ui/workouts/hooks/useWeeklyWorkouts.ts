@@ -28,6 +28,7 @@ export function useWeeklyWorkouts(weekAnchor: Date) {
     weekStart,
     weekEnd,
     isLoading: query.isLoading && query.data === undefined,
+    isRefreshing: query.isFetching && query.data !== undefined,
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,

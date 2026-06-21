@@ -2,8 +2,9 @@ import type { ExerciseRepository } from '@/src/contexts/exercises/domain/exercis
 import type { TemplateBlockRepository } from '@/src/contexts/templateBlocks/domain/templateBlock.repository';
 import { ServiceError } from '@/src/contexts/shared/domain/service.errors';
 import {
-  canAddExerciseToWorkout,
+  canAddExercisesToWorkout,
   canAddTemplateBlockToWorkout,
+  canAddTemplateBlocksToWorkout,
   canEditWorkoutExercises,
   canMoveExerciseBetweenWorkouts,
   canMoveWorkoutToDate,
@@ -12,6 +13,7 @@ import {
 import {
   duplicateWorkout as duplicateWorkoutHelper,
   generateWorkoutExerciseFromExercise,
+  generateWorkoutExercisesFromExercises,
   generateWorkoutExercisesFromTemplateBlock,
   generateWorkoutExercisesFromTemplateBlocks,
   getNextSortOrder,
@@ -142,43 +144,67 @@ export class WorkoutService {
   }
 
   async addTemplateBlockToWorkout(workoutId: string, templateBlockId: string): Promise<Workout> {
-    const workout = await this.requireWorkout(workoutId);
-    const block = await this.templateBlockRepository.findById(templateBlockId);
+    return this.addTemplateBlocksToWorkout(workoutId, [templateBlockId]);
+  }
 
-    if (!block) {
-      throw new ServiceError('Template block not found.', 'not_found');
+  async addTemplateBlocksToWorkout(
+    workoutId: string,
+    templateBlockIds: string[]
+  ): Promise<Workout> {
+    const workout = await this.requireWorkout(workoutId);
+    const uniqueIds = [...new Set(templateBlockIds)];
+    const blocks = [];
+
+    for (const templateBlockId of uniqueIds) {
+      const block = await this.templateBlockRepository.findById(templateBlockId);
+
+      if (!block) {
+        throw new ServiceError('Template block not found.', 'not_found');
+      }
+
+      blocks.push(block);
     }
 
-    const rule = canAddTemplateBlockToWorkout(workout, block.exerciseIds);
+    const rule = canAddTemplateBlocksToWorkout(workout, blocks);
 
     if (!rule.allowed) {
       throw new ServiceError(rule.message, 'invalid_operation');
     }
 
-    const exerciseMap = new Map<string, NonNullable<Awaited<ReturnType<ExerciseRepository['findById']>>>>();
+    const exerciseMap = new Map<
+      string,
+      NonNullable<Awaited<ReturnType<ExerciseRepository['findById']>>>
+    >();
 
-    for (const exerciseId of block.exerciseIds) {
-      const exercise = await this.exerciseRepository.findById(exerciseId);
-
-      if (exercise) {
-        exerciseMap.set(exerciseId, exercise);
+    for (const block of blocks) {
+      for (const exerciseId of block.exerciseIds) {
+        if (!exerciseMap.has(exerciseId)) {
+          exerciseMap.set(exerciseId, await this.exerciseRepository.findById(exerciseId));
+        }
       }
     }
 
-    const appended = generateWorkoutExercisesFromTemplateBlock(
-      block,
-      exerciseMap,
-      getNextSortOrder(workout.exercises)
-    );
+    let sortOrder = getNextSortOrder(workout.exercises);
+    const appended = [];
+
+    for (const block of blocks) {
+      const blockExercises = generateWorkoutExercisesFromTemplateBlock(
+        block,
+        exerciseMap,
+        sortOrder
+      );
+      appended.push(...blockExercises);
+      sortOrder += blockExercises.length;
+    }
 
     if (appended.length === 0) {
-      throw new ServiceError('No exercises found for the selected template block.', 'not_found');
+      throw new ServiceError('No exercises found for the selected template blocks.', 'not_found');
     }
 
     const updated: Workout = {
       ...workout,
       exercises: [...workout.exercises, ...appended],
-      sourceTemplateBlockIds: [...(workout.sourceTemplateBlockIds ?? []), templateBlockId],
+      sourceTemplateBlockIds: [...(workout.sourceTemplateBlockIds ?? []), ...uniqueIds],
       updatedAt: new Date(),
     };
 
@@ -186,31 +212,39 @@ export class WorkoutService {
   }
 
   async addExerciseToWorkout(workoutId: string, exerciseId: string): Promise<Workout> {
+    return this.addExercisesToWorkout(workoutId, [exerciseId]);
+  }
+
+  async addExercisesToWorkout(workoutId: string, exerciseIds: string[]): Promise<Workout> {
     const workout = await this.requireWorkout(workoutId);
-    const rule = canAddExerciseToWorkout(workout, exerciseId);
+    const uniqueIds = [...new Set(exerciseIds)];
+    const rule = canAddExercisesToWorkout(workout, uniqueIds);
 
     if (!rule.allowed) {
       throw new ServiceError(rule.message, 'invalid_operation');
     }
 
-    const exercise = await this.exerciseRepository.findById(exerciseId);
+    const exercises = [];
 
-    if (!exercise) {
-      throw new ServiceError('Exercise not found.', 'not_found');
+    for (const exerciseId of uniqueIds) {
+      const exercise = await this.exerciseRepository.findById(exerciseId);
+
+      if (!exercise) {
+        throw new ServiceError('Exercise not found.', 'not_found');
+      }
+
+      exercises.push(exercise);
     }
 
-    const workoutExercise = generateWorkoutExerciseFromExercise(
-      exercise,
-      getNextSortOrder(workout.exercises)
-    );
+    const appended = generateWorkoutExercisesFromExercises(exercises, getNextSortOrder(workout.exercises));
 
-    if (!workoutExercise) {
-      throw new ServiceError('Exercise cannot be added to the workout.', 'invalid_operation');
+    if (appended.length === 0) {
+      throw new ServiceError('No exercises can be added to the workout.', 'invalid_operation');
     }
 
     const updated: Workout = {
       ...workout,
-      exercises: [...workout.exercises, workoutExercise],
+      exercises: [...workout.exercises, ...appended],
       updatedAt: new Date(),
     };
 

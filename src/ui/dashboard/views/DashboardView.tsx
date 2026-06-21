@@ -17,7 +17,7 @@ import { View } from 'react-native';
 
 export function DashboardView() {
   const [period, setPeriod] = useState<DashboardPeriod>('thisWeek');
-  const { summary, isLoading } = useDashboardSummary(period);
+  const { summary, isLoading, isRefreshing, refetch } = useDashboardSummary(period);
 
   if (isLoading) {
     return (
@@ -29,7 +29,11 @@ export function DashboardView() {
   }
 
   return (
-    <ScreenContainer>
+    <ScreenContainer
+      refreshing={isRefreshing}
+      onRefresh={async () => {
+        await refetch();
+      }}>
       <PageHeader title="Dashboard" description="Track training consistency and coverage." />
 
       <View className="gap-4">

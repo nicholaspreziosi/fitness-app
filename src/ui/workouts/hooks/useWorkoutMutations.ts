@@ -46,10 +46,26 @@ export function useWorkoutMutations() {
     onSuccess: invalidate,
   });
 
+  const addTemplateBlocks = useMutation({
+    mutationFn: async (params: { workoutId: string; templateBlockIds: string[] }) => {
+      const service = createWorkoutService(userId!);
+      return service.addTemplateBlocksToWorkout(params.workoutId, params.templateBlockIds);
+    },
+    onSuccess: invalidate,
+  });
+
   const addExercise = useMutation({
     mutationFn: async (params: { workoutId: string; exerciseId: string }) => {
       const service = createWorkoutService(userId!);
       return service.addExerciseToWorkout(params.workoutId, params.exerciseId);
+    },
+    onSuccess: invalidate,
+  });
+
+  const addExercises = useMutation({
+    mutationFn: async (params: { workoutId: string; exerciseIds: string[] }) => {
+      const service = createWorkoutService(userId!);
+      return service.addExercisesToWorkout(params.workoutId, params.exerciseIds);
     },
     onSuccess: invalidate,
   });
@@ -194,10 +210,31 @@ export function useWorkoutMutations() {
     onSuccess: invalidate,
   });
 
+  const isPending =
+    createWorkout.isPending ||
+    addTemplateBlock.isPending ||
+    addExercise.isPending ||
+    removeExercise.isPending ||
+    reorderExercises.isPending ||
+    moveExercise.isPending ||
+    moveWorkout.isPending ||
+    duplicateWorkout.isPending ||
+    deleteWorkout.isPending ||
+    revertWorkoutToPlanned.isPending ||
+    startWorkout.isPending ||
+    resumeWorkout.isPending ||
+    completeWorkout.isPending ||
+    exitWorkout.isPending ||
+    skipWorkout.isPending ||
+    updateWorkoutExercise.isPending ||
+    updateWorkout.isPending;
+
   return {
     createWorkout,
     addTemplateBlock,
+    addTemplateBlocks,
     addExercise,
+    addExercises,
     removeExercise,
     reorderExercises,
     moveExercise,
@@ -213,5 +250,6 @@ export function useWorkoutMutations() {
     updateWorkoutExercise,
     updateWorkout,
     isReady: Boolean(userId),
+    isPending,
   };
 }
