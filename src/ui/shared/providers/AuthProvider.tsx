@@ -1,5 +1,6 @@
 import type { AuthUser } from '@/src/contexts/auth/domain/auth.model';
 import { authService } from '@/src/contexts/auth/application/auth.service';
+import { createUserProfileService } from '@/src/contexts/profile/application/createUserProfileService';
 import * as React from 'react';
 
 type AuthContextValue = {
@@ -33,6 +34,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = React.useCallback(async (email: string, password: string) => {
     const nextUser = await authService.signUp(email, password);
     setUser(nextUser);
+
+    try {
+      await createUserProfileService(nextUser.id).createDefaultProfile(nextUser.id);
+    } catch {
+      // Profile creation can recover on next load via getOrCreateProfile.
+    }
   }, []);
 
   const signOut = React.useCallback(async () => {

@@ -1,7 +1,14 @@
 import { authService } from '@/src/contexts/auth/application/auth.service';
 import { AuthProvider, useAuth } from '@/src/ui/shared/providers/AuthProvider';
+import { createUserProfileService } from '@/src/contexts/profile/application/createUserProfileService';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import * as React from 'react';
+
+jest.mock('@/src/contexts/profile/application/createUserProfileService', () => ({
+  createUserProfileService: jest.fn(() => ({
+    createDefaultProfile: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
 
 jest.mock('@/src/contexts/auth/application/auth.service', () => {
   const { AuthError } = jest.requireActual('@/src/contexts/auth/domain/auth.model');
@@ -88,6 +95,7 @@ describe('AuthProvider', () => {
     });
 
     expect(authServiceMock.signUp).toHaveBeenCalledWith('you@example.com', 'secret');
+    expect(createUserProfileService).toHaveBeenCalledWith('user-123');
     expect(result.current.user).toEqual(nextUser);
   });
 

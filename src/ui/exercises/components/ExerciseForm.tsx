@@ -14,6 +14,8 @@ import { ComboboxMultiSelect } from '@/src/ui/shared/components/ComboboxMultiSel
 import { ComboboxSelect } from '@/src/ui/shared/components/ComboboxSelect';
 import { FlowButton } from '@/src/ui/shared/components/FlowButton';
 import { SectionHeader } from '@/src/ui/shared/components/SectionHeader';
+import { useMeasurementSystem } from '@/src/ui/profile/hooks/useMeasurementSystem';
+import { getWeightLabel } from '@/src/lib/measurements/labels';
 import {
   bodyPartOptions,
   equipmentOptions,
@@ -35,6 +37,7 @@ type ExerciseFormProps = {
 };
 
 export function ExerciseForm({ mode = 'edit', initialValues, onSubmit }: ExerciseFormProps) {
+  const measurementSystem = useMeasurementSystem();
   const isCreateMode = mode === 'create';
   const [values, setValues] = React.useState<ExerciseFormValues>(() =>
     createEmptyExerciseFormValues(initialValues)
@@ -221,7 +224,7 @@ export function ExerciseForm({ mode = 'edit', initialValues, onSubmit }: Exercis
             <Input
               nativeID="exercise-weight"
               keyboardType="decimal-pad"
-              placeholder="Weight (lbs)"
+              placeholder={getWeightLabel(measurementSystem)}
               value={values.defaultWeight ?? ''}
               onChangeText={(defaultWeight) => updateValues({ defaultWeight })}
             />

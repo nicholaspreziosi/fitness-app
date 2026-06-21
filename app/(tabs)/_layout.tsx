@@ -1,6 +1,8 @@
 import { Icon } from '@/components/ui/icon';
 import { THEME } from '@/lib/theme';
 import { usePrefetchExerciseLibrary } from '@/src/ui/exercises/hooks/usePrefetchExerciseLibrary';
+import { AccountPausedBanner } from '@/src/ui/profile/components/AccountPausedBanner';
+import { usePrefetchUserProfile } from '@/src/ui/profile/hooks/usePrefetchUserProfile';
 import { AppHeader } from '@/src/ui/shared/components/AppHeader';
 import { AppHeaderScrollProvider } from '@/src/ui/shared/providers/AppHeaderScrollProvider';
 import { Tabs } from 'expo-router';
@@ -19,10 +21,12 @@ export default function TabsLayout() {
   const theme = THEME[colorScheme ?? 'light'];
 
   usePrefetchExerciseLibrary();
+  usePrefetchUserProfile();
 
   return (
     <AppHeaderScrollProvider>
       <View className="flex-1">
+        <AccountPausedBanner />
         <Tabs
           initialRouteName="home"
           screenOptions={{

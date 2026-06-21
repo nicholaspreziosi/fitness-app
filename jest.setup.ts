@@ -24,3 +24,33 @@ jest.mock('react-native-reanimated', () => {
   return Reanimated;
 });
 
+jest.mock('@/src/ui/profile/hooks/useMeasurementSystem', () => ({
+  useMeasurementSystem: () => 'imperial',
+}));
+
+jest.mock('@/src/ui/profile/hooks/useWeekStartDay', () => ({
+  useWeekStartDay: () => 1,
+}));
+
+jest.mock('@/src/ui/profile/hooks/useCanUseTrainingFeatures', () => ({
+  useCanUseTrainingFeatures: () => true,
+}));
+
+jest.mock('@/src/ui/profile/hooks/useUserProfile', () => ({
+  useUserProfile: () => ({
+    profile: undefined,
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: jest.fn(),
+  }),
+}));
+
+jest.mock('@/src/contexts/profile/application/createUserProfileService', () => ({
+  createUserProfileService: jest.fn(() => ({
+    getOrCreateProfile: jest.fn(),
+    createDefaultProfile: jest.fn(),
+    updateProfile: jest.fn(),
+  })),
+}));
+

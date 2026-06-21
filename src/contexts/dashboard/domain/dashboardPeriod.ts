@@ -1,4 +1,5 @@
 import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
+import type { WeekStartDay } from '@/src/lib/dates/weekBounds';
 import { getMonthBounds } from '@/src/lib/dates/monthBounds';
 import { addWeeks, endOfDay, getWeekBounds, startOfDay } from '@/src/lib/dates/weekBounds';
 
@@ -11,15 +12,16 @@ export type PeriodRange = {
 
 export function getPeriodRange(
   period: DashboardPeriod,
-  referenceDate: Date = new Date()
+  referenceDate: Date = new Date(),
+  weekStartDay: WeekStartDay = 1
 ): PeriodRange {
   switch (period) {
     case 'thisWeek': {
-      const { weekStart, weekEnd } = getWeekBounds(referenceDate);
+      const { weekStart, weekEnd } = getWeekBounds(referenceDate, weekStartDay);
       return { start: weekStart, end: weekEnd };
     }
     case 'nextWeek': {
-      const { weekStart, weekEnd } = getWeekBounds(addWeeks(referenceDate, 1));
+      const { weekStart, weekEnd } = getWeekBounds(addWeeks(referenceDate, 1), weekStartDay);
       return { start: weekStart, end: weekEnd };
     }
     case 'thisMonth': {
@@ -41,17 +43,22 @@ function isWorkoutInRange(workout: Workout, range: PeriodRange): boolean {
 export function filterWorkoutsByPeriod(
   workouts: Workout[],
   period: DashboardPeriod,
-  referenceDate: Date = new Date()
+  referenceDate: Date = new Date(),
+  weekStartDay: WeekStartDay = 1
 ): Workout[] {
-  const range = getPeriodRange(period, referenceDate);
+  const range = getPeriodRange(period, referenceDate, weekStartDay);
 
   return workouts.filter(
     (workout) => workout.status !== 'archived' && isWorkoutInRange(workout, range)
   );
 }
 
-export function getPeriodLabel(period: DashboardPeriod, referenceDate: Date = new Date()): string {
-  const range = getPeriodRange(period, referenceDate);
+export function getPeriodLabel(
+  period: DashboardPeriod,
+  referenceDate: Date = new Date(),
+  weekStartDay: WeekStartDay = 1
+): string {
+  const range = getPeriodRange(period, referenceDate, weekStartDay);
 
   switch (period) {
     case 'thisWeek':
@@ -78,8 +85,13 @@ export function getPeriodLabel(period: DashboardPeriod, referenceDate: Date = ne
   }
 }
 
-export function isDateInPeriod(date: Date, period: DashboardPeriod, referenceDate: Date): boolean {
-  const range = getPeriodRange(period, referenceDate);
+export function isDateInPeriod(
+  date: Date,
+  period: DashboardPeriod,
+  referenceDate: Date,
+  weekStartDay: WeekStartDay = 1
+): boolean {
+  const range = getPeriodRange(period, referenceDate, weekStartDay);
   const normalized = startOfDay(date);
   return normalized >= range.start && normalized <= endOfDay(range.end);
 }

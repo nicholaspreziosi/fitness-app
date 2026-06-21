@@ -1,3 +1,5 @@
+import { formatWeight } from '@/src/lib/measurements/convert';
+
 export type PrescriptionValues = {
   sets?: number;
   reps?: number;
@@ -5,12 +7,16 @@ export type PrescriptionValues = {
   holdSeconds?: number;
 };
 
-export function formatPrescription({
-  sets,
-  reps,
-  weight,
-  holdSeconds,
-}: PrescriptionValues): string | undefined {
+export type PrescriptionFormatOptions = {
+  measurementSystem?: 'imperial' | 'metric';
+};
+
+export function formatPrescription(
+  { sets, reps, weight, holdSeconds }: PrescriptionValues,
+  options: PrescriptionFormatOptions = {}
+): string | undefined {
+  const measurementSystem = options.measurementSystem ?? 'imperial';
+
   if (
     sets === undefined &&
     reps === undefined &&
@@ -31,7 +37,7 @@ export function formatPrescription({
   }
 
   if (weight !== undefined) {
-    parts.push(`${weight} lbs`);
+    parts.push(formatWeight(weight, measurementSystem));
   }
 
   if (holdSeconds !== undefined) {

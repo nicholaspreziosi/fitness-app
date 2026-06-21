@@ -11,6 +11,8 @@ import {
   seedActualsFromPlanned,
 } from '@/src/contexts/workouts/domain/workoutPresentation';
 import type { WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
+import { getActualWeightLabel } from '@/src/lib/measurements/labels';
+import { useMeasurementSystem } from '@/src/ui/profile/hooks/useMeasurementSystem';
 import { ChevronDownIcon, GripVerticalIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
@@ -73,9 +75,10 @@ export function WorkoutExerciseCard({
   dragHandle,
   className,
 }: WorkoutExerciseCardProps) {
+  const measurementSystem = useMeasurementSystem();
   const [isExpanded, setIsExpanded] = React.useState(false);
   const displayExercise = React.useMemo(() => seedActualsFromPlanned(exercise), [exercise]);
-  const prescription = formatWorkoutExercisePrescription(exercise);
+  const prescription = formatWorkoutExercisePrescription(exercise, { measurementSystem });
 
   const showSets = exercise.plannedSets !== undefined || exercise.actualSets !== undefined;
   const showReps = exercise.plannedReps !== undefined || exercise.actualReps !== undefined;
@@ -170,7 +173,7 @@ export function WorkoutExerciseCard({
             ) : null}
             {showWeight ? (
               <NumberField
-                label="Actual Weight (lbs)"
+                label={getActualWeightLabel(measurementSystem)}
                 value={displayExercise.actualWeight}
                 onChangeValue={(actualWeight) => onChange({ actualWeight })}
               />

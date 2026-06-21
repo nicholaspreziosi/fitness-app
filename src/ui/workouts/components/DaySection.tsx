@@ -15,6 +15,7 @@ type DaySectionProps = {
   exercisesById: Map<string, Exercise>;
   plannerState: PlannerState;
   mutations: ReturnType<typeof useWorkoutMutations>;
+  canUseTraining?: boolean;
 };
 
 export function DaySection({
@@ -23,6 +24,7 @@ export function DaySection({
   exercisesById,
   plannerState,
   mutations,
+  canUseTraining = true,
 }: DaySectionProps) {
   return (
     <View className="gap-2">
@@ -38,6 +40,7 @@ export function DaySection({
             exercisesById={exercisesById}
             plannerState={plannerState}
             mutations={mutations}
+            canUseTraining={canUseTraining}
           />
         ))
       )}

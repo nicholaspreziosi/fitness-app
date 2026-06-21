@@ -7,6 +7,7 @@ import { ScreenContainer } from '@/src/ui/shared/components/ScreenContainer';
 import { SectionHeader } from '@/src/ui/shared/components/SectionHeader';
 import { WorkoutCreateSheet } from '@/src/ui/workouts/components/WorkoutCreateSheet';
 import { WorkoutListCard } from '@/src/ui/workouts/components/WorkoutListCard';
+import { useCanUseTrainingFeatures } from '@/src/ui/profile/hooks/useCanUseTrainingFeatures';
 import { useTodayActiveWorkouts } from '@/src/ui/workouts/hooks/useTodayActiveWorkouts';
 import { useWorkoutSession } from '@/src/ui/workouts/hooks/useWorkoutSession';
 import * as React from 'react';
@@ -24,6 +25,7 @@ export function WorkoutListView({
   onNavigateToList,
 }: WorkoutListViewProps) {
   const { workouts, isLoading, isError } = useTodayActiveWorkouts(today);
+  const canUseTraining = useCanUseTrainingFeatures();
   const session = useWorkoutSession({ onNavigateToMode, onNavigateToList });
   const [showCreateSheet, setShowCreateSheet] = React.useState(false);
 
@@ -58,7 +60,7 @@ export function WorkoutListView({
             title="No planned or in-progress workouts today."
             description="Create a workout to get started."
           />
-          <Button onPress={() => setShowCreateSheet(true)}>
+          <Button disabled={!canUseTraining} onPress={() => setShowCreateSheet(true)}>
             <Text>Create Workout</Text>
           </Button>
         </View>
@@ -68,8 +70,8 @@ export function WorkoutListView({
             <WorkoutListCard
               key={workout.id}
               workout={workout}
-              onStart={session.start}
-              onResume={session.resume}
+              onStart={canUseTraining ? session.start : undefined}
+              onResume={canUseTraining ? session.resume : undefined}
             />
           ))}
         </View>

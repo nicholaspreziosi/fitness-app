@@ -1,7 +1,8 @@
-import { createWorkoutService } from '@/src/contexts/workouts/application/createWorkoutService';
-import type { DashboardPeriod } from '@/src/contexts/dashboard/domain/dashboard.types';
 import { getPeriodRange } from '@/src/contexts/dashboard/domain/dashboardPeriod';
+import type { DashboardPeriod } from '@/src/contexts/dashboard/domain/dashboard.types';
+import { createWorkoutService } from '@/src/contexts/workouts/application/createWorkoutService';
 import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
+import { useWeekStartDay } from '@/src/ui/profile/hooks/useWeekStartDay';
 import { dashboardQueryKeys } from '@/src/ui/dashboard/hooks/dashboardQueryKeys';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { useQuery } from '@tanstack/react-query';
@@ -16,8 +17,9 @@ export function useDashboardWorkouts(
 ) {
   const { user } = useAuth();
   const userId = user?.id;
+  const weekStartDay = useWeekStartDay();
   const referenceDate = options.referenceDate ?? new Date();
-  const { start, end } = getPeriodRange(period, referenceDate);
+  const { start, end } = getPeriodRange(period, referenceDate, weekStartDay);
   const rangeStartIso = start.toISOString();
 
   const query = useQuery({

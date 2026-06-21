@@ -17,6 +17,7 @@ import {
   useExpandedWorkoutSwipeBlock,
 } from '@/src/ui/workouts/hooks/useExpandedWorkoutSwipeBlock';
 import { useWeekSwipeWithScrollGesture } from '@/src/ui/workouts/hooks/useWeekSwipeGesture';
+import { useCanUseTrainingFeatures } from '@/src/ui/profile/hooks/useCanUseTrainingFeatures';
 import { useWeeklyWorkouts } from '@/src/ui/workouts/hooks/useWeeklyWorkouts';
 import { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
@@ -36,6 +37,7 @@ function CalendarViewContent() {
   const plannerState = usePlannerState();
   const { blockedRects } = useExpandedWorkoutSwipeBlock();
   const { workouts, weekStart, isLoading, isError } = useWeeklyWorkouts(plannerState.weekAnchor);
+  const canUseTraining = useCanUseTrainingFeatures();
   const mutations = useWorkoutMutations();
   const { exercises } = useExerciseLibrary();
 
@@ -165,7 +167,10 @@ function CalendarViewContent() {
             title="Calendar"
             description="Plan workouts for the week."
             rightAction={
-              <Button size="sm" onPress={() => plannerState.openSheet({ type: 'addWorkout' })}>
+              <Button
+                size="sm"
+                disabled={!canUseTraining}
+                onPress={() => plannerState.openSheet({ type: 'addWorkout' })}>
                 <Text>+ Add Workout</Text>
               </Button>
             }
@@ -192,6 +197,7 @@ function CalendarViewContent() {
                   exercisesById={exercisesById}
                   plannerState={plannerState}
                   mutations={mutations}
+                  canUseTraining={canUseTraining}
                 />
               ))}
             </View>

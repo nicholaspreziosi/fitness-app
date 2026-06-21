@@ -8,14 +8,15 @@ import { View } from 'react-native';
 
 type WorkoutListCardProps = {
   workout: Workout;
-  onStart: (workoutId: string) => void;
-  onResume: (workoutId: string) => void;
+  onStart?: (workoutId: string) => void;
+  onResume?: (workoutId: string) => void;
 };
 
 export function WorkoutListCard({ workout, onStart, onResume }: WorkoutListCardProps) {
   const completedCount = workout.exercises.filter((exercise) => exercise.completed).length;
   const estimatedMinutes = estimateWorkoutDuration(workout.exercises);
   const isInProgress = workout.status === 'inProgress';
+  const canStart = isInProgress ? Boolean(onResume) : Boolean(onStart);
 
   return (
     <WorkoutCard
@@ -26,7 +27,15 @@ export function WorkoutListCard({ workout, onStart, onResume }: WorkoutListCardP
       estimatedMinutes={estimatedMinutes}>
       <View className="mt-3 border-t border-border pt-3">
         <Button
-          onPress={() => (isInProgress ? onResume(workout.id) : onStart(workout.id))}
+          disabled={!canStart}
+          onPress={() => {
+            if (isInProgress) {
+              onResume?.(workout.id);
+              return;
+            }
+
+            onStart?.(workout.id);
+          }}
           accessibilityLabel={isInProgress ? 'Resume Workout' : 'Start Workout'}>
           <Text>{isInProgress ? 'Resume Workout' : 'Start Workout'}</Text>
         </Button>

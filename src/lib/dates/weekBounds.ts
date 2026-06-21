@@ -8,6 +8,15 @@ const DAY_NAMES = [
   'Saturday',
 ] as const;
 
+export type WeekStartDay = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+export const WEEK_START_DAY_OPTIONS: { value: WeekStartDay; label: string }[] = DAY_NAMES.map(
+  (label, index) => ({
+    value: index as WeekStartDay,
+    label,
+  })
+);
+
 const MONTH_NAMES = [
   'Jan',
   'Feb',
@@ -40,7 +49,7 @@ export function endOfDay(date: Date): Date {
   return result;
 }
 
-export function getWeekBounds(date: Date, weekStartsOn: 0 | 1 = 1): WeekBounds {
+export function getWeekBounds(date: Date, weekStartsOn: WeekStartDay = 1): WeekBounds {
   const day = date.getDay();
   const diff = (day - weekStartsOn + 7) % 7;
   const weekStart = startOfDay(new Date(date));

@@ -16,6 +16,19 @@ describe('formatPrescription', () => {
     expect(formatPrescription({ holdSeconds: 45 })).toBe('45 Sec Hold');
   });
 
+  it('formats weight in metric when configured', () => {
+    expect(
+      formatPrescription(
+        {
+          sets: 2,
+          reps: 10,
+          weight: 220,
+        },
+        { measurementSystem: 'metric' }
+      )
+    ).toContain('kg');
+  });
+
   it('returns undefined when no values are set', () => {
     expect(formatPrescription({})).toBeUndefined();
   });

@@ -40,6 +40,7 @@ type PlannedWorkoutCardProps = {
   exercisesById: Map<string, Exercise>;
   plannerState: PlannerState;
   mutations: ReturnType<typeof useWorkoutMutations>;
+  canUseTraining?: boolean;
 };
 
 function buildDeleteMenuItem(onDelete: () => void): PopoverMenuItem {
@@ -163,6 +164,7 @@ export function PlannedWorkoutCard({
   exercisesById,
   plannerState,
   mutations,
+  canUseTraining = true,
 }: PlannedWorkoutCardProps) {
   const [pendingDate, setPendingDate] = React.useState<Date | null>(null);
   const [pendingPastStatusDate, setPendingPastStatusDate] = React.useState<Date | null>(null);
@@ -222,7 +224,7 @@ export function PlannedWorkoutCard({
     [applyDateChange, moveRule, workout.date, workout.status]
   );
 
-  const canToggleEdit = canEnterEditMode(workout.status);
+  const canToggleEdit = canUseTraining && canEnterEditMode(workout.status);
   const isCollapsible = workout.status !== 'archived';
   const cardRef = React.useRef<View>(null);
   const measureExpandedBounds = useRegisterExpandedWorkoutSwipeBlock(
@@ -260,7 +262,9 @@ export function PlannedWorkoutCard({
     plannerState.toggleExpanded(workout.id);
   }, [canToggleEdit, isEditing, isExpanded, plannerState, workout.id]);
 
-  const menuItems = buildMenuItems(workout, plannerState, mutations, () => setPendingDelete(true));
+  const menuItems = canUseTraining
+    ? buildMenuItems(workout, plannerState, mutations, () => setPendingDelete(true))
+    : [];
 
   const headerActions = isCollapsible ? (
     <>

@@ -1,40 +1,79 @@
-import { FlowButton } from '@/src/ui/shared/components/FlowButton';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  type Option,
-} from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
-import { Textarea } from '@/components/ui/textarea';
-import { checkFirebaseConnection, type FirebaseHealthResult } from '@/src/lib/firebase/health';
-import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
+import {
+  emptyUserProfileFormValues,
+  userProfileFormSchema,
+  type UserProfileFormValues,
+} from '@/src/contexts/profile/domain/userProfileForm.schema';
+import {
+  formOutputToProfileUpdate,
+  userProfileToFormValues,
+} from '@/src/contexts/profile/domain/userProfileForm.mapper';
+import { FlowButton } from '@/src/ui/shared/components/FlowButton';
 import { ComponentDemoSection } from '@/src/ui/shared/components/ComponentDemoSection';
+import { LoadingState } from '@/src/ui/shared/components/LoadingState';
 import { PageHeader } from '@/src/ui/shared/components/PageHeader';
 import { ScreenContainer } from '@/src/ui/shared/components/ScreenContainer';
 import { ThemeToggle } from '@/src/ui/shared/components/ThemeToggle';
+import { ProfileAccountSection } from '@/src/ui/profile/components/ProfileAccountSection';
+import { ProfileBodySection } from '@/src/ui/profile/components/ProfileBodySection';
+import { ProfileLocaleSection } from '@/src/ui/profile/components/ProfileLocaleSection';
+import { ProfilePreferencesSection } from '@/src/ui/profile/components/ProfilePreferencesSection';
+import { useUpdateUserProfile } from '@/src/ui/profile/hooks/useUpdateUserProfile';
+import { useUserProfile } from '@/src/ui/profile/hooks/useUserProfile';
+import { useUiPreferences } from '@/src/ui/shared/hooks/useUiPreferences';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
+import { checkFirebaseConnection, type FirebaseHealthResult } from '@/src/lib/firebase/health';
 import { SaveIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 export function SettingsView() {
   const { user, signOut } = useAuth();
-  const [health, setHealth] = React.useState<FirebaseHealthResult | null>(null);
-  const [displayName, setDisplayName] = React.useState('Nick');
-  const [units, setUnits] = React.useState<Option | undefined>({ value: 'lbs', label: 'Pounds (lbs)' });
-  const [emailUpdates, setEmailUpdates] = React.useState(false);
-  const [notes, setNotes] = React.useState('');
+  const { profile, isLoading } = useUserProfile();
+  const { updateProfile, isUpdating } = useUpdateUserProfile();
+  const { preferences, setPreference } = useUiPreferences();
+  const [formValues, setFormValues] = React.useState<UserProfileFormValues>(
+    emptyUserProfileFormValues()
+  );
+  const [formError, setFormError] = React.useState<string | null>(null);
+  const [saveMessage, setSaveMessage] = React.useState<string | null>(null);
   const [signOutError, setSignOutError] = React.useState<string | null>(null);
+  const [health, setHealth] = React.useState<FirebaseHealthResult | null>(null);
 
   React.useEffect(() => {
     checkFirebaseConnection().then(setHealth);
   }, []);
+
+  React.useEffect(() => {
+    if (profile) {
+      setFormValues(userProfileToFormValues(profile));
+    }
+  }, [profile]);
+
+  const handleChange = React.useCallback((patch: Partial<UserProfileFormValues>) => {
+    setFormValues((current) => ({ ...current, ...patch }));
+    setFormError(null);
+    setSaveMessage(null);
+  }, []);
+
+  const handleSave = async () => {
+    setFormError(null);
+    setSaveMessage(null);
+
+    const parsed = userProfileFormSchema.safeParse(formValues);
+
+    if (!parsed.success) {
+      setFormError(parsed.error.issues[0]?.message ?? 'Unable to save profile.');
+      return;
+    }
+
+    try {
+      await updateProfile(formOutputToProfileUpdate(parsed.data));
+      setSaveMessage('Profile saved.');
+    } catch {
+      setFormError('Unable to save profile. Please try again.');
+    }
+  };
 
   const handleSignOut = async () => {
     setSignOutError(null);
@@ -46,28 +85,25 @@ export function SettingsView() {
     }
   };
 
+  if (isLoading && !profile) {
+    return (
+      <ScreenContainer>
+        <LoadingState />
+      </ScreenContainer>
+    );
+  }
+
   return (
     <ScreenContainer>
       <PageHeader title="Settings" description="Preferences and account management for Flow." />
 
-      <ComponentDemoSection title="Account">
-        <View className="rounded-lg border border-border bg-card px-3 py-3">
-          <Text className="text-xs uppercase tracking-wide text-muted-foreground">Signed in as</Text>
-          <Text className="mt-1 text-sm font-medium text-foreground">
-            {user?.email ?? 'Unknown user'}
-          </Text>
-        </View>
-        {signOutError ? (
-          <Text className="text-sm text-destructive">{signOutError}</Text>
-        ) : null}
-        <ConfirmDialog
-          triggerLabel="Sign out"
-          title="Sign out of Flow?"
-          description="You can sign back in anytime to access your workouts and library."
-          confirmLabel="Sign out"
-          onConfirm={handleSignOut}
-        />
-      </ComponentDemoSection>
+      <ProfileAccountSection
+        email={user?.email}
+        values={formValues}
+        onChange={handleChange}
+        onSignOut={handleSignOut}
+        signOutError={signOutError}
+      />
 
       <ComponentDemoSection title="Appearance">
         <View className="flex-row items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
@@ -76,50 +112,24 @@ export function SettingsView() {
         </View>
       </ComponentDemoSection>
 
-      <ComponentDemoSection title="Form Components">
-        <View className="gap-2">
-          <Label nativeID="display-name">Display name</Label>
-          <Input
-            nativeID="display-name"
-            value={displayName}
-            onChangeText={setDisplayName}
-            placeholder="Your name"
-          />
-        </View>
-
-        <View className="gap-2">
-          <Label>Weight units</Label>
-          <Select value={units} onValueChange={setUnits}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select units" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem label="Pounds (lbs)" value="lbs" />
-              <SelectItem label="Kilograms (kg)" value="kg" />
-            </SelectContent>
-          </Select>
-        </View>
-
-        <View className="gap-2">
-          <Label nativeID="profile-notes">Profile notes</Label>
-          <Textarea
-            nativeID="profile-notes"
-            value={notes}
-            onChangeText={setNotes}
-            placeholder="Optional notes about your training goals..."
-            numberOfLines={4}
-          />
-        </View>
-
-        <PressableRow
-          checked={emailUpdates}
-          label="Send weekly summary emails"
-          onToggle={() => setEmailUpdates((current) => !current)}
-        />
-      </ComponentDemoSection>
+      <ProfileLocaleSection values={formValues} onChange={handleChange} />
+      <ProfileBodySection values={formValues} onChange={handleChange} />
+      <ProfilePreferencesSection
+        values={formValues}
+        showCompletedExercises={preferences.showCompletedExercises}
+        onChange={handleChange}
+        onShowCompletedChange={(value) => void setPreference('showCompletedExercises', value)}
+      />
 
       <ComponentDemoSection title="Actions">
-        <FlowButton icon={SaveIcon} label="Save changes" />
+        {formError ? <Text className="text-sm text-destructive">{formError}</Text> : null}
+        {saveMessage ? <Text className="text-sm text-success">{saveMessage}</Text> : null}
+        <FlowButton
+          icon={SaveIcon}
+          label={isUpdating ? 'Saving…' : 'Save changes'}
+          onPress={() => void handleSave()}
+          disabled={isUpdating}
+        />
       </ComponentDemoSection>
 
       <ComponentDemoSection title="System">
@@ -136,23 +146,6 @@ export function SettingsView() {
         </View>
       </ComponentDemoSection>
     </ScreenContainer>
-  );
-}
-
-function PressableRow({
-  checked,
-  label,
-  onToggle,
-}: {
-  checked: boolean;
-  label: string;
-  onToggle: () => void;
-}) {
-  return (
-    <View className="flex-row items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5">
-      <Checkbox checked={checked} onCheckedChange={() => onToggle()} />
-      <Label onPress={onToggle}>{label}</Label>
-    </View>
   );
 }
 

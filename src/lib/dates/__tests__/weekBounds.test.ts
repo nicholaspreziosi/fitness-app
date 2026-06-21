@@ -10,7 +10,15 @@ import {
 } from '@/src/lib/dates/weekBounds';
 
 describe('weekBounds', () => {
-  it('returns Monday-start week bounds', () => {
+  it('returns Sunday-start week bounds when configured', () => {
+    const date = new Date('2025-06-18T12:00:00.000Z');
+    const { weekStart, weekEnd } = getWeekBounds(date, 0);
+
+    expect(getDayName(weekStart)).toBe('Sunday');
+    expect(getDayName(weekEnd)).toBe('Saturday');
+  });
+
+  it('returns Monday-start week bounds by default', () => {
     const date = new Date('2025-06-18T12:00:00.000Z');
     const { weekStart, weekEnd } = getWeekBounds(date);
 

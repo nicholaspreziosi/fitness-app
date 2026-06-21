@@ -7,6 +7,8 @@ import type {
   DefaultUpdateSelection,
   ExerciseDefaultUpdateReview,
 } from '@/src/ui/workouts/hooks/useProgressionPrompt';
+import { getWeightLabel } from '@/src/lib/measurements/labels';
+import { useMeasurementSystem } from '@/src/ui/profile/hooks/useMeasurementSystem';
 import * as React from 'react';
 import { Modal, Pressable, ScrollView, View } from 'react-native';
 
@@ -18,12 +20,19 @@ type ProgressionPromptSheetProps = {
   onClose: () => void;
 };
 
-const FIELD_LABELS: Record<DefaultUpdateField, string> = {
+const BASE_FIELD_LABELS: Record<Exclude<DefaultUpdateField, 'defaultWeight'>, string> = {
   defaultSets: 'Sets',
   defaultReps: 'Reps',
   defaultHoldSeconds: 'Hold (sec)',
-  defaultWeight: 'Weight (lbs)',
 };
+
+function getFieldLabel(field: DefaultUpdateField, measurementSystem: 'imperial' | 'metric'): string {
+  if (field === 'defaultWeight') {
+    return getWeightLabel(measurementSystem);
+  }
+
+  return BASE_FIELD_LABELS[field];
+}
 
 function selectionKey(exerciseId: string, field: DefaultUpdateField): string {
   return `${exerciseId}:${field}`;
@@ -48,6 +57,7 @@ export function ProgressionPromptSheet({
   onSkip,
   onClose,
 }: ProgressionPromptSheetProps) {
+  const measurementSystem = useMeasurementSystem();
   const [selectedKeys, setSelectedKeys] = React.useState<Set<string>>(new Set());
 
   React.useEffect(() => {
@@ -106,7 +116,7 @@ export function ProgressionPromptSheet({
                   {review.items.map((item) => {
                     const key = selectionKey(review.exerciseId, item.field);
                     const checked = selectedKeys.has(key);
-                    const label = `${FIELD_LABELS[item.field]}: ${formatReviewItem(item)}`;
+                    const label = `${getFieldLabel(item.field, measurementSystem)}: ${formatReviewItem(item)}`;
 
                     return (
                       <Pressable
@@ -121,7 +131,7 @@ export function ProgressionPromptSheet({
                           onCheckedChange={() => toggleSelection(review.exerciseId, item.field)}
                         />
                         <View className="flex-1">
-                          <Label>{FIELD_LABELS[item.field]}</Label>
+                          <Label>{getFieldLabel(item.field, measurementSystem)}</Label>
                           <Text className="text-sm text-muted-foreground">
                             {formatReviewItem(item)}
                           </Text>

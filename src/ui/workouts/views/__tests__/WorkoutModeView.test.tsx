@@ -2,6 +2,23 @@ import { WorkoutModeView } from '@/src/ui/workouts/views/WorkoutModeView';
 import { createMockWorkout, createMockWorkoutExercise } from '@/test-utils/mockData';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
+const mockSetPreference = jest.fn();
+let mockShowCompleted = false;
+
+jest.mock('@/src/ui/shared/hooks/useUiPreferences', () => ({
+  useUiPreferences: () => ({
+    preferences: { showCompletedExercises: mockShowCompleted },
+    isLoading: false,
+    setPreference: (...args: unknown[]) => {
+      mockSetPreference(...args);
+      if (args[0] === 'showCompletedExercises') {
+        mockShowCompleted = Boolean(args[1]);
+      }
+    },
+    updatePreferences: jest.fn(),
+  }),
+}));
+
 jest.mock('@/src/ui/shared/components/ScreenContainer', () => {
   const React = require('react');
   const { View } = require('react-native');
@@ -32,6 +49,11 @@ jest.mock('react-native-draggable-flatlist', () => {
 });
 
 describe('WorkoutModeView', () => {
+  beforeEach(() => {
+    mockShowCompleted = false;
+    mockSetPreference.mockClear();
+  });
+
   const workout = createMockWorkout({
     id: 'workout-1',
     name: 'Lower Body',
@@ -88,6 +110,8 @@ describe('WorkoutModeView', () => {
   });
 
   it('shows completed exercises when toggle is enabled', () => {
+    mockShowCompleted = true;
+
     render(
       <WorkoutModeView
         workout={workout}

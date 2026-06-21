@@ -1,6 +1,7 @@
 import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
 import { findActiveSessionWorkout } from '@/src/contexts/workouts/domain/workoutSession.rules';
 import { getWeekBounds } from '@/src/lib/dates/weekBounds';
+import { useWeekStartDay } from '@/src/ui/profile/hooks/useWeekStartDay';
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
 import { ProgressionPromptSheet } from '@/src/ui/workouts/components/ProgressionPromptSheet';
 import { useProgressionPrompt } from '@/src/ui/workouts/hooks/useProgressionPrompt';
@@ -57,7 +58,8 @@ function WorkoutModeContainer({
 export function WorkoutTabView({ today = new Date() }: WorkoutTabViewProps) {
   const { user } = useAuth();
   const userId = user?.id ?? '';
-  const { weekStart } = getWeekBounds(today);
+  const weekStartDay = useWeekStartDay();
+  const { weekStart } = getWeekBounds(today, weekStartDay);
   const weekQueryKey = workoutQueryKeys(userId).week(weekStart.toISOString());
   const { workouts: todayWorkouts } = useTodayActiveWorkouts(today);
   const { workouts: weekWorkouts } = useWeeklyWorkouts(today);

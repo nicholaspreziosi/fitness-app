@@ -1,3 +1,4 @@
+import type { PrescriptionFormatOptions } from '@/src/lib/prescription/formatPrescription';
 import { formatPrescription } from '@/src/lib/prescription/formatPrescription';
 import type { WorkoutExercise } from './workout.model';
 
@@ -6,13 +7,19 @@ type PrescriptionSource = Pick<
   'plannedSets' | 'plannedReps' | 'plannedWeight' | 'plannedHoldSeconds'
 >;
 
-export function formatWorkoutExercisePrescription(exercise: PrescriptionSource): string | undefined {
-  return formatPrescription({
-    sets: exercise.plannedSets,
-    reps: exercise.plannedReps,
-    weight: exercise.plannedWeight,
-    holdSeconds: exercise.plannedHoldSeconds,
-  });
+export function formatWorkoutExercisePrescription(
+  exercise: PrescriptionSource,
+  options: PrescriptionFormatOptions = {}
+): string | undefined {
+  return formatPrescription(
+    {
+      sets: exercise.plannedSets,
+      reps: exercise.plannedReps,
+      weight: exercise.plannedWeight,
+      holdSeconds: exercise.plannedHoldSeconds,
+    },
+    options
+  );
 }
 
 export function seedActualsFromPlanned(exercise: WorkoutExercise): WorkoutExercise {

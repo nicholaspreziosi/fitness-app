@@ -8,6 +8,7 @@ import type { WorkoutExercise } from '@/src/contexts/workouts/domain/workout.mod
 import { mergeVisibleExerciseReorder } from '@/src/contexts/workouts/domain/workoutExerciseOrdering';
 import { PageHeader } from '@/src/ui/shared/components/PageHeader';
 import { ScreenContainer } from '@/src/ui/shared/components/ScreenContainer';
+import { useUiPreferences } from '@/src/ui/shared/hooks/useUiPreferences';
 import { WorkoutExerciseReorderList } from '@/src/ui/workouts/components/workoutModeDnD';
 import { WorkoutProgressCard } from '@/src/ui/workouts/components/WorkoutProgressCard';
 import * as React from 'react';
@@ -43,7 +44,8 @@ export function WorkoutModeView({
   onExerciseChange,
   onReorderExercises,
 }: WorkoutModeViewProps) {
-  const [showCompleted, setShowCompleted] = React.useState(false);
+  const { preferences, setPreference } = useUiPreferences();
+  const showCompleted = preferences.showCompletedExercises;
 
   const visibleExercises = workout.exercises.filter(
     (exercise) => showCompleted || !exercise.completed
@@ -97,7 +99,7 @@ export function WorkoutModeView({
           <Switch
             accessibilityLabel="Show completed exercises"
             checked={showCompleted}
-            onCheckedChange={setShowCompleted}
+            onCheckedChange={(value) => void setPreference('showCompletedExercises', value)}
             nativeID="show-completed-exercises"
           />
         </View>

@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { formatWeekLabel, getWeekBounds } from '@/src/lib/dates/weekBounds';
+import { useWeekStartDay } from '@/src/ui/profile/hooks/useWeekStartDay';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
@@ -21,7 +22,8 @@ export function WeekNavigator({
   onNextWeek,
   onOpenWeekPicker,
 }: WeekNavigatorProps) {
-  const { weekStart, weekEnd } = getWeekBounds(weekAnchor);
+  const weekStartDay = useWeekStartDay();
+  const { weekStart, weekEnd } = getWeekBounds(weekAnchor, weekStartDay);
   const label = formatWeekLabel(weekStart, weekEnd);
 
   const swipeGesture = React.useMemo(() => {
