@@ -53,7 +53,7 @@ export function SegmentedControl<T extends string>({
               style={{
                 fontSize: 14,
                 fontWeight: '500',
-                color: selected ? theme.foreground : theme.mutedForeground,
+                color: selected ? theme.brand : theme.mutedForeground,
               }}>
               {option.label}
             </Text>

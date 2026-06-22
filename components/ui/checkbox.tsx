@@ -24,7 +24,7 @@ function Checkbox({
         Platform.select({
           web: 'cursor-pointer outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40',
         }),
-        props.checked && cn('border-primary bg-primary', checkedClassName),
+        props.checked && cn('border-brand bg-brand', checkedClassName),
         props.disabled && 'opacity-40',
         className
       )}
@@ -36,7 +36,7 @@ function Checkbox({
           as={Check}
           size={11}
           strokeWidth={3}
-          className={cn('text-primary-foreground', iconClassName)}
+          className={cn('text-brand-foreground', iconClassName)}
         />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>

@@ -1,14 +1,18 @@
+import { THEME } from '@/lib/theme';
 import { AppHeaderActions } from '@/src/ui/shared/components/AppHeaderActions';
 import { FlowLogoLink } from '@/src/ui/shared/components/FlowLogoLink';
 import { APP_HEADER_BAR_HEIGHT } from '@/src/ui/shared/constants/appHeader';
 import { useShowAppHeader } from '@/src/ui/shared/hooks/useShowAppHeader';
 import { useAppHeaderScroll } from '@/src/ui/shared/providers/AppHeaderScrollProvider';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { Platform, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function AppHeader() {
+  const { colorScheme } = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
   const showAppHeader = useShowAppHeader();
   const { headerTranslateY } = useAppHeaderScroll();
   const insets = useSafeAreaInsets();
@@ -36,8 +40,16 @@ export function AppHeader() {
         overflow: 'hidden',
       }}>
       <Animated.View
-        className="border-b border-border bg-card"
-        style={[{ height: headerHeight, paddingTop: insets.top }, animatedStyle]}>
+        style={[
+          {
+            height: headerHeight,
+            paddingTop: insets.top,
+            backgroundColor: theme.card,
+            borderBottomColor: theme.border,
+            borderBottomWidth: 1,
+          },
+          animatedStyle,
+        ]}>
         <View className="h-14 flex-row items-center justify-between pl-1 pr-2">
           <FlowLogoLink />
           <AppHeaderActions />

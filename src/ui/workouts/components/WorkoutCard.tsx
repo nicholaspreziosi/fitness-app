@@ -43,10 +43,19 @@ export function WorkoutCard({
   const statusConfig = STATUS_CONFIG[status];
 
   const showProgress =
-    status === 'planned' || status === 'completed' || status === 'inProgress';
+    (status === 'planned' || status === 'completed' || status === 'inProgress') &&
+    completedCount > 0;
+
+  const showCompletedCount =
+    status === 'inProgress' || status === 'completed' || status === 'skipped';
 
   const progressPercent =
     exerciseCount > 0 ? Math.min(100, (completedCount / exerciseCount) * 100) : 0;
+
+  const exerciseLabel = `${exerciseCount} exercise${exerciseCount === 1 ? '' : 's'}`;
+  const exerciseSummary = showCompletedCount
+    ? `${completedCount}/${exerciseLabel}`
+    : exerciseLabel;
 
   const summary = (
     <View className="min-w-0 flex-1 gap-2">
@@ -59,7 +68,7 @@ export function WorkoutCard({
         </Badge>
       </View>
       <Text className="text-xs text-muted-foreground">
-        {completedCount}/{exerciseCount} exercise{exerciseCount === 1 ? '' : 's'}
+        {exerciseSummary}
         {estimatedMinutes !== undefined ? ` · ~${estimatedMinutes} min` : ''}
       </Text>
       {showProgress ? (

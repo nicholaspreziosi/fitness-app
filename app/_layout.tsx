@@ -2,6 +2,7 @@ import '@/global.css';
 import 'react-native-gesture-handler';
 
 import * as SplashScreen from 'expo-splash-screen';
+import { Platform } from 'react-native';
 
 import { queryClient } from '@/src/lib/query/client';
 import { AuthProvider } from '@/src/ui/shared/providers/AuthProvider';
@@ -11,7 +12,9 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-SplashScreen.preventAutoHideAsync().catch(() => undefined);
+if (Platform.OS !== 'web') {
+  SplashScreen.preventAutoHideAsync().catch(() => undefined);
+}
 
 export {
   // Catch any errors thrown by the Layout component.

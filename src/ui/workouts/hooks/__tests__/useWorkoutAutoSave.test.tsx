@@ -10,6 +10,7 @@ import * as React from 'react';
 import { useWorkoutAutoSave } from '../useWorkoutAutoSave';
 
 const mockUpdateWorkoutExercise = jest.fn();
+const mockReorderWorkoutExercises = jest.fn();
 
 jest.mock('@/src/contexts/workouts/application/createWorkoutService', () => ({
   createWorkoutService: jest.fn(),
@@ -56,6 +57,7 @@ describe('useWorkoutAutoSave', () => {
     queryClient.setQueryData<Workout[]>(weekKey, [baseWorkout]);
     createWorkoutServiceMock.mockReturnValue({
       updateWorkoutExercise: mockUpdateWorkoutExercise,
+      reorderWorkoutExercises: mockReorderWorkoutExercises,
     } as unknown as ReturnType<typeof createWorkoutService>);
     mockUpdateWorkoutExercise.mockImplementation(async (_workoutId, _exerciseId, patch) => ({
       ...baseWorkout,
@@ -151,5 +153,36 @@ describe('useWorkoutAutoSave', () => {
 
     expect(result.current.saveStatus).toBe('error');
     expect(queryClient.getQueryData<Workout[]>(weekKey)?.[0]?.exercises[0]?.completed).toBe(false);
+  });
+
+  it('optimistically reorders exercises and rolls back on failure', async () => {
+    const workoutWithTwoExercises = createMockWorkout({
+      id: 'workout-1',
+      status: 'inProgress',
+      exercises: [
+        createMockWorkoutExercise({ id: 'we-1', sortOrder: 0 }),
+        createMockWorkoutExercise({ id: 'we-2', sortOrder: 1 }),
+      ],
+    });
+    queryClient.setQueryData<Workout[]>(weekKey, [workoutWithTwoExercises]);
+    mockReorderWorkoutExercises.mockRejectedValueOnce(new Error('Network error'));
+
+    const { result } = renderHook(
+      () =>
+        useWorkoutAutoSave({
+          workout: workoutWithTwoExercises,
+          weekQueryKey: weekKey,
+        }),
+      { wrapper: createWrapper(queryClient) }
+    );
+
+    await act(async () => {
+      await result.current.saveExerciseReorder(['we-2', 'we-1']);
+    });
+
+    expect(result.current.saveStatus).toBe('error');
+    expect(
+      queryClient.getQueryData<Workout[]>(weekKey)?.[0]?.exercises.map((exercise) => exercise.id)
+    ).toEqual(['we-1', 'we-2']);
   });
 });

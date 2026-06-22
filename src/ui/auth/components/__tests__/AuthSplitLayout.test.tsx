@@ -9,7 +9,6 @@ jest.mock('react-native-safe-area-context', () => ({
 import { useKeyboardInset } from '@/src/ui/shared/hooks/useKeyboardInset';
 import { AuthSplitLayout } from '@/src/ui/auth/components/AuthSplitLayout';
 import { render, screen } from '@testing-library/react-native';
-import * as ReactNative from 'react-native';
 import { Text } from 'react-native';
 
 const useKeyboardInsetMock = useKeyboardInset as jest.MockedFunction<typeof useKeyboardInset>;
@@ -17,17 +16,7 @@ const useKeyboardInsetMock = useKeyboardInset as jest.MockedFunction<typeof useK
 describe('AuthSplitLayout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(ReactNative, 'useWindowDimensions').mockReturnValue({
-      width: 390,
-      height: 844,
-      scale: 2,
-      fontScale: 1,
-    });
     useKeyboardInsetMock.mockReturnValue(0);
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
   });
 
   it('renders a compact mobile logo section', () => {
@@ -38,7 +27,6 @@ describe('AuthSplitLayout', () => {
     );
 
     expect(screen.getByTestId('auth-mobile-logo')).toBeTruthy();
-    expect(screen.getByText('Flow')).toBeTruthy();
     expect(screen.getByText('Welcome back')).toBeTruthy();
   });
 
@@ -52,6 +40,5 @@ describe('AuthSplitLayout', () => {
     );
 
     expect(screen.getByTestId('auth-mobile-logo')).toBeTruthy();
-    expect(screen.getByText('Flow')).toBeTruthy();
   });
 });

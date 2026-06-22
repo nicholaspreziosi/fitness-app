@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 import * as SplashScreen from 'expo-splash-screen';
+import { Platform } from 'react-native';
 
 import { SPLASH_MIN_DURATION_MS, useAppSplash } from '@/src/ui/shared/hooks/useAppSplash';
 
@@ -11,6 +12,7 @@ describe('useAppSplash', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    Platform.OS = 'ios';
   });
 
   afterEach(() => {
@@ -40,5 +42,17 @@ describe('useAppSplash', () => {
     result.current.onSplashReady();
 
     expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips splash on web', () => {
+    Platform.OS = 'web';
+
+    const { result } = renderHook(() => useAppSplash(false));
+
+    expect(result.current.showSplash).toBe(false);
+
+    result.current.onSplashReady();
+
+    expect(SplashScreen.hideAsync).not.toHaveBeenCalled();
   });
 });

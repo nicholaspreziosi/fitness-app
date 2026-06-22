@@ -1,6 +1,12 @@
 import { createWorkoutService } from '@/src/contexts/workouts/application/createWorkoutService';
 import type { Workout, WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
-import { reorderWorkoutExercises } from '@/src/contexts/workouts/domain/workoutExerciseOrdering';
+import {
+  captureWorkoutListCaches,
+  reorderWorkoutInCaches,
+  restoreWorkoutListCaches,
+  type WorkoutListCacheSnapshot,
+} from '@/src/ui/workouts/hooks/workoutCacheHelpers';
+import { workoutQueryKeys } from '@/src/ui/workouts/hooks/workoutQueryKeys';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as React from 'react';
@@ -50,28 +56,25 @@ export function useWorkoutAutoSave({
       return service.reorderWorkoutExercises(workout.id, orderedIds);
     },
     onMutate: async (orderedIds) => {
-      await queryClient.cancelQueries({ queryKey: weekQueryKey });
+      if (!userId) {
+        return {};
+      }
 
-      queryClient.setQueryData<Workout[]>(weekQueryKey, (current) =>
-        (current ?? []).map((item) =>
-          item.id === workout.id
-            ? {
-                ...item,
-                exercises: reorderWorkoutExercises(item.exercises, orderedIds),
-              }
-            : item
-        )
-      );
+      await queryClient.cancelQueries({ queryKey: workoutQueryKeys(userId).all });
 
-      return undefined;
+      const previousCaches = captureWorkoutListCaches(queryClient, userId);
+      reorderWorkoutInCaches(queryClient, userId, workout.id, orderedIds);
+
+      return { previousCaches } satisfies { previousCaches: WorkoutListCacheSnapshot };
     },
-    onError: (error) => {
-      restoreSnapshot();
+    onError: (error, _orderedIds, context) => {
+      if (context?.previousCaches) {
+        restoreWorkoutListCaches(queryClient, context.previousCaches);
+      }
       setSaveStatus('error');
       setSaveError(error instanceof Error ? error.message : 'Unable to save workout changes.');
     },
     onSuccess: () => {
-      snapshotRef.current = undefined;
       setSaveStatus('saved');
       setSaveError(null);
     },
@@ -194,10 +197,6 @@ export function useWorkoutAutoSave({
         return;
       }
 
-      if (!snapshotRef.current) {
-        snapshotRef.current = queryClient.getQueryData<Workout[]>(weekQueryKey);
-      }
-
       setSaveStatus('saving');
 
       try {
@@ -206,7 +205,7 @@ export function useWorkoutAutoSave({
         // Error state handled in reorderMutation.onError
       }
     },
-    [queryClient, reorderMutation, userId, weekQueryKey]
+    [reorderMutation, userId]
   );
 
   React.useEffect(() => {

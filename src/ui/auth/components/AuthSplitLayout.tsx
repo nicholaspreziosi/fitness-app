@@ -8,12 +8,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const MD_BREAKPOINT = 768;
 
 const BRAND_POINTS = [
   'Exercise library and reusable template blocks',
@@ -31,15 +28,13 @@ function AuthFormSection({
   formTitle,
   formDescription,
   children,
-  className,
 }: {
   formTitle: string;
   formDescription: string;
   children: React.ReactNode;
-  className?: string;
 }) {
   return (
-    <View className={cn('px-6', className)}>
+    <View className="px-6 md:px-12 md:py-12">
       <View className="w-full md:max-w-md md:self-center">
         <Text className="text-2xl font-semibold tracking-tight text-foreground">{formTitle}</Text>
         <Text className="mt-1.5 text-sm leading-5 text-muted-foreground">{formDescription}</Text>
@@ -49,12 +44,12 @@ function AuthFormSection({
   );
 }
 
-function DesktopBrandPanel() {
+function AuthBrandPanel() {
   return (
     <View
       className={cn(
-        'border-auth-brand-border bg-auth-brand flex w-[46%] flex-col items-center justify-center border-r',
-        'px-12 py-12'
+        'hidden w-[46%] flex-col items-center justify-center border-r border-auth-brand-border bg-auth-brand px-12 py-12',
+        'md:flex'
       )}>
       <FlowLogo variant="auth-desktop" />
 
@@ -77,26 +72,20 @@ function DesktopBrandPanel() {
   );
 }
 
-function MobileAuthLayout({
-  children,
-  formTitle,
-  formDescription,
-}: AuthSplitLayoutProps) {
+export function AuthSplitLayout({ children, formTitle, formDescription }: AuthSplitLayoutProps) {
   const insets = useSafeAreaInsets();
   const keyboardHeight = useKeyboardInset();
 
-  return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-background"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      style={{ flex: 1 }}>
+  const layout = (
+    <View className="flex-1 bg-background md:flex-row" style={{ paddingTop: insets.top }}>
+      <AuthBrandPanel />
+
       <ScrollView
-        className="flex-1 bg-background"
+        className="flex-1 bg-background md:w-[54%]"
         automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+        contentContainerClassName="flex-grow md:justify-center"
         contentContainerStyle={{
           flexGrow: 1,
-          paddingTop: insets.top,
           paddingBottom:
             Math.max(insets.bottom, 24) + (Platform.OS === 'android' ? keyboardHeight : 0),
         }}
@@ -104,7 +93,7 @@ function MobileAuthLayout({
         keyboardShouldPersistTaps="handled"
         testID="auth-mobile-scroll">
         <View
-          className="min-h-[24vh] items-center justify-center px-6 py-10"
+          className="min-h-[24vh] items-center justify-center px-6 py-10 md:hidden"
           testID="auth-mobile-logo">
           <FlowLogo variant="auth-mobile" />
         </View>
@@ -113,44 +102,22 @@ function MobileAuthLayout({
           {children}
         </AuthFormSection>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </View>
   );
-}
 
-export function AuthSplitLayout({ children, formTitle, formDescription }: AuthSplitLayoutProps) {
-  const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
-  const isDesktop = width >= MD_BREAKPOINT;
-
-  if (isDesktop) {
+  if (Platform.OS === 'ios') {
     return (
-      <View className="flex-1 flex-row bg-background" style={{ paddingTop: insets.top }}>
-        <DesktopBrandPanel />
-
-        <ScrollView
-          className="w-[54%] flex-1 bg-background"
-          contentContainerClassName="flex-grow justify-center"
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingBottom: Math.max(insets.bottom, 24),
-          }}
-          keyboardShouldPersistTaps="handled">
-          <AuthFormSection
-            className="py-12 md:px-12"
-            formDescription={formDescription}
-            formTitle={formTitle}>
-            {children}
-          </AuthFormSection>
-        </ScrollView>
-      </View>
+      <KeyboardAvoidingView
+        className="flex-1 bg-background"
+        behavior="padding"
+        keyboardVerticalOffset={0}
+        style={{ flex: 1 }}>
+        {layout}
+      </KeyboardAvoidingView>
     );
   }
 
-  return (
-    <MobileAuthLayout formDescription={formDescription} formTitle={formTitle}>
-      {children}
-    </MobileAuthLayout>
-  );
+  return layout;
 }
 
 export function AuthFormMessage({

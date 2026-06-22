@@ -15,14 +15,15 @@ export function AuthRootNavigator() {
   const { user, loading } = useAuth();
   const { colorScheme } = useColorScheme();
   const { onSplashReady, showSplash } = useAppSplash(!loading);
+  const navigationColorScheme = user ? (colorScheme ?? 'light') : 'light';
 
   if (showSplash) {
     return <SplashView onReady={onSplashReady} />;
   }
 
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+    <ThemeProvider value={NAV_THEME[navigationColorScheme]}>
+      <StatusBar style={navigationColorScheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={canAccessAppRoutes(user)}>
           <Stack.Screen name="(tabs)" />

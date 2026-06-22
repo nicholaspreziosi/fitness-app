@@ -1,8 +1,19 @@
 import { createWorkoutService } from '@/src/contexts/workouts/application/createWorkoutService';
 import type { Workout, WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
+import {
+  captureWorkoutListCaches,
+  moveWorkoutExerciseInCaches,
+  reorderWorkoutInCaches,
+  restoreWorkoutListCaches,
+  type WorkoutListCacheSnapshot,
+} from '@/src/ui/workouts/hooks/workoutCacheHelpers';
 import { workoutQueryKeys } from '@/src/ui/workouts/hooks/workoutQueryKeys';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+type WorkoutListMutationContext = {
+  previousCaches?: WorkoutListCacheSnapshot;
+};
 
 function useInvalidateWeeklyWorkouts(userId: string | undefined) {
   const queryClient = useQueryClient();
@@ -21,6 +32,7 @@ function useInvalidateWeeklyWorkouts(userId: string | undefined) {
 export function useWorkoutMutations() {
   const { user } = useAuth();
   const userId = user?.id;
+  const queryClient = useQueryClient();
   const invalidate = useInvalidateWeeklyWorkouts(userId);
 
   const createWorkout = useMutation({
@@ -83,7 +95,24 @@ export function useWorkoutMutations() {
       const service = createWorkoutService(userId!);
       return service.reorderWorkoutExercises(params.workoutId, params.orderedIds);
     },
-    onSuccess: invalidate,
+    onMutate: async (params) => {
+      if (!userId) {
+        return {} satisfies WorkoutListMutationContext;
+      }
+
+      await queryClient.cancelQueries({ queryKey: workoutQueryKeys(userId).all });
+
+      const previousCaches = captureWorkoutListCaches(queryClient, userId);
+      reorderWorkoutInCaches(queryClient, userId, params.workoutId, params.orderedIds);
+
+      return { previousCaches } satisfies WorkoutListMutationContext;
+    },
+    onError: (_error, _params, context) => {
+      if (context?.previousCaches) {
+        restoreWorkoutListCaches(queryClient, context.previousCaches);
+      }
+    },
+    onSettled: invalidate,
   });
 
   const moveExercise = useMutation({
@@ -99,7 +128,24 @@ export function useWorkoutMutations() {
         params.targetWorkoutId
       );
     },
-    onSuccess: invalidate,
+    onMutate: async (params) => {
+      if (!userId) {
+        return {} satisfies WorkoutListMutationContext;
+      }
+
+      await queryClient.cancelQueries({ queryKey: workoutQueryKeys(userId).all });
+
+      const previousCaches = captureWorkoutListCaches(queryClient, userId);
+      moveWorkoutExerciseInCaches(queryClient, userId, params);
+
+      return { previousCaches } satisfies WorkoutListMutationContext;
+    },
+    onError: (_error, _params, context) => {
+      if (context?.previousCaches) {
+        restoreWorkoutListCaches(queryClient, context.previousCaches);
+      }
+    },
+    onSettled: invalidate,
   });
 
   const moveWorkout = useMutation({

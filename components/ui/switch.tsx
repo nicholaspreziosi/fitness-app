@@ -13,7 +13,7 @@ function Switch({
         Platform.select({
           web: 'cursor-pointer outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/40',
         }),
-        props.checked ? 'bg-primary' : 'bg-muted',
+        props.checked ? 'bg-brand' : 'bg-muted',
         props.disabled && 'opacity-40',
         className
       )}
