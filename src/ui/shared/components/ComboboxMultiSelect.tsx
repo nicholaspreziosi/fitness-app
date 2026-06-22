@@ -65,8 +65,8 @@ export function ComboboxMultiSelect({
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
         className={cn(
-          'min-h-9 flex-row flex-wrap items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 py-1.5',
-          open && 'border-primary/40'
+          'min-h-11 flex-row flex-wrap items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2',
+          open && 'border-brand/40'
         )}
         onPress={() => setOpen(true)}>
         {selectedOptions.length === 0 ? (
@@ -96,14 +96,14 @@ export function ComboboxMultiSelect({
           <Pressable className="absolute inset-0 bg-black/40" onPress={close} />
           <View className="flex-1 px-4 pt-28" pointerEvents="box-none">
             <Pressable
-              className="overflow-hidden rounded-xl border border-border bg-card"
+              className="overflow-hidden rounded-lg border border-border bg-card"
               onPress={(event) => event.stopPropagation?.()}>
             <View className="border-b border-border px-3 py-2">
               <View className="flex-row items-center gap-2 rounded-lg border border-border bg-background px-3">
                 <Icon as={Search} className="size-4 text-muted-foreground" />
                 <Input
                   autoFocus
-                  className="h-9 flex-1 border-0 bg-transparent px-0 shadow-none"
+                  className="h-11 flex-1 border-0 bg-transparent px-0 shadow-none"
                   placeholder={searchPlaceholder}
                   value={query}
                   onChangeText={setQuery}
@@ -127,18 +127,18 @@ export function ComboboxMultiSelect({
                       accessibilityState={{ checked: selected }}
                       className={cn(
                         'flex-row items-center justify-between border-b border-border/60 px-4 py-3 active:bg-muted/70',
-                        selected && 'bg-primary/5'
+                        selected && 'bg-brand/5'
                       )}
                       onPress={() => toggleValue(option.value)}>
                       <Text
                         className={cn(
                           'text-sm text-foreground',
-                          selected && 'font-medium text-primary'
+                          selected && 'font-medium text-brand'
                         )}>
                         {option.label}
                       </Text>
                       {selected ? (
-                        <Icon as={Check} className="size-4 text-primary" strokeWidth={2.5} />
+                        <Icon as={Check} className="size-4 text-brand" strokeWidth={2.5} />
                       ) : (
                         <View className="size-4" />
                       )}
@@ -154,7 +154,7 @@ export function ComboboxMultiSelect({
               </Text>
               <Pressable
                 accessibilityRole="button"
-                className="rounded-lg bg-primary px-3 py-1.5 active:bg-primary/90"
+                className="rounded-lg bg-primary px-4 py-2.5 active:bg-primary/90"
                 onPress={close}>
                 <Text className="text-xs font-medium text-primary-foreground">Done</Text>
               </Pressable>

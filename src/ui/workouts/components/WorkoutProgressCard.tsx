@@ -19,7 +19,7 @@ export function WorkoutProgressCard({ workout }: WorkoutProgressCardProps) {
       />
       <View className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
         <View
-          className="h-full rounded-full bg-primary"
+          className="h-full rounded-full bg-brand"
           style={{ width: `${progress.percentComplete}%` }}
         />
       </View>

@@ -51,10 +51,10 @@ export function ExerciseFiltersPanel({ filters, onChange }: ExerciseFiltersPanel
               testID={`status-filter-${option.value}`}
               className={cn(
                 'rounded-full border px-2.5 py-1',
-                selected ? 'border-primary bg-primary/10' : 'border-border bg-background'
+                selected ? 'border-brand bg-brand/10' : 'border-border bg-background'
               )}
               onPress={() => onChange({ ...filters, status: option.value })}>
-              <Text className={cn('text-xs', selected ? 'text-primary' : 'text-muted-foreground')}>
+              <Text className={cn('text-xs', selected ? 'text-brand' : 'text-muted-foreground')}>
                 {option.label}
               </Text>
             </Pressable>
@@ -66,11 +66,11 @@ export function ExerciseFiltersPanel({ filters, onChange }: ExerciseFiltersPanel
           testID="favorites-only-checkbox"
           className={cn(
             'rounded-full border px-2.5 py-1',
-            favoritesOnly ? 'border-primary bg-primary/10' : 'border-border bg-background'
+            favoritesOnly ? 'border-brand bg-brand/10' : 'border-border bg-background'
           )}
           onPress={() => onChange({ ...filters, favoritesOnly: !favoritesOnly })}>
           <Text
-            className={cn('text-xs', favoritesOnly ? 'text-primary' : 'text-muted-foreground')}>
+            className={cn('text-xs', favoritesOnly ? 'text-brand' : 'text-muted-foreground')}>
             Favorites
           </Text>
         </Pressable>

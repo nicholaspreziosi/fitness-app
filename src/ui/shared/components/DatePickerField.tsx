@@ -115,7 +115,7 @@ export function DatePickerField({
               />
               <View className="flex-1 justify-end" pointerEvents="box-none">
                 <Pressable
-                  className="rounded-t-2xl border border-border bg-card p-4"
+                  className="rounded-t-xl border border-border bg-card p-4"
                   onPress={(event) => event.stopPropagation()}>
                 <View className="mb-4 flex-row items-center justify-between">
                   <Text className="text-lg font-semibold text-foreground">Select Date</Text>

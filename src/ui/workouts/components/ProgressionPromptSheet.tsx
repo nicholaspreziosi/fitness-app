@@ -97,7 +97,7 @@ export function ProgressionPromptSheet({
   return (
     <Modal visible={isOpen} transparent animationType="none" onRequestClose={onClose}>
       <View className="flex-1 justify-end bg-black/40">
-        <View className="max-h-[85%] gap-4 rounded-t-2xl border border-border bg-card p-4">
+        <View className="max-h-[85%] gap-4 rounded-t-xl border border-border bg-card p-4">
           <View className="gap-1">
             <Text className="text-lg font-semibold text-foreground">Update exercise defaults?</Text>
             <Text className="text-sm text-muted-foreground">

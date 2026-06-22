@@ -44,7 +44,7 @@ export function ExerciseCard({
     <Pressable
       accessibilityRole="button"
       className={cn(
-        'flex-row items-start gap-3 rounded-lg border border-border bg-card px-3 py-3 active:bg-muted/50',
+        'flex-row items-start gap-3 rounded-lg border border-border bg-card px-3 py-3.5 active:bg-muted/50',
         completed && 'border-success/20 bg-success/[0.03]',
         status === 'archived' && 'opacity-80',
         className

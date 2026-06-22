@@ -7,15 +7,6 @@ export interface FirebaseConfig {
   appId: string;
 }
 
-const FIREBASE_ENV_KEYS = [
-  'EXPO_PUBLIC_FIREBASE_API_KEY',
-  'EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN',
-  'EXPO_PUBLIC_FIREBASE_PROJECT_ID',
-  'EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET',
-  'EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-  'EXPO_PUBLIC_FIREBASE_APP_ID',
-] as const;
-
 function sanitizeEnvValue(value: string): string {
   let sanitized = value.trim();
 
@@ -30,13 +21,19 @@ function sanitizeEnvValue(value: string): string {
 }
 
 export function getFirebaseConfig(): FirebaseConfig | null {
-  const values = FIREBASE_ENV_KEYS.map((key) => sanitizeEnvValue(process.env[key] ?? ''));
+  // Each var must be read statically so Metro inlines EXPO_PUBLIC_* at build time.
+  const apiKey = sanitizeEnvValue(process.env.EXPO_PUBLIC_FIREBASE_API_KEY ?? '');
+  const authDomain = sanitizeEnvValue(process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN ?? '');
+  const projectId = sanitizeEnvValue(process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID ?? '');
+  const storageBucket = sanitizeEnvValue(process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET ?? '');
+  const messagingSenderId = sanitizeEnvValue(
+    process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? ''
+  );
+  const appId = sanitizeEnvValue(process.env.EXPO_PUBLIC_FIREBASE_APP_ID ?? '');
 
-  if (values.some((value) => value.length === 0)) {
+  if (!apiKey || !authDomain || !projectId || !storageBucket || !messagingSenderId || !appId) {
     return null;
   }
-
-  const [apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId] = values;
 
   return {
     apiKey,

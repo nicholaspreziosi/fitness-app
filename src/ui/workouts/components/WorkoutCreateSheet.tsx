@@ -39,7 +39,7 @@ export function WorkoutCreateSheet({ date, onClose, onCreated }: WorkoutCreateSh
   };
 
   return (
-    <View className="gap-4 rounded-t-2xl border border-border bg-card p-4">
+    <View className="gap-4 rounded-t-xl border border-border bg-card p-4">
       <Text className="text-lg font-semibold text-foreground">Create Workout</Text>
       <Text className="text-sm text-muted-foreground">{formatDayLabel(date)}</Text>
       <View className="gap-2">

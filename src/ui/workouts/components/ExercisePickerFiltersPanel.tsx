@@ -59,13 +59,13 @@ export function ExercisePickerBodyPartFilters({
               testID={`exercise-picker-body-part-${option.value}`}
               className={cn(
                 'rounded-full border px-2.5 py-1',
-                isSelected ? 'border-primary bg-primary/10' : 'border-border bg-background'
+                isSelected ? 'border-brand bg-brand/10' : 'border-border bg-background'
               )}
               onPress={() => toggleBodyPart(option.value as BodyPart)}>
               <Text
                 className={cn(
                   'text-xs',
-                  isSelected ? 'text-primary' : 'text-muted-foreground'
+                  isSelected ? 'text-brand' : 'text-muted-foreground'
                 )}>
                 {option.label}
               </Text>

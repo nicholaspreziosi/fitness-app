@@ -83,7 +83,7 @@ export function LoginView() {
         <View className="flex-row items-center justify-center gap-1 pt-2">
           <Text className="text-sm text-muted-foreground">New to Flow?</Text>
           <Link href="/(auth)/signup">
-            <Text className="text-sm font-medium text-primary">Create an account</Text>
+            <Text className="text-sm font-medium text-brand">Create an account</Text>
           </Link>
         </View>
       </View>

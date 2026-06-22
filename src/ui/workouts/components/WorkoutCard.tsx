@@ -65,7 +65,7 @@ export function WorkoutCard({
       {showProgress ? (
         <View className="h-2 w-24 overflow-hidden rounded-full bg-muted">
           <View
-            className="h-full rounded-full bg-primary"
+            className="h-full rounded-full bg-brand"
             style={{ width: `${progressPercent}%` }}
           />
         </View>

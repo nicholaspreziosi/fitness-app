@@ -24,7 +24,9 @@ import { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
 import { RefreshGuardProvider, useRefreshGuard } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import * as React from 'react';
-import { View } from 'react-native';
+import { ScrollView, useWindowDimensions, View } from 'react-native';
+
+const DESKTOP_LAYOUT_BREAKPOINT = 768;
 
 export function CalendarView() {
   return (
@@ -121,6 +123,21 @@ function CalendarViewContent() {
     await Promise.all([refetch(), refetchExercises()]);
   }, [refetch, refetchExercises]);
 
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktopLayout = windowWidth >= DESKTOP_LAYOUT_BREAKPOINT;
+
+  const renderDaySection = (day: Date) => (
+    <DaySection
+      key={day.toISOString()}
+      date={day}
+      workouts={workoutsByDay.get(day.toISOString()) ?? []}
+      exercisesById={exercisesById}
+      plannerState={plannerState}
+      mutations={mutations}
+      canUseTraining={canUseTraining}
+    />
+  );
+
   const renderSheet = () => {
     switch (plannerState.activeSheet.type) {
       case 'addWorkout':
@@ -183,8 +200,8 @@ function CalendarViewContent() {
   return (
     <>
       <ScreenContainer
-        contentClassName="gap-6"
-        scrollGesture={scrollWeekSwipeGesture}
+        contentClassName="gap-6 web:max-w-none"
+        scrollGesture={isDesktopLayout ? undefined : scrollWeekSwipeGesture}
         refreshing={isPullRefreshing}
         refreshEnabled={refreshEnabled}
         onRefresh={handleRefresh}>
@@ -212,20 +229,16 @@ function CalendarViewContent() {
           <LoadingState />
         ) : isError ? (
           <Text className="text-sm text-destructive">Unable to load workouts.</Text>
+        ) : isDesktopLayout ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator
+            keyboardShouldPersistTaps="handled"
+            contentContainerClassName="flex-row items-start gap-3 pb-1">
+            {weekDays.map(renderDaySection)}
+          </ScrollView>
         ) : (
-          <View className="gap-4">
-            {weekDays.map((day) => (
-              <DaySection
-                key={day.toISOString()}
-                date={day}
-                workouts={workoutsByDay.get(day.toISOString()) ?? []}
-                exercisesById={exercisesById}
-                plannerState={plannerState}
-                mutations={mutations}
-                canUseTraining={canUseTraining}
-              />
-            ))}
-          </View>
+          <View className="gap-4">{weekDays.map(renderDaySection)}</View>
         )}
       </ScreenContainer>
 

@@ -105,7 +105,7 @@ export function SignupView() {
         <View className="flex-row items-center justify-center gap-1 pt-2">
           <Text className="text-sm text-muted-foreground">Already have an account?</Text>
           <Link href="/(auth)/login">
-            <Text className="text-sm font-medium text-primary">Sign in</Text>
+            <Text className="text-sm font-medium text-brand">Sign in</Text>
           </Link>
         </View>
       </View>

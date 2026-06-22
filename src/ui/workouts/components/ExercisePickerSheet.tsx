@@ -122,7 +122,7 @@ export function ExercisePickerSheet({ workout, onClose }: ExercisePickerSheetPro
 
   return (
     <View
-      className="gap-3 rounded-t-2xl border border-border bg-card p-4"
+      className="gap-3 rounded-t-xl border border-border bg-card p-4"
       style={{ maxHeight: sheetMaxHeight }}>
       <View className="gap-1">
         <Text className="text-lg font-semibold text-foreground">Add Exercises</Text>
@@ -135,7 +135,7 @@ export function ExercisePickerSheet({ workout, onClose }: ExercisePickerSheetPro
         <>
           <View className="flex-row items-center gap-3">
             <Input
-              className="h-9 min-w-0 flex-1"
+              className="h-11 min-w-0 flex-1"
               placeholder="Search exercises..."
               testID="exercise-picker-search"
               value={search}
@@ -178,7 +178,7 @@ export function ExercisePickerSheet({ workout, onClose }: ExercisePickerSheetPro
                       testID={`exercise-picker-${exercise.id}`}
                       className={cn(
                         'flex-row items-center gap-3 rounded-lg border border-border px-3 py-3',
-                        isSelected && 'border-primary bg-primary/5'
+                        isSelected && 'border-brand bg-brand/5'
                       )}
                       onPress={() => toggleSelection(exercise.id)}>
                       <Checkbox checked={isSelected} pointerEvents="none" />

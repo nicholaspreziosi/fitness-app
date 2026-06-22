@@ -56,7 +56,7 @@ export function ConfirmDialog({
           />
         </AlertDialogTrigger>
       ) : null}
-      <AlertDialogContent className="rounded-xl border-border">
+      <AlertDialogContent className="rounded-lg border-border">
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>

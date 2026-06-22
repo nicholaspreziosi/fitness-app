@@ -66,7 +66,7 @@ export function DatePickerSheet({
   };
 
   return (
-    <View className={cn('rounded-t-2xl border border-border bg-card p-4', className)}>
+    <View className={cn('rounded-t-xl border border-border bg-card p-4', className)}>
       <View className="mb-4 flex-row items-center justify-between">
         <Text className="text-lg font-semibold text-foreground">{title}</Text>
         <Button variant="ghost" size="sm" onPress={onClose}>

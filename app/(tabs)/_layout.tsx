@@ -31,7 +31,7 @@ export default function TabsLayout() {
           initialRouteName="home"
           screenOptions={{
             headerShown: false,
-            tabBarActiveTintColor: theme.primary,
+            tabBarActiveTintColor: theme.brand,
             tabBarInactiveTintColor: theme.mutedForeground,
             tabBarStyle: {
               backgroundColor: theme.card,

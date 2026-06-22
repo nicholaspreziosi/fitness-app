@@ -112,10 +112,10 @@ export function ExerciseForm({ mode = 'edit', initialValues, onSubmit }: Exercis
                     testID={`exercise-status-${option}`}
                     className={cn(
                       'rounded-full border px-3 py-1.5',
-                      selected ? 'border-primary bg-primary/10' : 'border-border bg-background'
+                      selected ? 'border-brand bg-brand/10' : 'border-border bg-background'
                     )}
                     onPress={() => updateValues({ status: option as ExerciseStatus })}>
-                    <Text className={cn('text-sm', selected ? 'text-primary' : 'text-foreground')}>
+                    <Text className={cn('text-sm', selected ? 'text-brand' : 'text-foreground')}>
                       {option.charAt(0).toUpperCase() + option.slice(1)}
                     </Text>
                   </Pressable>

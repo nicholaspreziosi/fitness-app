@@ -128,8 +128,8 @@ export function ScreenContainer({
         enabled={refreshEnabled}
         refreshing={showRefreshing}
         onRefresh={handleRefresh}
-        tintColor={theme.primary}
-        colors={[theme.primary]}
+        tintColor={theme.brand}
+        colors={[theme.brand]}
         progressViewOffset={Platform.OS === 'android' ? topPadding : undefined}
       />
     ) : undefined;

@@ -25,7 +25,7 @@ export function FlowLogo({ variant = 'header', className }: FlowLogoProps) {
   return (
     <View className={cn(variant === 'header' ? 'items-start' : 'items-center', className)}>
       <Text className={LOGO_TEXT_CLASS[variant]}>Flow</Text>
-      <View className={cn('rounded-full bg-primary', LOGO_ACCENT_CLASS[variant])} />
+      <View className={cn('rounded-full bg-brand', LOGO_ACCENT_CLASS[variant])} />
     </View>
   );
 }

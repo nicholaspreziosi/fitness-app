@@ -38,7 +38,7 @@ export function AppHeaderActions() {
             <Text className="text-sm font-medium">Logout</Text>
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent className="rounded-xl border-border">
+        <AlertDialogContent className="rounded-lg border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>Sign out of Flow?</AlertDialogTitle>
             <AlertDialogDescription>

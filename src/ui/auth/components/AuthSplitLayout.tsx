@@ -67,7 +67,7 @@ function DesktopBrandPanel() {
         <View className="mt-8 gap-3">
           {BRAND_POINTS.map((point) => (
             <View key={point} className="flex-row items-start gap-3">
-              <View className="mt-2 size-1.5 rounded-full bg-primary" />
+              <View className="mt-2 size-1.5 rounded-full bg-brand" />
               <Text className="flex-1 text-sm leading-6 text-auth-brand-muted">{point}</Text>
             </View>
           ))}

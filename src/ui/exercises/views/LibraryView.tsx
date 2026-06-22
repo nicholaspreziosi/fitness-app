@@ -144,7 +144,7 @@ export function LibraryView() {
         />
 
         <Input
-          className="h-9"
+          className="h-11"
           placeholder={isExercisesTab ? 'Search exercises...' : 'Search templates...'}
           testID="library-search"
           value={search}

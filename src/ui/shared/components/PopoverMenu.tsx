@@ -138,7 +138,7 @@ export function PopoverMenu({
                   accessibilityRole="button"
                   testID={item.testID}
                   className={cn(
-                    'flex-row items-center gap-2 px-3 py-2.5 active:bg-muted/80',
+                    'flex-row items-center gap-2 px-3 py-3 active:bg-muted/80',
                     index > 0 && 'border-t border-border'
                   )}
                   onPress={(event) => {

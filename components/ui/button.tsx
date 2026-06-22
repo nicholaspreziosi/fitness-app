@@ -36,10 +36,10 @@ const buttonVariants = cva(
         link: '',
       },
       size: {
-        default: 'h-9 px-3.5',
-        sm: 'h-8 gap-1 rounded-md px-3 text-sm',
-        lg: 'h-10 px-4',
-        icon: 'size-9',
+        default: 'h-11 px-4',
+        sm: 'h-10 gap-1 rounded-md px-3.5 text-sm',
+        lg: 'h-12 px-5',
+        icon: 'size-11',
       },
     },
     defaultVariants: {
@@ -58,7 +58,7 @@ const buttonTextVariants = cva('text-sm font-medium', {
       secondary: 'text-foreground',
       ghost: 'text-foreground',
       link: cn(
-        'text-primary',
+        'text-brand',
         Platform.select({ web: 'underline-offset-4 hover:underline' })
       ),
     },

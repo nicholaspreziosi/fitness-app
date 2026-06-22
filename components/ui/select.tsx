@@ -50,12 +50,12 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        'border-input dark:bg-input/30 dark:active:bg-input/50 bg-background flex h-9 flex-row items-center justify-between gap-2 rounded-lg border px-3 py-2',
+        'border-input dark:bg-input/30 dark:active:bg-input/50 bg-background flex h-11 flex-row items-center justify-between gap-2 rounded-lg border px-3 py-2.5',
         Platform.select({
-          web: 'focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring/30 w-fit whitespace-nowrap text-sm outline-none transition-colors disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:shrink-0',
+          web: 'focus-visible:border-brand/50 focus-visible:ring-2 focus-visible:ring-ring/30 w-fit whitespace-nowrap text-sm outline-none transition-colors disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:shrink-0',
         }),
         props.disabled && 'opacity-50',
-        size === 'sm' && 'h-8 py-2 sm:py-1.5',
+        size === 'sm' && 'h-10 py-2',
         className
       )}
       {...props}>

@@ -55,8 +55,8 @@ export function ComboboxSelect({
         accessibilityState={{ expanded: open }}
         testID={testID}
         className={cn(
-          'min-h-9 flex-row items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-2',
-          open && 'border-primary/40'
+          'min-h-11 flex-row items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5',
+          open && 'border-brand/40'
         )}
         onPress={() => setOpen(true)}>
         {selectedOption ? (
@@ -83,14 +83,14 @@ export function ComboboxSelect({
           <Pressable className="absolute inset-0 bg-black/40" onPress={close} />
           <View className="flex-1 px-4 pt-28" pointerEvents="box-none">
             <Pressable
-              className="overflow-hidden rounded-xl border border-border bg-card"
+              className="overflow-hidden rounded-lg border border-border bg-card"
               onPress={(event) => event.stopPropagation?.()}>
             <View className="border-b border-border px-3 py-2">
               <View className="flex-row items-center gap-2 rounded-lg border border-border bg-background px-3">
                 <Icon as={Search} className="size-4 text-muted-foreground" />
                 <Input
                   autoFocus
-                  className="h-9 flex-1 border-0 bg-transparent px-0 shadow-none"
+                  className="h-11 flex-1 border-0 bg-transparent px-0 shadow-none"
                   placeholder={searchPlaceholder}
                   value={query}
                   onChangeText={setQuery}
@@ -113,7 +113,7 @@ export function ComboboxSelect({
                       accessibilityRole="button"
                       className={cn(
                         'flex-row items-center justify-between border-b border-border/60 px-4 py-3 active:bg-muted/70',
-                        selected && 'bg-primary/5'
+                        selected && 'bg-brand/5'
                       )}
                       onPress={() => {
                         onChange(option.value);
@@ -122,12 +122,12 @@ export function ComboboxSelect({
                       <Text
                         className={cn(
                           'text-sm text-foreground',
-                          selected && 'font-medium text-primary'
+                          selected && 'font-medium text-brand'
                         )}>
                         {option.label}
                       </Text>
                       {selected ? (
-                        <Icon as={Check} className="size-4 text-primary" strokeWidth={2.5} />
+                        <Icon as={Check} className="size-4 text-brand" strokeWidth={2.5} />
                       ) : (
                         <View className="size-4" />
                       )}
