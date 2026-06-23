@@ -4,18 +4,17 @@ import {
 } from '@/src/contexts/auth/domain/authNavigation.rules';
 import { SplashView } from '@/src/ui/shared/components/SplashView';
 import { useAppSplash } from '@/src/ui/shared/hooks/useAppSplash';
+import { useAuthColorScheme } from '@/src/ui/shared/hooks/useAuthColorScheme';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { NAV_THEME } from '@/lib/theme';
 import { ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'nativewind';
 
 export function AuthRootNavigator() {
   const { user, loading } = useAuth();
-  const { colorScheme } = useColorScheme();
+  const navigationColorScheme = useAuthColorScheme(user);
   const { onSplashReady, showSplash } = useAppSplash(!loading);
-  const navigationColorScheme = user ? (colorScheme ?? 'light') : 'light';
 
   if (showSplash) {
     return <SplashView onReady={onSplashReady} />;

@@ -26,6 +26,10 @@ jest.mock('@/src/ui/shared/hooks/useAppSplash', () => ({
   useAppSplash: jest.fn(),
 }));
 
+jest.mock('@/src/ui/shared/hooks/useAuthColorScheme', () => ({
+  useAuthColorScheme: jest.fn(() => 'light'),
+}));
+
 jest.mock('@/src/ui/shared/providers/AuthProvider', () => ({
   useAuth: jest.fn(),
 }));
