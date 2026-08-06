@@ -15,6 +15,14 @@ type WorkoutListMutationContext = {
   previousCaches?: WorkoutListCacheSnapshot;
 };
 
+function isExerciseHistoryQueryKey(queryKey: readonly unknown[], userId: string): boolean {
+  return (
+    queryKey[0] === 'exercises' &&
+    queryKey[1] === userId &&
+    queryKey[3] === 'history'
+  );
+}
+
 function useInvalidateWeeklyWorkouts(userId: string | undefined) {
   const queryClient = useQueryClient();
 
@@ -25,6 +33,9 @@ function useInvalidateWeeklyWorkouts(userId: string | undefined) {
 
     void queryClient.invalidateQueries({
       queryKey: ['workouts', userId],
+    });
+    void queryClient.invalidateQueries({
+      predicate: (query) => isExerciseHistoryQueryKey(query.queryKey, userId),
     });
   };
 }

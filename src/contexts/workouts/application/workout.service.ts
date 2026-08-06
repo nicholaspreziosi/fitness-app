@@ -21,6 +21,10 @@ import {
   removeWorkoutExercise,
   reorderWorkoutExercises,
 } from '@/src/contexts/workouts/domain/planner.helpers';
+import {
+  buildExercisePerformanceHistory,
+  type ExercisePerformancePoint,
+} from '@/src/contexts/workouts/domain/exercisePerformanceHistory';
 import type { Workout, WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
 import type { WorkoutRepository } from '@/src/contexts/workouts/domain/workout.repository';
 import {
@@ -534,6 +538,11 @@ export class WorkoutService {
 
   async getWorkout(id: string): Promise<Workout | null> {
     return this.workoutRepository.findById(id);
+  }
+
+  async getExercisePerformanceHistory(exerciseId: string): Promise<ExercisePerformancePoint[]> {
+    const workouts = await this.workoutRepository.listAll();
+    return buildExercisePerformanceHistory(workouts, exerciseId);
   }
 
   private async requireWorkout(id: string): Promise<Workout> {

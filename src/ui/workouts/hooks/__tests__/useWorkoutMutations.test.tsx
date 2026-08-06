@@ -1,5 +1,6 @@
 import { createWorkoutService } from '@/src/contexts/workouts/application/createWorkoutService';
 import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
+import { exerciseQueryKeys } from '@/src/ui/exercises/hooks/exerciseQueryKeys';
 import { workoutQueryKeys } from '@/src/ui/workouts/hooks/workoutQueryKeys';
 import { createMockWorkout, createMockWorkoutExercise } from '@/test-utils/mockData';
 import { createTestDate } from '@/test-utils/testDates';
@@ -81,6 +82,22 @@ describe('useWorkoutMutations', () => {
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: workoutQueryKeys('user-1').all,
     });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      predicate: expect.any(Function),
+    });
+
+    const historyPredicateCall = invalidateSpy.mock.calls.find(
+      (call) => typeof call[0]?.predicate === 'function'
+    );
+    const predicate = historyPredicateCall?.[0]?.predicate as (query: {
+      queryKey: readonly unknown[];
+    }) => boolean;
+    expect(
+      predicate({ queryKey: exerciseQueryKeys('user-1').history('exercise-1') })
+    ).toBe(true);
+    expect(predicate({ queryKey: exerciseQueryKeys('user-1').detail('exercise-1') })).toBe(
+      false
+    );
   });
 
   it('calls exitWorkout and invalidates workout queries', async () => {

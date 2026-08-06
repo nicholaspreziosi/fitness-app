@@ -5,7 +5,12 @@ import { TemplateBlockService } from '@/src/contexts/templateBlocks/application/
 import type { WorkoutRepository } from '@/src/contexts/workouts/domain/workout.repository';
 import { WorkoutService } from '@/src/contexts/workouts/application/workout.service';
 import { ServiceError } from '@/src/contexts/shared/domain/service.errors';
-import { createMockExercise, createMockTemplateBlock, createMockWorkout } from '@/test-utils/mockData';
+import {
+  createMockExercise,
+  createMockTemplateBlock,
+  createMockWorkout,
+  createMockWorkoutExercise,
+} from '@/test-utils/mockData';
 import { createTestDate, FIXED_DATE } from '@/test-utils/testDates';
 
 function createExerciseRepositoryMock(
@@ -787,5 +792,67 @@ describe('WorkoutService', () => {
 
     expect(workoutRepository.listByDateRange).toHaveBeenCalledWith(rangeStart, rangeEnd);
     expect(result).toEqual(workouts);
+  });
+
+  it('gets exercise performance history via listAll', async () => {
+    const workouts = [
+      createMockWorkout({
+        id: 'workout-completed',
+        status: 'completed',
+        date: createTestDate(0),
+        exercises: [
+          createMockWorkoutExercise({
+            exerciseId: 'exercise-1',
+            actualWeight: 100,
+            actualReps: 8,
+            completed: true,
+          }),
+        ],
+      }),
+      createMockWorkout({
+        id: 'workout-planned',
+        status: 'planned',
+        date: createTestDate(1),
+        exercises: [
+          createMockWorkoutExercise({
+            exerciseId: 'exercise-1',
+            actualWeight: 120,
+            completed: true,
+          }),
+        ],
+      }),
+      createMockWorkout({
+        id: 'workout-other',
+        status: 'completed',
+        date: createTestDate(2),
+        exercises: [
+          createMockWorkoutExercise({
+            exerciseId: 'exercise-other',
+            actualWeight: 200,
+            completed: true,
+          }),
+        ],
+      }),
+    ];
+    const workoutRepository = createWorkoutRepositoryMock({
+      listAll: jest.fn().mockResolvedValue(workouts),
+    });
+    const service = new WorkoutService(
+      workoutRepository,
+      createTemplateBlockRepositoryMock(),
+      createExerciseRepositoryMock()
+    );
+
+    const result = await service.getExercisePerformanceHistory('exercise-1');
+
+    expect(workoutRepository.listAll).toHaveBeenCalled();
+    expect(result).toEqual([
+      {
+        workoutId: 'workout-completed',
+        date: createTestDate(0),
+        weight: 100,
+        reps: 8,
+      },
+    ]);
   });
 });

@@ -1,7 +1,9 @@
 import { Badge } from '@/components/ui/badge';
 import { Text } from '@/components/ui/text';
 import { formatExercisePrescription } from '@/src/contexts/exercises/domain/exercisePresentation';
+import { ExerciseHistoryChart } from '@/src/ui/exercises/components/ExerciseHistoryChart';
 import { useExercise } from '@/src/ui/exercises/hooks/useExercise';
+import { useExerciseHistory } from '@/src/ui/exercises/hooks/useExerciseHistory';
 import { useToggleExerciseFavorite } from '@/src/ui/exercises/hooks/useToggleExerciseFavorite';
 import { ComponentDemoSection } from '@/src/ui/shared/components/ComponentDemoSection';
 import { DetailField } from '@/src/ui/shared/components/DetailField';
@@ -44,6 +46,7 @@ export function ExerciseDetailView() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const exerciseId = id ?? '';
   const { exercise, isLoading, error } = useExercise(exerciseId);
+  const { history, isLoading: isHistoryLoading } = useExerciseHistory(exerciseId);
   const { toggleFavorite } = useToggleExerciseFavorite();
 
   if (isLoading) {
@@ -104,6 +107,10 @@ export function ExerciseDetailView() {
           onPress={() => router.push(`/library/exercises/${exercise.id}/edit`)}
         />
       </View>
+
+      <ComponentDemoSection title="History">
+        <ExerciseHistoryChart history={history} isLoading={isHistoryLoading} />
+      </ComponentDemoSection>
 
       <ComponentDemoSection title="Defaults">
         <DetailField label="Prescription" value={prescription ?? 'Not set'} />
