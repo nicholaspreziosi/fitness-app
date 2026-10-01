@@ -1,6 +1,6 @@
-import { NativeTabBar } from '@/src/ui/shared/navigation/NativeTabBar';
 import { tabsInitialRouteName } from '@/src/ui/shared/navigation/nativeTabTriggers';
 import { TabShell } from '@/src/ui/shared/navigation/TabShell';
+import { WebTabBar } from '@/src/ui/shared/navigation/WebTabBar';
 
 export const unstable_settings = {
   initialRouteName: tabsInitialRouteName,
@@ -9,7 +9,7 @@ export const unstable_settings = {
 export default function TabsLayout() {
   return (
     <TabShell>
-      <NativeTabBar />
+      <WebTabBar />
     </TabShell>
   );
 }
