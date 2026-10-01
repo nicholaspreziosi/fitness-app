@@ -22,9 +22,9 @@ const METRIC_OPTIONS: Array<{ label: string; value: ExerciseHistoryMetric; empty
   { label: 'Hold', value: 'holdSeconds', emptyLabel: 'hold' },
 ];
 
-const CHART_COLOR = '#2563EB';
-const MUTED_COLOR = '#64748B';
-const BORDER_COLOR = '#E2E8F0';
+const CHART_COLOR = '#84CC16';
+const MUTED_COLOR = '#737373';
+const BORDER_COLOR = '#E5E5E5';
 const CHART_HEIGHT = 200;
 const Y_AXIS_LABEL_WIDTH = 40;
 const INITIAL_SPACING = 20;

@@ -55,7 +55,7 @@ export function Accordion({
             </Text>
             {badge !== undefined && badge !== 0 ? (
               <View className="rounded-full bg-brand/10 px-1.5 py-0.5">
-                <Text className="text-[11px] font-medium text-brand">{badge}</Text>
+                <Text className="text-[11px] font-medium text-brand-ink">{badge}</Text>
               </View>
             ) : null}
           </View>

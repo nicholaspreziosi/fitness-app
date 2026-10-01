@@ -58,7 +58,7 @@ const buttonTextVariants = cva('text-sm font-medium', {
       secondary: 'text-foreground',
       ghost: 'text-foreground',
       link: cn(
-        'text-brand',
+        'text-brand-ink',
         Platform.select({ web: 'underline-offset-4 hover:underline' })
       ),
     },

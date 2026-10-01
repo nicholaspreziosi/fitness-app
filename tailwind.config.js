@@ -20,6 +20,7 @@ module.exports = {
         brand: {
           DEFAULT: 'hsl(var(--brand))',
           foreground: 'hsl(var(--brand-foreground))',
+          ink: 'hsl(var(--brand-ink))',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',

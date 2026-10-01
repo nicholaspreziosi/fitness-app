@@ -1,5 +1,5 @@
 import { THEME } from '@/lib/theme';
-import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
+import type { NativeStackNavigationOptions } from 'expo-router/native-stack';
 import { Platform, type ViewStyle } from 'react-native';
 
 function createHeaderStyle(
@@ -14,7 +14,7 @@ function createHeaderStyle(
     height: Platform.OS === 'ios' ? 96 : 72,
     ...Platform.select({
       ios: {
-        shadowColor: '#0F172A',
+        shadowColor: '#171717',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: colorScheme === 'dark' ? 0.2 : 0.06,
         shadowRadius: 2,

@@ -45,7 +45,7 @@ export function CoverageBarChart({
             <HorizontalBar
               points={points.count}
               chartBounds={chartBounds}
-              color="#2563EB"
+              color="#84CC16"
               roundedCorners={{ topRight: 6, bottomRight: 6 }}
             />
           )}

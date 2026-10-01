@@ -7,11 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "fitness-tracker",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#F8FAFC"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -35,9 +30,11 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F8FAFC",
+          "image": "./assets/images/splash.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#F5F5F5",
           "dark": {
-            "backgroundColor": "#020617"
+            "backgroundColor": "#0F0F0F"
           }
         }
       ]

@@ -22,11 +22,15 @@ import { useUpdateUserProfile } from '@/src/ui/profile/hooks/useUpdateUserProfil
 import { useUserProfile } from '@/src/ui/profile/hooks/useUserProfile';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { checkFirebaseConnection, type FirebaseHealthResult } from '@/src/lib/firebase/health';
+import { THEME } from '@/lib/theme';
 import { SaveIcon } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 export function SettingsView() {
+  const { colorScheme } = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
   const { user, signOut } = useAuth();
   const { profile, isLoading } = useUserProfile();
   const { updateProfile, isUpdating } = useUpdateUserProfile();
@@ -136,7 +140,7 @@ export function SettingsView() {
           <Text className="text-sm font-medium text-foreground">Firebase Status</Text>
           {health === null ? (
             <View className="mt-3 flex-row items-center gap-2">
-              <ActivityIndicator />
+              <ActivityIndicator color={theme.brand} />
               <Text className="text-sm text-muted-foreground">Checking connection...</Text>
             </View>
           ) : (

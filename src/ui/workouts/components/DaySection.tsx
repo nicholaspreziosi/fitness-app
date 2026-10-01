@@ -47,11 +47,11 @@ export function DaySection({
         <Text
           className={cn(
             'text-xs font-medium uppercase tracking-wide text-muted-foreground',
-            isToday && 'text-brand'
+            isToday && 'text-brand-ink'
           )}>
           {shortDayName}
         </Text>
-        <Text className={cn('text-lg font-semibold text-foreground', isToday && 'text-brand')}>
+        <Text className={cn('text-lg font-semibold text-foreground', isToday && 'text-brand-ink')}>
           {date.getDate()}
         </Text>
       </View>

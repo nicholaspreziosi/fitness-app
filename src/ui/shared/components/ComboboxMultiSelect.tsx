@@ -133,12 +133,12 @@ export function ComboboxMultiSelect({
                       <Text
                         className={cn(
                           'text-sm text-foreground',
-                          selected && 'font-medium text-brand'
+                          selected && 'font-medium text-brand-ink'
                         )}>
                         {option.label}
                       </Text>
                       {selected ? (
-                        <Icon as={Check} className="size-4 text-brand" strokeWidth={2.5} />
+                        <Icon as={Check} className="size-4 text-brand-ink" strokeWidth={2.5} />
                       ) : (
                         <View className="size-4" />
                       )}

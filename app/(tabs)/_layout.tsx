@@ -31,7 +31,7 @@ export default function TabsLayout() {
           initialRouteName="home"
           screenOptions={{
             headerShown: false,
-            tabBarActiveTintColor: theme.brand,
+            tabBarActiveTintColor: theme.brandInk,
             tabBarInactiveTintColor: theme.mutedForeground,
             tabBarStyle: {
               backgroundColor: theme.card,
@@ -39,7 +39,7 @@ export default function TabsLayout() {
               borderTopWidth: 1,
               ...Platform.select({
                 ios: {
-                  shadowColor: '#0F172A',
+                  shadowColor: '#171717',
                   shadowOffset: { width: 0, height: -1 },
                   shadowOpacity: colorScheme === 'dark' ? 0.2 : 0.06,
                   shadowRadius: 2,

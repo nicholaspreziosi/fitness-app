@@ -9,7 +9,7 @@ type CoverageBarChartProps = {
   testID?: string;
 };
 
-const BAR_COLOR = '#2563EB';
+const BAR_COLOR = '#84CC16';
 
 export function CoverageBarChart({
   coverage,

@@ -1,7 +1,9 @@
 import { Text } from '@/components/ui/text';
 import { FlowLogo } from '@/src/ui/shared/components/FlowLogo';
 import { useKeyboardInset } from '@/src/ui/shared/hooks/useKeyboardInset';
+import { THEME } from '@/lib/theme';
 import { cn } from '@/lib/utils';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import {
   ActivityIndicator,
@@ -141,9 +143,12 @@ export function AuthFormMessage({
 }
 
 export function AuthFormLoading() {
+  const { colorScheme } = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
+
   return (
     <View className="items-center py-6">
-      <ActivityIndicator />
+      <ActivityIndicator color={theme.brand} />
     </View>
   );
 }

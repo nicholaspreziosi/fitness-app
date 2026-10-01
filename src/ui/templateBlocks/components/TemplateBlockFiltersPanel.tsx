@@ -46,7 +46,7 @@ export function TemplateBlockFiltersPanel({ filters, onChange }: TemplateBlockFi
                 selected ? 'border-brand bg-brand/10' : 'border-border bg-background'
               )}
               onPress={() => onChange({ ...filters, status: option.value })}>
-              <Text className={cn('text-xs', selected ? 'text-brand' : 'text-muted-foreground')}>
+              <Text className={cn('text-xs', selected ? 'text-brand-ink' : 'text-muted-foreground')}>
                 {option.label}
               </Text>
             </Pressable>
@@ -62,7 +62,7 @@ export function TemplateBlockFiltersPanel({ filters, onChange }: TemplateBlockFi
           )}
           onPress={() => onChange({ ...filters, favoritesOnly: !favoritesOnly })}>
           <Text
-            className={cn('text-xs', favoritesOnly ? 'text-brand' : 'text-muted-foreground')}>
+            className={cn('text-xs', favoritesOnly ? 'text-brand-ink' : 'text-muted-foreground')}>
             Favorites
           </Text>
         </Pressable>

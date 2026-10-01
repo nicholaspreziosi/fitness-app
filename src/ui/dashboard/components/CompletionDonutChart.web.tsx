@@ -39,7 +39,7 @@ export function CompletionDonutChart({
             cx={SIZE / 2}
             cy={SIZE / 2}
             r={RADIUS}
-            stroke="#E2E8F0"
+            stroke="#E5E5E5"
             strokeWidth={STROKE_WIDTH}
             fill="none"
           />
@@ -47,7 +47,7 @@ export function CompletionDonutChart({
             cx={SIZE / 2}
             cy={SIZE / 2}
             r={RADIUS}
-            stroke="#2563EB"
+            stroke="#84CC16"
             strokeWidth={STROKE_WIDTH}
             fill="none"
             strokeDasharray={`${progress} ${CIRCUMFERENCE}`}

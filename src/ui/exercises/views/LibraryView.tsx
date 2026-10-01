@@ -18,14 +18,18 @@ import { SegmentedControl } from '@/src/ui/shared/components/SegmentedControl';
 import { TemplateBlockFiltersPanel } from '@/src/ui/templateBlocks/components/TemplateBlockFiltersPanel';
 import { TemplateBlockListItem } from '@/src/ui/templateBlocks/components/TemplateBlockListItem';
 import { useTemplateBlocks } from '@/src/ui/templateBlocks/hooks/useTemplateBlocks';
+import { THEME } from '@/lib/theme';
 import { useRouter } from 'expo-router';
 import { DumbbellIcon, LayersIcon, PlusIcon } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
 
 type LibraryTab = 'exercises' | 'templates';
 
 export function LibraryView() {
+  const { colorScheme } = useColorScheme();
+  const theme = THEME[colorScheme ?? 'light'];
   const router = useRouter();
   const [tab, setTab] = React.useState<LibraryTab>('exercises');
   const [search, setSearch] = React.useState('');
@@ -168,12 +172,12 @@ export function LibraryView() {
             action={
               isExercisesTab ? (
                 <View className="flex-row items-center gap-2">
-                  {isRefreshing ? <ActivityIndicator size="small" /> : null}
+                  {isRefreshing ? <ActivityIndicator color={theme.brand} size="small" /> : null}
                   <FlowButton icon={PlusIcon} label="Create" onPress={openCreateExercise} />
                 </View>
               ) : (
                 <View className="flex-row items-center gap-2">
-                  {isRefreshing ? <ActivityIndicator size="small" /> : null}
+                  {isRefreshing ? <ActivityIndicator color={theme.brand} size="small" /> : null}
                   <FlowButton icon={PlusIcon} label="Create" onPress={openCreateTemplate} />
                 </View>
               )

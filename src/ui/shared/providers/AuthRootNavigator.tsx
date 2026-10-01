@@ -7,8 +7,7 @@ import { useAppSplash } from '@/src/ui/shared/hooks/useAppSplash';
 import { useAuthColorScheme } from '@/src/ui/shared/hooks/useAuthColorScheme';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { NAV_THEME } from '@/lib/theme';
-import { ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
 export function AuthRootNavigator() {

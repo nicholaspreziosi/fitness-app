@@ -65,7 +65,7 @@ export function ExercisePickerBodyPartFilters({
               <Text
                 className={cn(
                   'text-xs',
-                  isSelected ? 'text-brand' : 'text-muted-foreground'
+                  isSelected ? 'text-brand-ink' : 'text-muted-foreground'
                 )}>
                 {option.label}
               </Text>

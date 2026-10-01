@@ -155,7 +155,7 @@ export function TemplateBlockForm({
                       selected ? 'border-brand bg-brand/10' : 'border-border bg-background'
                     )}
                     onPress={() => updateValues({ status: option })}>
-                    <Text className={cn('text-sm', selected ? 'text-brand' : 'text-foreground')}>
+                    <Text className={cn('text-sm', selected ? 'text-brand-ink' : 'text-foreground')}>
                       {option.charAt(0).toUpperCase() + option.slice(1)}
                     </Text>
                   </Pressable>

@@ -22,7 +22,7 @@ const STATUS_CONFIG: Record<
   { label: string; variant: 'muted' | 'default' | 'success' | 'warning' }
 > = {
   draft: { label: 'Draft', variant: 'muted' },
-  planned: { label: 'Planned', variant: 'default' },
+  planned: { label: 'Planned', variant: 'muted' },
   inProgress: { label: 'In Progress', variant: 'default' },
   completed: { label: 'Completed', variant: 'success' },
   skipped: { label: 'Skipped', variant: 'warning' },

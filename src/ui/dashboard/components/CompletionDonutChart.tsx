@@ -9,8 +9,8 @@ type CompletionDonutChartProps = {
   testID?: string;
 };
 
-const COMPLETED_COLOR = '#2563EB';
-const REMAINING_COLOR = '#E2E8F0';
+const COMPLETED_COLOR = '#84CC16';
+const REMAINING_COLOR = '#E5E5E5';
 
 export function CompletionDonutChart({
   percentage,
