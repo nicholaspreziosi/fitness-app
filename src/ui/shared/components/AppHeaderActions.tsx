@@ -12,7 +12,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Text } from '@/components/ui/text';
-import { ThemeToggle } from '@/src/ui/shared/components/ThemeToggle';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { LogOutIcon } from 'lucide-react-native';
 import { View } from 'react-native';
@@ -30,7 +29,6 @@ export function AppHeaderActions() {
 
   return (
     <View className="flex-row items-center gap-1 py-2 pr-4">
-      <ThemeToggle />
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button accessibilityLabel="Logout" className="rounded-lg" size="sm" variant="ghost">

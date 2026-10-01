@@ -4,7 +4,7 @@ import {
 } from '@/src/contexts/auth/domain/authNavigation.rules';
 import { SplashView } from '@/src/ui/shared/components/SplashView';
 import { useAppSplash } from '@/src/ui/shared/hooks/useAppSplash';
-import { useAuthColorScheme } from '@/src/ui/shared/hooks/useAuthColorScheme';
+import { useSystemColorScheme } from '@/src/ui/shared/hooks/useSystemColorScheme';
 import { useAuth } from '@/src/ui/shared/providers/AuthProvider';
 import { NAV_THEME } from '@/lib/theme';
 import { Stack, ThemeProvider } from 'expo-router';
@@ -12,7 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 
 export function AuthRootNavigator() {
   const { user, loading } = useAuth();
-  const navigationColorScheme = useAuthColorScheme(user);
+  const navigationColorScheme = useSystemColorScheme();
   const { onSplashReady, showSplash } = useAppSplash(!loading);
 
   if (showSplash) {

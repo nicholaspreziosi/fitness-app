@@ -13,7 +13,6 @@ import { ComponentDemoSection } from '@/src/ui/shared/components/ComponentDemoSe
 import { LoadingState } from '@/src/ui/shared/components/LoadingState';
 import { PageHeader } from '@/src/ui/shared/components/PageHeader';
 import { ScreenContainer } from '@/src/ui/shared/components/ScreenContainer';
-import { ThemeToggle } from '@/src/ui/shared/components/ThemeToggle';
 import { ProfileAccountSection } from '@/src/ui/profile/components/ProfileAccountSection';
 import { ProfileBodySection } from '@/src/ui/profile/components/ProfileBodySection';
 import { ProfileLocaleSection } from '@/src/ui/profile/components/ProfileLocaleSection';
@@ -112,13 +111,6 @@ export function SettingsView() {
         onSignOut={handleSignOut}
         signOutError={signOutError}
       />
-
-      <ComponentDemoSection title="Appearance">
-        <View className="flex-row items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5">
-          <Text className="text-sm text-foreground">Theme</Text>
-          <ThemeToggle />
-        </View>
-      </ComponentDemoSection>
 
       <ProfileLocaleSection values={formValues} onChange={handleChange} />
       <ProfileBodySection values={formValues} onChange={handleChange} />
