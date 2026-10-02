@@ -25,14 +25,39 @@ import { createMockExercise, createMockWorkout } from '@/test-utils/mockData';
 import { createTestDate } from '@/test-utils/testDates';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
+jest.mock('expo-router', () => ({
+  DarkTheme: { colors: {} },
+  DefaultTheme: { colors: {} },
+}));
+
 jest.mock('@/src/ui/workouts/components/WeekNavigator', () => {
   const React = require('react');
-  const { Text, View } = require('react-native');
+  const { Pressable, Text, View } = require('react-native');
   return {
-    WeekNavigator: () => (
+    WeekNavigator: ({
+      weekAnchor,
+      onOpenWeekPicker,
+    }: {
+      weekAnchor: Date;
+      onOpenWeekPicker: () => void;
+    }) => (
       <View>
-        <Text>Week navigator</Text>
+        <Pressable testID="week-navigator-label" onPress={onOpenWeekPicker}>
+          <Text>{`Week of ${weekAnchor.toISOString().slice(0, 10)}`}</Text>
+        </Pressable>
       </View>
+    ),
+  };
+});
+
+jest.mock('@/components/ui/date-picker', () => {
+  const React = require('react');
+  const { Pressable, Text } = require('react-native');
+  return {
+    InlineDatePicker: ({ onChange }: { onChange: (date: Date) => void }) => (
+      <Pressable testID="inline-date-picker" onPress={() => onChange(new Date(2024, 6, 3))}>
+        <Text>Inline picker</Text>
+      </Pressable>
     ),
   };
 });
@@ -57,9 +82,15 @@ jest.mock('@/src/ui/workouts/components/ExercisePickerSheet', () => ({
   ExercisePickerSheet: () => null,
 }));
 
-jest.mock('@/src/ui/workouts/components/WorkoutCreateSheet', () => ({
-  WorkoutCreateSheet: () => null,
-}));
+jest.mock('@/src/ui/workouts/components/WorkoutCreateSheet', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  return {
+    WorkoutCreateSheet: ({ date }: { date: Date }) => (
+      <Text>{`Create workout on ${date.toISOString().slice(0, 10)}`}</Text>
+    ),
+  };
+});
 
 jest.mock('@/src/ui/workouts/components/DuplicateWorkoutSheet', () => ({
   DuplicateWorkoutSheet: () => null,
@@ -101,7 +132,9 @@ jest.mock('@/src/ui/shared/providers/RefreshGuardProvider', () => {
 jest.mock('@/src/ui/shared/components/ScreenContainer', () => {
   const React = require('react');
   const { View } = require('react-native');
-  return { ScreenContainer: ({ children }: { children: React.ReactNode }) => <View>{children}</View> };
+  return {
+    ScreenContainer: ({ children }: { children: React.ReactNode }) => <View>{children}</View>,
+  };
 });
 
 jest.mock('react-native-reanimated-dnd', () => {
@@ -145,7 +178,9 @@ import { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
 
 const mockUseWeeklyWorkouts = useWeeklyWorkouts as jest.MockedFunction<typeof useWeeklyWorkouts>;
-const mockUseWorkoutMutations = useWorkoutMutations as jest.MockedFunction<typeof useWorkoutMutations>;
+const mockUseWorkoutMutations = useWorkoutMutations as jest.MockedFunction<
+  typeof useWorkoutMutations
+>;
 const mockUseExerciseLibrary = useExerciseLibrary as jest.MockedFunction<typeof useExerciseLibrary>;
 
 describe('CalendarView', () => {
@@ -211,11 +246,27 @@ describe('CalendarView', () => {
     expect(screen.getAllByText('Lower Body').length).toBeGreaterThan(0);
   });
 
-  it('opens add workout sheet', () => {
+  it('moves from the inline date picker straight into creating a workout', () => {
     render(<CalendarView />);
 
     fireEvent.press(screen.getByText('+ Add Workout'));
-    expect(screen.getByText('Select Date')).toBeTruthy();
-    expect(screen.getByText('Continue')).toBeTruthy();
+    expect(screen.getByTestId('inline-date-picker')).toBeTruthy();
+    expect(screen.queryByText('Continue')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('inline-date-picker'));
+
+    expect(screen.getByText('Create workout on 2024-07-03')).toBeTruthy();
+  });
+
+  it('jumps to the week of a day tapped in the week picker sheet', () => {
+    render(<CalendarView />);
+
+    fireEvent.press(screen.getByTestId('week-navigator-label'));
+    expect(screen.getByTestId('inline-date-picker')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('inline-date-picker'));
+
+    expect(screen.getByText('Week of 2024-07-03')).toBeTruthy();
+    expect(screen.queryByTestId('inline-date-picker')).toBeNull();
   });
 });

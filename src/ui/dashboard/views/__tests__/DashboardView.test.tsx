@@ -12,6 +12,18 @@ jest.mock('expo-router', () => ({
   DefaultTheme: { colors: {} },
 }));
 
+jest.mock('@/components/ui/date-picker', () => {
+  const React = require('react');
+  const { Pressable, Text } = require('react-native');
+  return {
+    InlineDatePicker: ({ onChange }: { onChange: (date: Date) => void }) => (
+      <Pressable testID="inline-date-picker" onPress={() => onChange(new Date(2024, 5, 25))}>
+        <Text>Inline picker</Text>
+      </Pressable>
+    ),
+  };
+});
+
 jest.mock('@/src/ui/dashboard/hooks/useDashboardSummary', () => ({
   useDashboardSummary: jest.fn(),
 }));
@@ -31,9 +43,7 @@ jest.mock('@/src/ui/shared/components/ScreenContainer', () => {
     }: {
       children: React.ReactNode;
       scrollGesture?: unknown;
-    }) => (
-      <View testID={scrollGesture ? 'screen-with-swipe' : 'screen'}>{children}</View>
-    ),
+    }) => <View testID={scrollGesture ? 'screen-with-swipe' : 'screen'}>{children}</View>,
   };
 });
 
@@ -98,7 +108,9 @@ function createSummary(overrides: Partial<ReturnType<typeof useDashboardSummary>
     exerciseStats: { completed: 3, total: 4 },
     completionPercentage: 75,
     coverage: [{ bodyPart: 'Core', count: 2 }],
-    upcoming: [createMockWorkout({ id: 'upcoming-1', name: 'Lower Body', date: createTestDate(1) })],
+    upcoming: [
+      createMockWorkout({ id: 'upcoming-1', name: 'Lower Body', date: createTestDate(1) }),
+    ],
     emptyStates: {
       noWorkouts: false,
       noCompletedData: false,
@@ -144,9 +156,12 @@ describe('DashboardView', () => {
   it('defaults to week view with the current anchor date', () => {
     render(<DashboardView />);
 
-    expect(useDashboardSummaryMock).toHaveBeenCalledWith('week', expect.objectContaining({
-      anchorDate: expect.any(Date),
-    }));
+    expect(useDashboardSummaryMock).toHaveBeenCalledWith(
+      'week',
+      expect.objectContaining({
+        anchorDate: expect.any(Date),
+      })
+    );
   });
 
   it('updates dashboard data when the view mode changes to month', () => {
@@ -154,9 +169,12 @@ describe('DashboardView', () => {
 
     fireEvent.press(screen.getByTestId('dashboard-view-mode-filter-month'));
 
-    expect(useDashboardSummaryMock).toHaveBeenLastCalledWith('month', expect.objectContaining({
-      anchorDate: expect.any(Date),
-    }));
+    expect(useDashboardSummaryMock).toHaveBeenLastCalledWith(
+      'month',
+      expect.objectContaining({
+        anchorDate: expect.any(Date),
+      })
+    );
     expect(screen.getByTestId('month-navigator')).toBeTruthy();
   });
 
@@ -174,9 +192,41 @@ describe('DashboardView', () => {
 
     fireEvent.press(screen.getByTestId('week-navigator-next'));
 
-    expect(useDashboardSummaryMock).toHaveBeenLastCalledWith('week', expect.objectContaining({
-      anchorDate: expect.any(Date),
-    }));
+    expect(useDashboardSummaryMock).toHaveBeenLastCalledWith(
+      'week',
+      expect.objectContaining({
+        anchorDate: expect.any(Date),
+      })
+    );
+  });
+
+  it('opens an inline week picker sheet and jumps to the tapped day', () => {
+    render(<DashboardView />);
+
+    fireEvent.press(screen.getByTestId('week-navigator-label'));
+    expect(screen.getByTestId('inline-date-picker')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('inline-date-picker'));
+
+    expect(useDashboardSummaryMock).toHaveBeenLastCalledWith('week', {
+      anchorDate: new Date(2024, 5, 25),
+    });
+    expect(screen.queryByTestId('inline-date-picker')).toBeNull();
+  });
+
+  it('opens an inline month picker sheet and jumps to the month of the tapped day', () => {
+    render(<DashboardView />);
+
+    fireEvent.press(screen.getByTestId('dashboard-view-mode-filter-month'));
+    fireEvent.press(screen.getByTestId('month-navigator-label'));
+    expect(screen.getByTestId('inline-date-picker')).toBeTruthy();
+
+    fireEvent.press(screen.getByTestId('inline-date-picker'));
+
+    expect(useDashboardSummaryMock).toHaveBeenLastCalledWith('month', {
+      anchorDate: new Date(2024, 5, 25),
+    });
+    expect(screen.queryByTestId('inline-date-picker')).toBeNull();
   });
 
   it('keeps the view mode filter and date navigator visible while workouts load', () => {

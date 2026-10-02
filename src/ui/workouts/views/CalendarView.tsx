@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { addWeeks, getWeekDays, isSameDay, startOfDay } from '@/src/lib/dates/weekBounds';
-import { DatePickerSheet } from '@/src/ui/shared/components/DatePickerSheet';
+import { InlineDatePickerSheet } from '@/src/ui/shared/components/InlineDatePickerSheet';
 import { LoadingState } from '@/src/ui/shared/components/LoadingState';
 import { PageHeader } from '@/src/ui/shared/components/PageHeader';
 import { ScreenContainer } from '@/src/ui/shared/components/ScreenContainer';
@@ -22,7 +22,10 @@ import { useCanUseTrainingFeatures } from '@/src/ui/profile/hooks/useCanUseTrain
 import { useWeeklyWorkouts } from '@/src/ui/workouts/hooks/useWeeklyWorkouts';
 import { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
 import { useExerciseLibrary } from '@/src/ui/exercises/hooks/useExerciseLibrary';
-import { RefreshGuardProvider, useRefreshGuard } from '@/src/ui/shared/providers/RefreshGuardProvider';
+import {
+  RefreshGuardProvider,
+  useRefreshGuard,
+} from '@/src/ui/shared/providers/RefreshGuardProvider';
 import * as React from 'react';
 import { ScrollView, useWindowDimensions, View } from 'react-native';
 
@@ -112,11 +115,7 @@ function CalendarViewContent() {
   const isSheetOpen = plannerState.activeSheet.type !== 'none';
   const isSubmitting = mutations.isPending;
   const refreshEnabled =
-    !isEditingWorkout &&
-    !isSheetOpen &&
-    !isDragging &&
-    !isSubmitting &&
-    !isInputFocused;
+    !isEditingWorkout && !isSheetOpen && !isDragging && !isSubmitting && !isInputFocused;
   const isPullRefreshing = isRefreshing || exercisesRefreshing;
 
   const handleRefresh = React.useCallback(async () => {
@@ -148,12 +147,9 @@ function CalendarViewContent() {
             onCreated={navigateToDate}
           />
         ) : (
-          <DatePickerSheet
-            title="Select Date"
+          <InlineDatePickerSheet
             value={startOfDay(new Date())}
-            confirmLabel="Continue"
-            onClose={plannerState.closeSheet}
-            onConfirm={(date) => plannerState.openSheet({ type: 'addWorkout', date })}
+            onSelect={(date) => plannerState.openSheet({ type: 'addWorkout', date })}
           />
         );
       case 'duplicateWorkout': {
@@ -181,12 +177,9 @@ function CalendarViewContent() {
         ) : null;
       case 'weekPicker':
         return (
-          <DatePickerSheet
-            title="Go to Date"
+          <InlineDatePickerSheet
             value={plannerState.weekAnchor}
-            confirmLabel="Go"
-            onClose={plannerState.closeSheet}
-            onConfirm={(date) => {
+            onSelect={(date) => {
               navigateToDate(date);
               plannerState.closeSheet();
             }}

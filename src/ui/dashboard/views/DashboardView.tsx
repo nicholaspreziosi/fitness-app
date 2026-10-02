@@ -9,7 +9,8 @@ import {
 } from '@/src/ui/dashboard/components/UpcomingWorkoutList';
 import { useDashboardSummary } from '@/src/ui/dashboard/hooks/useDashboardSummary';
 import { useDashboardViewState } from '@/src/ui/dashboard/hooks/useDashboardViewState';
-import { DatePickerSheet } from '@/src/ui/shared/components/DatePickerSheet';
+import { BottomSheet } from '@/src/ui/shared/components/BottomSheet';
+import { InlineDatePickerSheet } from '@/src/ui/shared/components/InlineDatePickerSheet';
 import { LoadingState } from '@/src/ui/shared/components/LoadingState';
 import { MonthNavigator } from '@/src/ui/shared/components/MonthNavigator';
 import { PageHeader } from '@/src/ui/shared/components/PageHeader';
@@ -17,7 +18,7 @@ import { ScreenContainer } from '@/src/ui/shared/components/ScreenContainer';
 import { useHorizontalSwipeWithScrollGesture } from '@/src/ui/shared/hooks/useHorizontalSwipeWithScrollGesture';
 import { WeekNavigator } from '@/src/ui/workouts/components/WeekNavigator';
 import * as React from 'react';
-import { Modal, View } from 'react-native';
+import { View } from 'react-native';
 
 export function DashboardView() {
   const { viewMode, setViewMode, anchorDate, goToPrevious, goToNext, goToDate } =
@@ -111,22 +112,15 @@ export function DashboardView() {
         </View>
       </ScreenContainer>
 
-      <Modal
-        visible={datePickerOpen}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setDatePickerOpen(false)}>
-        <DatePickerSheet
-          title={viewMode === 'week' ? 'Go to Week' : 'Go to Month'}
+      <BottomSheet visible={datePickerOpen} onClose={() => setDatePickerOpen(false)}>
+        <InlineDatePickerSheet
           value={anchorDate}
-          confirmLabel="Go"
-          onClose={() => setDatePickerOpen(false)}
-          onConfirm={(date) => {
+          onSelect={(date) => {
             goToDate(date);
             setDatePickerOpen(false);
           }}
         />
-      </Modal>
+      </BottomSheet>
     </>
   );
 }

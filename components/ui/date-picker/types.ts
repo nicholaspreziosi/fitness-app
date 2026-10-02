@@ -7,3 +7,11 @@ export type DatePickerProps = {
   confirmLabel?: string;
   disabled?: boolean;
 };
+
+export type InlineDatePickerProps = {
+  value: Date;
+  onChange: (date: Date) => void;
+  minimumDate?: Date;
+  maximumDate?: Date;
+  disabled?: boolean;
+};
