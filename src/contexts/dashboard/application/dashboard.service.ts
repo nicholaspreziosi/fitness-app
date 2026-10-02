@@ -42,21 +42,23 @@ export class DashboardService {
     workouts: Workout[],
     viewMode: DashboardViewMode,
     anchorDate: Date = new Date(),
-    weekStartDay: WeekStartDay = 1
+    weekStartDay: WeekStartDay = 1,
+    today: Date = new Date()
   ): Workout[] {
-    return getUpcomingWorkouts(workouts, viewMode, anchorDate, weekStartDay);
+    return getUpcomingWorkouts(workouts, viewMode, anchorDate, weekStartDay, today);
   }
 
   getDashboardSummary(
     workouts: Workout[],
     viewMode: DashboardViewMode,
     anchorDate: Date = new Date(),
-    weekStartDay: WeekStartDay = 1
+    weekStartDay: WeekStartDay = 1,
+    today: Date = new Date()
   ): DashboardSummary {
     const rangeWorkouts = filterWorkoutsByViewMode(workouts, viewMode, anchorDate, weekStartDay);
     const { workoutStats, exerciseStats } = this.getCompletionStats(rangeWorkouts);
     const coverage = this.getCoverageData(rangeWorkouts);
-    const upcoming = this.getUpcomingWorkouts(workouts, viewMode, anchorDate, weekStartDay);
+    const upcoming = this.getUpcomingWorkouts(workouts, viewMode, anchorDate, weekStartDay, today);
     const completionPercentage = this.getCompletionPercentage(rangeWorkouts);
 
     const emptyStates: DashboardEmptyStates = {

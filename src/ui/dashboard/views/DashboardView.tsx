@@ -90,21 +90,19 @@ export function DashboardView() {
                     <DashboardEmptyState message="No completed workouts yet." />
                   ) : null}
 
-                  <CompletionDonutChart
-                    percentage={summary.completionPercentage}
-                    isEmpty={summary.emptyStates.noChartData}
-                  />
+                  {summary.emptyStates.noChartData ? null : (
+                    <>
+                      <CompletionDonutChart percentage={summary.completionPercentage} />
+                      <CoverageBarChart coverage={summary.coverage} />
+                    </>
+                  )}
 
-                  <CoverageBarChart
-                    coverage={summary.coverage}
-                    isEmpty={summary.emptyStates.noChartData}
-                  />
-
-                  <UpcomingSectionHeader />
-                  <UpcomingWorkoutList
-                    workouts={summary.upcoming}
-                    isEmpty={summary.emptyStates.noUpcoming}
-                  />
+                  {summary.emptyStates.noUpcoming ? null : (
+                    <>
+                      <UpcomingSectionHeader />
+                      <UpcomingWorkoutList workouts={summary.upcoming} />
+                    </>
+                  )}
                 </>
               ) : null}
             </>

@@ -38,10 +38,10 @@ describe('UpcomingWorkoutList', () => {
     expect(screen.getByText('Push Pull')).toBeTruthy();
   });
 
-  it('shows empty state when there are no upcoming workouts', () => {
-    render(<UpcomingWorkoutList workouts={[]} isEmpty />);
+  it('renders nothing when there are no upcoming workouts', () => {
+    render(<UpcomingWorkoutList workouts={[]} />);
 
-    expect(screen.getByTestId('upcoming-workout-list-empty')).toBeTruthy();
-    expect(screen.getByText('No upcoming workouts for this period.')).toBeTruthy();
+    expect(screen.queryByTestId('upcoming-workout-list')).toBeNull();
+    expect(screen.queryByText('No upcoming workouts for this period.')).toBeNull();
   });
 });

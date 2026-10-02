@@ -25,7 +25,7 @@ describe('DashboardService', () => {
       }),
     ];
 
-    const summary = service.getDashboardSummary(workouts, 'week', anchorDate);
+    const summary = service.getDashboardSummary(workouts, 'week', anchorDate, 1, anchorDate);
 
     expect(summary).toMatchObject({
       viewMode: 'week',
@@ -99,9 +99,9 @@ describe('DashboardService', () => {
       createMockWorkout({ id: 'completed', status: 'completed', date: createTestDate(1) }),
     ];
 
-    expect(service.getUpcomingWorkouts(workouts, 'week', anchorDate).map((w) => w.id)).toEqual([
-      'planned',
-    ]);
+    expect(
+      service.getUpcomingWorkouts(workouts, 'week', anchorDate, 1, anchorDate).map((w) => w.id)
+    ).toEqual(['planned']);
   });
 
   it('does not mutate workouts', () => {

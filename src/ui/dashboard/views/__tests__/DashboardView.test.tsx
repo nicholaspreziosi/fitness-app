@@ -305,9 +305,11 @@ describe('DashboardView', () => {
     render(<DashboardView />);
 
     expect(screen.getByText('No completed workouts yet.')).toBeTruthy();
+    expect(screen.queryByTestId('completion-donut-chart')).toBeNull();
+    expect(screen.queryByTestId('coverage-bar-chart')).toBeNull();
   });
 
-  it('shows no-upcoming-workouts empty state', () => {
+  it('hides the upcoming section when there are no upcoming workouts', () => {
     useDashboardSummaryMock.mockReturnValue({
       summary: createSummary({
         upcoming: [],
@@ -330,10 +332,11 @@ describe('DashboardView', () => {
 
     render(<DashboardView />);
 
-    expect(screen.getByText('No upcoming workouts for this period.')).toBeTruthy();
+    expect(screen.queryByText('Upcoming')).toBeNull();
+    expect(screen.queryByText('No upcoming workouts for this period.')).toBeNull();
   });
 
-  it('shows no-chart-data empty state', () => {
+  it('hides the completion and coverage charts when there is no chart data', () => {
     useDashboardSummaryMock.mockReturnValue({
       summary: createSummary({
         coverage: [],
@@ -356,6 +359,8 @@ describe('DashboardView', () => {
 
     render(<DashboardView />);
 
-    expect(screen.getAllByText('Complete workouts to see training coverage.')).toHaveLength(2);
+    expect(screen.queryByTestId('completion-donut-chart')).toBeNull();
+    expect(screen.queryByTestId('coverage-bar-chart')).toBeNull();
+    expect(screen.queryByText('Complete workouts to see training coverage.')).toBeNull();
   });
 });

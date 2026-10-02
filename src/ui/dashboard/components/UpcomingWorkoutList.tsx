@@ -1,27 +1,19 @@
 import { Text } from '@/components/ui/text';
 import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
-import { DashboardEmptyState } from '@/src/ui/dashboard/components/DashboardEmptyState';
 import { UpcomingWorkoutRow } from '@/src/ui/dashboard/components/UpcomingWorkoutRow';
 import { View } from 'react-native';
 
 type UpcomingWorkoutListProps = {
   workouts: Workout[];
-  isEmpty?: boolean;
   testID?: string;
 };
 
 export function UpcomingWorkoutList({
   workouts,
-  isEmpty = false,
   testID = 'upcoming-workout-list',
 }: UpcomingWorkoutListProps) {
-  if (isEmpty || workouts.length === 0) {
-    return (
-      <DashboardEmptyState
-        testID={`${testID}-empty`}
-        message="No upcoming workouts for this period."
-      />
-    );
+  if (workouts.length === 0) {
+    return null;
   }
 
   return (
