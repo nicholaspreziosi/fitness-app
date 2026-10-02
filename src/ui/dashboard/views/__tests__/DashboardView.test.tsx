@@ -7,6 +7,11 @@ import { createTestDate } from '@/test-utils/testDates';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import * as React from 'react';
 
+jest.mock('expo-router', () => ({
+  DarkTheme: { colors: {} },
+  DefaultTheme: { colors: {} },
+}));
+
 jest.mock('@/src/ui/dashboard/hooks/useDashboardSummary', () => ({
   useDashboardSummary: jest.fn(),
 }));
@@ -113,6 +118,7 @@ describe('DashboardView', () => {
       rangeStart: createTestDate(-5),
       rangeEnd: createTestDate(1),
       isLoading: false,
+      isRefreshing: false,
       isError: false,
       error: null,
       refetch: jest.fn(),
@@ -173,13 +179,14 @@ describe('DashboardView', () => {
     }));
   });
 
-  it('shows loading state', () => {
+  it('keeps the view mode filter and date navigator visible while workouts load', () => {
     useDashboardSummaryMock.mockReturnValue({
       summary: createSummary(),
       workouts: [],
       rangeStart: createTestDate(-5),
       rangeEnd: createTestDate(1),
       isLoading: true,
+      isRefreshing: false,
       isError: false,
       error: null,
       refetch: jest.fn(),
@@ -187,7 +194,11 @@ describe('DashboardView', () => {
 
     render(<DashboardView />);
 
+    expect(screen.getByTestId('dashboard-view-mode-filter')).toBeTruthy();
+    expect(screen.getByTestId('week-navigator')).toBeTruthy();
     expect(screen.getByLabelText('loading')).toBeTruthy();
+    expect(screen.queryByTestId('workout-stat-card')).toBeNull();
+    expect(screen.queryByTestId('completion-donut-chart')).toBeNull();
   });
 
   it('shows no-workouts empty state', () => {
@@ -209,6 +220,7 @@ describe('DashboardView', () => {
       rangeStart: createTestDate(-5),
       rangeEnd: createTestDate(1),
       isLoading: false,
+      isRefreshing: false,
       isError: false,
       error: null,
       refetch: jest.fn(),
@@ -234,6 +246,7 @@ describe('DashboardView', () => {
       rangeStart: createTestDate(-5),
       rangeEnd: createTestDate(1),
       isLoading: false,
+      isRefreshing: false,
       isError: false,
       error: null,
       refetch: jest.fn(),
@@ -259,6 +272,7 @@ describe('DashboardView', () => {
       rangeStart: createTestDate(-5),
       rangeEnd: createTestDate(1),
       isLoading: false,
+      isRefreshing: false,
       isError: false,
       error: null,
       refetch: jest.fn(),
@@ -284,6 +298,7 @@ describe('DashboardView', () => {
       rangeStart: createTestDate(-5),
       rangeEnd: createTestDate(1),
       isLoading: false,
+      isRefreshing: false,
       isError: false,
       error: null,
       refetch: jest.fn(),

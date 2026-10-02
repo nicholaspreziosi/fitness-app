@@ -41,72 +41,74 @@ export function DashboardView() {
         }}>
         <PageHeader title="Dashboard" description="Track training consistency and coverage." />
 
-        {isLoading ? (
-          <LoadingState />
-        ) : (
-          <View className="gap-4">
-            <DashboardViewModeFilter value={viewMode} onChange={setViewMode} />
+        <View className="gap-4">
+          <DashboardViewModeFilter value={viewMode} onChange={setViewMode} />
 
-            {viewMode === 'week' ? (
-              <WeekNavigator
-                weekAnchor={anchorDate}
-                onPreviousWeek={goToPrevious}
-                onNextWeek={goToNext}
-                onOpenWeekPicker={() => setDatePickerOpen(true)}
-              />
-            ) : (
-              <MonthNavigator
-                monthAnchor={anchorDate}
-                onPreviousMonth={goToPrevious}
-                onNextMonth={goToNext}
-                onOpenMonthPicker={() => setDatePickerOpen(true)}
-              />
-            )}
+          {viewMode === 'week' ? (
+            <WeekNavigator
+              weekAnchor={anchorDate}
+              onPreviousWeek={goToPrevious}
+              onNextWeek={goToNext}
+              onOpenWeekPicker={() => setDatePickerOpen(true)}
+            />
+          ) : (
+            <MonthNavigator
+              monthAnchor={anchorDate}
+              onPreviousMonth={goToPrevious}
+              onNextMonth={goToNext}
+              onOpenMonthPicker={() => setDatePickerOpen(true)}
+            />
+          )}
 
-            {summary.emptyStates.noWorkouts ? (
-              <DashboardEmptyState message="No workouts planned for this period." />
-            ) : null}
+          {isLoading ? (
+            <LoadingState />
+          ) : (
+            <>
+              {summary.emptyStates.noWorkouts ? (
+                <DashboardEmptyState message="No workouts planned for this period." />
+              ) : null}
 
-            {!summary.emptyStates.noWorkouts ? (
-              <>
-                <View className="flex-row gap-3">
-                  <DashboardStatCard
-                    completed={summary.workoutStats.completed}
-                    total={summary.workoutStats.total}
-                    label="Workouts"
-                    testID="workout-stat-card"
+              {!summary.emptyStates.noWorkouts ? (
+                <>
+                  <View className="flex-row gap-3">
+                    <DashboardStatCard
+                      completed={summary.workoutStats.completed}
+                      total={summary.workoutStats.total}
+                      label="Workouts"
+                      testID="workout-stat-card"
+                    />
+                    <DashboardStatCard
+                      completed={summary.exerciseStats.completed}
+                      total={summary.exerciseStats.total}
+                      label="Exercises"
+                      testID="exercise-stat-card"
+                    />
+                  </View>
+
+                  {summary.emptyStates.noCompletedData ? (
+                    <DashboardEmptyState message="No completed workouts yet." />
+                  ) : null}
+
+                  <CompletionDonutChart
+                    percentage={summary.completionPercentage}
+                    isEmpty={summary.emptyStates.noChartData}
                   />
-                  <DashboardStatCard
-                    completed={summary.exerciseStats.completed}
-                    total={summary.exerciseStats.total}
-                    label="Exercises"
-                    testID="exercise-stat-card"
+
+                  <CoverageBarChart
+                    coverage={summary.coverage}
+                    isEmpty={summary.emptyStates.noChartData}
                   />
-                </View>
 
-                {summary.emptyStates.noCompletedData ? (
-                  <DashboardEmptyState message="No completed workouts yet." />
-                ) : null}
-
-                <CompletionDonutChart
-                  percentage={summary.completionPercentage}
-                  isEmpty={summary.emptyStates.noChartData}
-                />
-
-                <CoverageBarChart
-                  coverage={summary.coverage}
-                  isEmpty={summary.emptyStates.noChartData}
-                />
-
-                <UpcomingSectionHeader />
-                <UpcomingWorkoutList
-                  workouts={summary.upcoming}
-                  isEmpty={summary.emptyStates.noUpcoming}
-                />
-              </>
-            ) : null}
-          </View>
-        )}
+                  <UpcomingSectionHeader />
+                  <UpcomingWorkoutList
+                    workouts={summary.upcoming}
+                    isEmpty={summary.emptyStates.noUpcoming}
+                  />
+                </>
+              ) : null}
+            </>
+          )}
+        </View>
       </ScreenContainer>
 
       <Modal

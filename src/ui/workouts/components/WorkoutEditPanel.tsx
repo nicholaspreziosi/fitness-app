@@ -12,7 +12,7 @@ import { DatePickerField } from '@/src/ui/shared/components/DatePickerField';
 import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
 import { useRefreshGuardInputHandlers } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import { ExerciseReorderList } from '@/src/ui/workouts/components/plannerDnD';
-import { ChevronDownIcon, PlusIcon } from 'lucide-react-native';
+import { PlusIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
 
@@ -123,7 +123,6 @@ export function WorkoutEditPanel({
           onPress={() => setAddMenuOpen(true)}>
           <Icon as={PlusIcon} className="size-3.5 text-foreground" />
           <Text>Add</Text>
-          <Icon as={ChevronDownIcon} className="size-3.5 text-muted-foreground" />
         </Button>
         <ActionSheet
           open={addMenuOpen}
