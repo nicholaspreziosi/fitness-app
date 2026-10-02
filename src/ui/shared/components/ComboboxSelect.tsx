@@ -3,9 +3,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
+import { BottomSheet } from '@/src/ui/shared/components/BottomSheet';
 import { Check, ChevronDown, Search, X } from 'lucide-react-native';
 import * as React from 'react';
-import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 
 export type ComboboxOption = {
   label: string;
@@ -52,6 +53,7 @@ export function ComboboxSelect({
 
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={selectedOption?.label ?? placeholder}
         accessibilityState={{ expanded: open }}
         testID={testID}
         className={cn(
@@ -66,7 +68,7 @@ export function ComboboxSelect({
               accessibilityRole="button"
               hitSlop={8}
               onPress={(event) => {
-                event.stopPropagation?.();
+                event?.stopPropagation?.();
                 onChange(undefined);
               }}>
               <Icon as={X} className="size-3.5 text-muted-foreground" />
@@ -78,68 +80,61 @@ export function ComboboxSelect({
         <Icon as={ChevronDown} className="size-4 text-muted-foreground" />
       </Pressable>
 
-      <Modal animationType="none" transparent visible={open} onRequestClose={close}>
-        <View className="flex-1">
-          <Pressable className="absolute inset-0 bg-black/40" onPress={close} />
-          <View className="flex-1 px-4 pt-28" pointerEvents="box-none">
-            <Pressable
-              className="overflow-hidden rounded-lg border border-border bg-card"
-              onPress={(event) => event.stopPropagation?.()}>
-            <View className="border-b border-border px-3 py-2">
-              <View className="flex-row items-center gap-2 rounded-lg border border-border bg-background px-3">
-                <Icon as={Search} className="size-4 text-muted-foreground" />
-                <Input
-                  autoFocus
-                  className="h-11 flex-1 border-0 bg-transparent px-0 shadow-none"
-                  placeholder={searchPlaceholder}
-                  value={query}
-                  onChangeText={setQuery}
-                />
-              </View>
+      <BottomSheet visible={open} onClose={close}>
+        <View>
+          <View className="border-b border-border px-3 py-2">
+            <View className="flex-row items-center gap-2 rounded-lg border border-border bg-background px-3">
+              <Icon as={Search} className="size-4 text-muted-foreground" />
+              <Input
+                autoFocus
+                className="h-11 flex-1 border-0 bg-transparent px-0 shadow-none"
+                placeholder={searchPlaceholder}
+                value={query}
+                onChangeText={setQuery}
+              />
             </View>
-
-            <ScrollView className="max-h-64" keyboardShouldPersistTaps="handled">
-              {filteredOptions.length === 0 ? (
-                <View className="px-4 py-6">
-                  <Text className="text-center text-sm text-muted-foreground">No results found.</Text>
-                </View>
-              ) : (
-                filteredOptions.map((option) => {
-                  const selected = value === option.value;
-
-                  return (
-                    <Pressable
-                      key={option.value}
-                      accessibilityRole="button"
-                      className={cn(
-                        'flex-row items-center justify-between border-b border-border/60 px-4 py-3 active:bg-muted/70',
-                        selected && 'bg-brand/5'
-                      )}
-                      onPress={() => {
-                        onChange(option.value);
-                        close();
-                      }}>
-                      <Text
-                        className={cn(
-                          'text-sm text-foreground',
-                          selected && 'font-medium text-brand-ink'
-                        )}>
-                        {option.label}
-                      </Text>
-                      {selected ? (
-                        <Icon as={Check} className="size-4 text-brand-ink" strokeWidth={2.5} />
-                      ) : (
-                        <View className="size-4" />
-                      )}
-                    </Pressable>
-                  );
-                })
-              )}
-            </ScrollView>
-          </Pressable>
           </View>
+
+          <ScrollView className="max-h-64" keyboardShouldPersistTaps="handled">
+            {filteredOptions.length === 0 ? (
+              <View className="px-4 py-6">
+                <Text className="text-center text-sm text-muted-foreground">No results found.</Text>
+              </View>
+            ) : (
+              filteredOptions.map((option) => {
+                const selected = value === option.value;
+
+                return (
+                  <Pressable
+                    key={option.value}
+                    accessibilityRole="button"
+                    className={cn(
+                      'flex-row items-center justify-between border-b border-border/60 px-4 py-3 active:bg-muted/70',
+                      selected && 'bg-brand/5'
+                    )}
+                    onPress={() => {
+                      onChange(option.value);
+                      close();
+                    }}>
+                    <Text
+                      className={cn(
+                        'text-sm text-foreground',
+                        selected && 'font-medium text-brand-ink'
+                      )}>
+                      {option.label}
+                    </Text>
+                    {selected ? (
+                      <Icon as={Check} className="size-4 text-brand-ink" strokeWidth={2.5} />
+                    ) : (
+                      <View className="size-4" />
+                    )}
+                  </Pressable>
+                );
+              })
+            )}
+          </ScrollView>
         </View>
-      </Modal>
+      </BottomSheet>
     </View>
   );
 }

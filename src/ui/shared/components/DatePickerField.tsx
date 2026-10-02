@@ -10,6 +10,8 @@ import { CalendarDaysIcon } from 'lucide-react-native';
 import * as React from 'react';
 import { Platform, Pressable, View } from 'react-native';
 
+export const DATE_PICKER_SHEET_HANDOFF_MS = 600;
+
 type DatePickerFieldProps = {
   label?: string;
   showLabel?: boolean;
@@ -33,8 +35,27 @@ export function DatePickerField({
 }: DatePickerFieldProps) {
   const selectedDate = React.useMemo(() => startOfDay(value), [value]);
   const [sheetOpen, setSheetOpen] = React.useState(false);
+  const pendingSelectRef = React.useRef<Date | null>(null);
 
   useRefreshGuardFlag('inputFocused', sheetOpen);
+
+  React.useEffect(() => {
+    if (sheetOpen) {
+      return;
+    }
+
+    const date = pendingSelectRef.current;
+    if (!date) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      pendingSelectRef.current = null;
+      onChange(date);
+    }, DATE_PICKER_SHEET_HANDOFF_MS);
+
+    return () => clearTimeout(timeoutId);
+  }, [onChange, sheetOpen]);
 
   return (
     <View className={cn('gap-2', className)}>
@@ -75,7 +96,7 @@ export function DatePickerField({
               minimumDate={minimumDate}
               maximumDate={maximumDate}
               onSelect={(date) => {
-                onChange(date);
+                pendingSelectRef.current = date;
                 setSheetOpen(false);
               }}
             />

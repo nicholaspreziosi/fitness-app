@@ -1,31 +1,45 @@
 import { cn } from '@/lib/utils';
-import { Platform, TextInput } from 'react-native';
+import * as React from 'react';
+import { Platform, Pressable, TextInput, type TextInputProps } from 'react-native';
 
-function Input({
+export function Input({
   className,
+  style,
+  textAlignVertical = 'center',
   ...props
-}: React.ComponentProps<typeof TextInput> & React.RefAttributes<TextInput>) {
+}: TextInputProps) {
+  const inputRef = React.useRef<TextInput>(null);
+
   return (
-    <TextInput
+    <Pressable
+      accessible={false}
       className={cn(
-        'h-12 w-full min-w-0 flex-row items-center rounded-lg border border-border bg-background px-3 py-2.5 text-sm leading-5 text-foreground',
+        'h-12 w-full min-w-0 justify-center rounded-lg border border-border bg-background px-3',
         props.editable === false &&
           cn(
             'opacity-40',
             Platform.select({ web: 'disabled:pointer-events-none disabled:cursor-not-allowed' })
           ),
         Platform.select({
-          web: cn(
-            'outline-none transition-colors selection:bg-brand selection:text-brand-foreground placeholder:text-muted-foreground',
-            'focus-visible:border-brand/50 focus-visible:ring-2 focus-visible:ring-ring/30'
-          ),
-          native: 'placeholder:text-muted-foreground/60',
+          web: 'outline-none transition-colors focus-within:border-brand/50 focus-within:ring-2 focus-within:ring-ring/30',
         }),
         className
       )}
-      {...props}
-    />
+      onPress={() => inputRef.current?.focus()}>
+      <TextInput
+        ref={inputRef}
+        underlineColorAndroid="transparent"
+        {...props}
+        textAlignVertical={textAlignVertical}
+        className={cn(
+          'w-full p-0 text-foreground',
+          Platform.select({
+            web: 'outline-none selection:bg-brand selection:text-brand-foreground placeholder:text-muted-foreground',
+            native: 'placeholder:text-muted-foreground/60',
+          })
+        )}
+        style={[{ fontSize: 14, paddingVertical: 0 }, style]}
+      />
+    </Pressable>
   );
 }
-
-export { Input };

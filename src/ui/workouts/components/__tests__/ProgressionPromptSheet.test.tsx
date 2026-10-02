@@ -7,6 +7,11 @@ import { useProgressionPrompt } from '@/src/ui/workouts/hooks/useProgressionProm
 import { createMockExercise, createMockWorkout, createMockWorkoutExercise } from '@/test-utils/mockData';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
+jest.mock('expo-router', () => ({
+  DarkTheme: { colors: {} },
+  DefaultTheme: { colors: {} },
+}));
+
 const mockUpdateExercise = jest.fn();
 
 jest.mock('@/src/contexts/exercises/application/createExerciseService', () => ({

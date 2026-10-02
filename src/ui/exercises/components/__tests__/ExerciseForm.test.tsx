@@ -1,6 +1,11 @@
 import { ExerciseForm } from '@/src/ui/exercises/components/ExerciseForm';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 
+jest.mock('expo-router', () => ({
+  DarkTheme: { colors: {} },
+  DefaultTheme: { colors: {} },
+}));
+
 describe('ExerciseForm', () => {
   it('validates required fields', () => {
     const onSubmit = jest.fn();

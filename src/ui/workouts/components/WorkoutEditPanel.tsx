@@ -9,7 +9,6 @@ import type { WorkoutExercise } from '@/src/contexts/workouts/domain/workout.mod
 import { canEditWorkoutExercises } from '@/src/contexts/workouts/domain/planner.rules';
 import { sortWorkoutExercises } from '@/src/contexts/workouts/domain/planner.helpers';
 import { DatePickerField } from '@/src/ui/shared/components/DatePickerField';
-import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
 import { useRefreshGuardInputHandlers } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import { ExerciseReorderList } from '@/src/ui/workouts/components/plannerDnD';
 import { PlusIcon } from 'lucide-react-native';
@@ -29,9 +28,6 @@ type WorkoutEditPanelProps = {
   onDateChange: (date: Date) => void;
   onRemoveExercise: (workoutExerciseId: string) => void;
   onReorder: (orderedIds: string[]) => void;
-  pendingDateConfirmation?: Date | null;
-  onConfirmDateChange?: () => void;
-  onCancelDateChange?: () => void;
 };
 
 export function WorkoutEditPanel({
@@ -47,9 +43,6 @@ export function WorkoutEditPanel({
   onDateChange,
   onRemoveExercise,
   onReorder,
-  pendingDateConfirmation,
-  onConfirmDateChange,
-  onCancelDateChange,
 }: WorkoutEditPanelProps) {
   const [name, setName] = React.useState(workoutName);
   const [addMenuOpen, setAddMenuOpen] = React.useState(false);
@@ -139,21 +132,6 @@ export function WorkoutEditPanel({
         exercisesById={exercisesById}
         onReorder={onReorder}
         onRemoveExercise={onRemoveExercise}
-      />
-
-      <ConfirmDialog
-        hideTrigger
-        open={Boolean(pendingDateConfirmation)}
-        onOpenChange={(open) => {
-          if (!open) {
-            onCancelDateChange?.();
-          }
-        }}
-        triggerLabel=""
-        title="Move in-progress workout?"
-        description="This workout is currently in progress. Moving it to another date will keep your session data."
-        confirmLabel="Move"
-        onConfirm={onConfirmDateChange}
       />
     </View>
   );

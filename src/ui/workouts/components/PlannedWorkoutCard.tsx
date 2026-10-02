@@ -7,7 +7,6 @@ import { sortWorkoutExercises } from '@/src/contexts/workouts/domain/planner.hel
 import { canMoveWorkoutToDate } from '@/src/contexts/workouts/domain/planner.rules';
 import { estimateWorkoutDuration } from '@/src/contexts/workouts/domain/workoutDuration';
 import { isBeforeDay, isSameDay, startOfDay } from '@/src/lib/dates/weekBounds';
-import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
 import { PlannedExerciseRow } from '@/src/ui/workouts/components/PlannedExerciseRow';
 import { WorkoutCard } from '@/src/ui/workouts/components/WorkoutCard';
 import { WorkoutEditPanel, canEnterEditMode } from '@/src/ui/workouts/components/WorkoutEditPanel';
@@ -314,13 +313,6 @@ export function PlannedWorkoutCard({
                 plannerState.openSheet({ type: 'addTemplate', workoutId: workout.id })
               }
               onDateChange={handleDateChange}
-              pendingDateConfirmation={pendingDate}
-              onConfirmDateChange={() => {
-                if (pendingDate) {
-                  void applyDateChange(pendingDate);
-                }
-              }}
-              onCancelDateChange={() => setPendingDate(null)}
               onRemoveExercise={(workoutExerciseId) =>
                 mutations.removeExercise.mutate({ workoutId: workout.id, workoutExerciseId })
               }
@@ -342,48 +334,46 @@ export function PlannedWorkoutCard({
         </WorkoutCard>
       </View>
 
-      <ConfirmDialog
-        confirmLabel="Move"
-        description="This workout is currently in progress. Moving it to another date will keep your session data."
-        hideTrigger
+      <ActionSheet
         open={Boolean(pendingDate)}
+        onClose={() => setPendingDate(null)}
         title="Move in-progress workout?"
-        triggerLabel="Move"
-        onConfirm={() => {
-          if (pendingDate) {
-            void applyDateChange(pendingDate);
-          }
-        }}
-        onOpenChange={(open) => {
-          if (!open) {
-            setPendingDate(null);
-          }
-        }}
+        message="This workout is currently in progress. Moving it to another date will keep your session data."
+        actions={[
+          {
+            label: 'Move',
+            onPress: () => {
+              if (pendingDate) {
+                void applyDateChange(pendingDate);
+              }
+            },
+          },
+        ]}
       />
 
-      <ConfirmDialog
-        confirmLabel="Mark as Completed"
-        cancelLabel="Mark as Skipped"
-        description="Past workouts cannot stay planned. Choose how to record this workout."
-        hideTrigger
+      <ActionSheet
         open={Boolean(pendingPastStatusDate)}
+        onClose={() => setPendingPastStatusDate(null)}
         title="Move to a past date?"
-        triggerLabel="Mark as Completed"
-        onConfirm={() => {
-          if (pendingPastStatusDate) {
-            void applyDateChange(pendingPastStatusDate, 'completed');
-          }
-        }}
-        onOpenChange={(open) => {
-          if (!open) {
-            setPendingPastStatusDate(null);
-          }
-        }}
-        onCancel={() => {
-          if (pendingPastStatusDate) {
-            void applyDateChange(pendingPastStatusDate, 'skipped');
-          }
-        }}
+        message="Past workouts cannot stay planned. Choose how to record this workout."
+        actions={[
+          {
+            label: 'Mark as Completed',
+            onPress: () => {
+              if (pendingPastStatusDate) {
+                void applyDateChange(pendingPastStatusDate, 'completed');
+              }
+            },
+          },
+          {
+            label: 'Mark as Skipped',
+            onPress: () => {
+              if (pendingPastStatusDate) {
+                void applyDateChange(pendingPastStatusDate, 'skipped');
+              }
+            },
+          },
+        ]}
       />
 
     </>

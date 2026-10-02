@@ -1,7 +1,7 @@
 import { Text } from '@/components/ui/text';
 import type { Exercise } from '@/src/contexts/exercises/domain/exercise.model';
 import { formatExercisePrescription } from '@/src/contexts/exercises/domain/exercisePresentation';
-import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
+import { ActionSheet } from '@/components/ui/action-sheet';
 import { FavoriteButton } from '@/src/ui/shared/components/FavoriteButton';
 import {
   SwipeableListRow,
@@ -108,41 +108,31 @@ export function ExerciseListItem({
         </View>
       </SwipeableListRow>
 
-      <ConfirmDialog
-        confirmLabel="Archive"
-        description="Archived exercises stay available in historical workouts but are hidden from normal selection."
-        hideTrigger
+      <ActionSheet
         open={pendingAction === 'archive'}
+        onClose={closeConfirm}
         title="Archive this exercise?"
-        triggerLabel="Archive"
-        onConfirm={() => {
-          onArchive(exercise.id);
-          closeConfirm();
-        }}
-        onOpenChange={(open) => {
-          if (!open) {
-            closeConfirm();
-          }
-        }}
+        message="Archived exercises stay available in historical workouts but are hidden from normal selection."
+        actions={[
+          {
+            label: 'Archive',
+            onPress: () => onArchive(exercise.id),
+          },
+        ]}
       />
 
-      <ConfirmDialog
-        confirmLabel="Delete"
-        description="This permanently removes the exercise. Used exercises must be archived instead."
-        destructive
-        hideTrigger
+      <ActionSheet
         open={pendingAction === 'delete'}
+        onClose={closeConfirm}
         title="Delete this exercise?"
-        triggerLabel="Delete"
-        onConfirm={() => {
-          onDelete(exercise.id);
-          closeConfirm();
-        }}
-        onOpenChange={(open) => {
-          if (!open) {
-            closeConfirm();
-          }
-        }}
+        message="This permanently removes the exercise. Used exercises must be archived instead."
+        actions={[
+          {
+            label: 'Delete',
+            destructive: true,
+            onPress: () => onDelete(exercise.id),
+          },
+        ]}
       />
     </>
   );

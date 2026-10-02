@@ -1,4 +1,5 @@
 import { TemplateBlockListItem } from '@/src/ui/templateBlocks/components/TemplateBlockListItem';
+import { presentedActionSheet } from '@/test-utils/actionSheet';
 import { createMockTemplateBlock } from '@/test-utils/mockData';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
@@ -28,41 +29,6 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
-jest.mock('@/src/ui/shared/components/ConfirmDialog', () => {
-  const React = require('react');
-  const { Pressable, Text, View } = require('react-native');
-
-  return {
-    ConfirmDialog: ({
-      triggerLabel,
-      title,
-      open,
-      hideTrigger,
-      onConfirm,
-    }: {
-      triggerLabel: string;
-      title: string;
-      open?: boolean;
-      hideTrigger?: boolean;
-      onConfirm?: () => void;
-    }) => {
-      if (hideTrigger && !open) {
-        return null;
-      }
-
-      return (
-        <View>
-          {!hideTrigger ? (
-            <Pressable accessibilityRole="button" onPress={onConfirm}>
-              <Text>{triggerLabel}</Text>
-            </Pressable>
-          ) : null}
-          {open ? <Text>{title}</Text> : !hideTrigger ? <Text>{title}</Text> : null}
-        </View>
-      );
-    },
-  };
-});
 
 describe('TemplateBlockListItem', () => {
   it('shows archive and delete actions for active template blocks', () => {
@@ -112,6 +78,9 @@ describe('TemplateBlockListItem', () => {
 
     fireEvent.press(screen.getByTestId('delete-template-block-1'));
 
-    expect(screen.getByText('Delete this template block?')).toBeTruthy();
+    const sheet = presentedActionSheet();
+    expect(sheet.title).toBe('Delete this template block?');
+    expect(sheet.options).toEqual(['Delete', 'Cancel']);
+    expect(sheet.destructiveButtonIndex).toBe(0);
   });
 });

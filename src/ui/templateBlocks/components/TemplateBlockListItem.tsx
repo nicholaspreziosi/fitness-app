@@ -1,4 +1,4 @@
-import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
+import { ActionSheet } from '@/components/ui/action-sheet';
 import { FavoriteButton } from '@/src/ui/shared/components/FavoriteButton';
 import { Text } from '@/components/ui/text';
 import type { TemplateBlock } from '@/src/contexts/templateBlocks/domain/templateBlock.model';
@@ -101,41 +101,31 @@ export function TemplateBlockListItem({
         </View>
       </SwipeableListRow>
 
-      <ConfirmDialog
-        confirmLabel="Archive"
-        description="Archived template blocks stay available in historical workouts but are hidden from normal selection."
-        hideTrigger
+      <ActionSheet
         open={pendingAction === 'archive'}
+        onClose={closeConfirm}
         title="Archive this template block?"
-        triggerLabel="Archive"
-        onConfirm={() => {
-          onArchive(block.id);
-          closeConfirm();
-        }}
-        onOpenChange={(open) => {
-          if (!open) {
-            closeConfirm();
-          }
-        }}
+        message="Archived template blocks stay available in historical workouts but are hidden from normal selection."
+        actions={[
+          {
+            label: 'Archive',
+            onPress: () => onArchive(block.id),
+          },
+        ]}
       />
 
-      <ConfirmDialog
-        confirmLabel="Delete"
-        description="Deleting a template block removes it permanently. Workouts already created from this block keep their exercise copies."
-        destructive
-        hideTrigger
+      <ActionSheet
         open={pendingAction === 'delete'}
+        onClose={closeConfirm}
         title="Delete this template block?"
-        triggerLabel="Delete"
-        onConfirm={() => {
-          onDelete(block.id);
-          closeConfirm();
-        }}
-        onOpenChange={(open) => {
-          if (!open) {
-            closeConfirm();
-          }
-        }}
+        message="Deleting a template block removes it permanently. Workouts already created from this block keep their exercise copies."
+        actions={[
+          {
+            label: 'Delete',
+            destructive: true,
+            onPress: () => onDelete(block.id),
+          },
+        ]}
       />
     </>
   );
