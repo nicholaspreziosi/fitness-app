@@ -1,12 +1,12 @@
 import { THEME } from '@/lib/theme';
 import { cn } from '@/lib/utils';
-import { APP_HEADER_BAR_HEIGHT } from '@/src/ui/shared/constants/appHeader';
+import { APP_HEADER_BAR_HEIGHT, TITLE_TOP_PADDING } from '@/src/ui/shared/constants/appHeader';
 import { useShowAppHeader } from '@/src/ui/shared/hooks/useShowAppHeader';
 import { useOptionalAppHeaderScroll } from '@/src/ui/shared/providers/AppHeaderScrollProvider';
 import { useFocusEffect } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
-import { Platform, RefreshControl, View, type ScrollViewProps } from 'react-native';
+import { Platform, RefreshControl, View, type LayoutChangeEvent, type ScrollViewProps } from 'react-native';
 import { GestureDetector, ScrollView } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,18 +40,19 @@ export function ScreenContainer({
   const theme = THEME[colorScheme ?? 'light'];
   const showAppHeader = useShowAppHeader();
   const headerScroll = useOptionalAppHeaderScroll();
-  const topPadding = showAppHeader ? insets.top + APP_HEADER_BAR_HEIGHT : 0;
-  const bottomPadding = Math.max(insets.bottom, 16);
+  const useAutomaticSafeArea = Platform.OS === 'ios' && !showAppHeader && scrollable;
+  const topPadding = showAppHeader
+    ? insets.top + APP_HEADER_BAR_HEIGHT
+    : useAutomaticSafeArea
+      ? TITLE_TOP_PADDING
+      : insets.top + TITLE_TOP_PADDING;
+  const bottomPadding = useAutomaticSafeArea ? 16 : Math.max(insets.bottom, 16);
+  const [scrollHeight, setScrollHeight] = React.useState(0);
   const scrollOffsetRef = React.useRef(0);
   const scrollRef = React.useRef<ScrollView>(null);
   const [pullRefreshing, setPullRefreshing] = React.useState(false);
-  const useIosRefreshInset = onRefresh != null && Platform.OS === 'ios' && topPadding > 0;
-  const initialScrollY = useIosRefreshInset ? -topPadding : 0;
-  const needsInitialScrollRef = React.useRef(useIosRefreshInset);
-
-  React.useLayoutEffect(() => {
-    needsInitialScrollRef.current = useIosRefreshInset;
-  }, [useIosRefreshInset]);
+  const initialScrollY = 0;
+  const needsInitialScrollRef = React.useRef(false);
 
   const applyInitialScrollPosition = React.useCallback(() => {
     scrollRef.current?.scrollTo({ x: 0, y: initialScrollY, animated: false });
@@ -130,36 +131,47 @@ export function ScreenContainer({
         onRefresh={handleRefresh}
         tintColor={theme.brand}
         colors={[theme.brand]}
-        progressViewOffset={Platform.OS === 'android' ? topPadding : undefined}
+        progressViewOffset={Platform.OS === 'android' ? insets.top : undefined}
       />
     ) : undefined;
 
+  const contentPaddingStyle = {
+    paddingTop: topPadding,
+    paddingBottom: bottomPadding,
+  };
   const content = (
     <View
       className={cn(
-        'web:mx-auto web:w-full web:max-w-2xl flex-1 px-4',
+        'web:mx-auto web:w-full web:max-w-2xl px-4',
+        !scrollable && 'flex-1',
         contentClassName
       )}
-      style={{
-        paddingTop: useIosRefreshInset ? 0 : topPadding,
-        paddingBottom: bottomPadding,
-      }}>
+      style={scrollable ? undefined : contentPaddingStyle}>
       {children}
     </View>
   );
 
   const useHeaderScroll = showAppHeader && headerScroll;
   const scrollHandler = useHeaderScroll ? headerScroll.scrollHandler : onScroll;
-  const iosRefreshScrollProps = React.useMemo(() => {
-    if (!useIosRefreshInset) {
-      return undefined;
-    }
-
-    return {
-      contentInset: { top: topPadding },
-      contentInsetAdjustmentBehavior: 'never' as const,
-    };
-  }, [topPadding, useIosRefreshInset]);
+  const safeAreaScrollProps = useAutomaticSafeArea
+    ? { contentInsetAdjustmentBehavior: 'automatic' as const }
+    : { contentInsetAdjustmentBehavior: 'never' as const };
+  const contentMinHeight =
+    useAutomaticSafeArea && scrollHeight > 0
+      ? Math.max(0, scrollHeight - insets.top - insets.bottom)
+      : undefined;
+  const scrollContentStyle = [
+    {
+      paddingTop: topPadding,
+      paddingBottom: bottomPadding,
+      minHeight: contentMinHeight,
+      ...(useAutomaticSafeArea ? {} : { flexGrow: 1 }),
+    },
+    contentContainerStyle,
+  ];
+  const onScrollViewLayout = React.useCallback((event: LayoutChangeEvent) => {
+    setScrollHeight(event.nativeEvent.layout.height);
+  }, []);
 
   if (!scrollable) {
     return (
@@ -179,14 +191,15 @@ export function ScreenContainer({
       <AnimatedScrollView
         ref={scrollRef}
         className={cn('flex-1 bg-background', className)}
-        contentContainerStyle={[{ flexGrow: 1 }, contentContainerStyle]}
-        contentContainerClassName="flex-grow"
+        contentContainerStyle={scrollContentStyle}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         refreshControl={refreshControl}
+        alwaysBounceVertical
+        onLayout={onScrollViewLayout}
         onContentSizeChange={handleContentSizeChange}
         onScroll={scrollHandler}
-        {...iosRefreshScrollProps}>
+        {...safeAreaScrollProps}>
         {content}
       </AnimatedScrollView>
     );
@@ -196,11 +209,12 @@ export function ScreenContainer({
     <Animated.ScrollView
       ref={scrollRef}
       className={cn('flex-1 bg-background', className)}
-      contentContainerStyle={[{ flexGrow: 1 }, contentContainerStyle]}
-      contentContainerClassName="flex-grow"
+      contentContainerStyle={scrollContentStyle}
       scrollEventThrottle={16}
+      onLayout={onScrollViewLayout}
       onContentSizeChange={handleContentSizeChange}
-      onScroll={scrollHandler}>
+      onScroll={scrollHandler}
+      {...safeAreaScrollProps}>
       {content}
     </Animated.ScrollView>
   );

@@ -31,7 +31,7 @@ export function SettingsView() {
   const { colorScheme } = useColorScheme();
   const theme = THEME[colorScheme ?? 'light'];
   const { user, signOut } = useAuth();
-  const { profile, isLoading } = useUserProfile();
+  const { profile, isLoading, refetch } = useUserProfile();
   const { updateProfile, isUpdating } = useUpdateUserProfile();
   const [formValues, setFormValues] = React.useState<UserProfileFormValues>(
     emptyUserProfileFormValues()
@@ -81,6 +81,16 @@ export function SettingsView() {
     }
   };
 
+  const handleRefresh = React.useCallback(async () => {
+    const tasks: Promise<unknown>[] = [refetch()];
+
+    if (user?.id) {
+      tasks.push(checkFirebaseConnection(user.id).then(setHealth));
+    }
+
+    await Promise.all(tasks);
+  }, [refetch, user?.id]);
+
   const handleSignOut = async () => {
     setSignOutError(null);
 
@@ -93,7 +103,7 @@ export function SettingsView() {
 
   if (isLoading && !profile) {
     return (
-      <ScreenContainer>
+      <ScreenContainer onRefresh={handleRefresh}>
         <PageHeader title="Settings" description="Preferences and account management for Flow." />
         <LoadingState />
       </ScreenContainer>
@@ -101,7 +111,7 @@ export function SettingsView() {
   }
 
   return (
-    <ScreenContainer>
+    <ScreenContainer onRefresh={handleRefresh}>
       <PageHeader title="Settings" description="Preferences and account management for Flow." />
 
       <ProfileAccountSection
