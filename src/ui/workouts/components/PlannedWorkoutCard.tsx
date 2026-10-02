@@ -168,7 +168,6 @@ export function PlannedWorkoutCard({
 }: PlannedWorkoutCardProps) {
   const [pendingDate, setPendingDate] = React.useState<Date | null>(null);
   const [pendingPastStatusDate, setPendingPastStatusDate] = React.useState<Date | null>(null);
-  const [pendingDelete, setPendingDelete] = React.useState(false);
   const isEditing = plannerState.editingWorkoutId === workout.id;
   const isExpanded = plannerState.expandedWorkoutId === workout.id;
   const sortedExercises = React.useMemo(
@@ -253,7 +252,9 @@ export function PlannedWorkoutCard({
   }, [canToggleEdit, isEditing, isExpanded, plannerState, workout.id]);
 
   const menuItems = canUseTraining
-    ? buildMenuItems(workout, plannerState, mutations, () => setPendingDelete(true))
+    ? buildMenuItems(workout, plannerState, mutations, () =>
+        mutations.deleteWorkout.mutate(workout.id)
+      )
     : [];
 
   const headerActions = isCollapsible ? (
@@ -385,24 +386,6 @@ export function PlannedWorkoutCard({
         }}
       />
 
-      <ConfirmDialog
-        confirmLabel="Delete"
-        description="This will remove it from your history, dashboard metrics, and progress tracking."
-        destructive
-        hideTrigger
-        open={pendingDelete}
-        title="Delete workout?"
-        triggerLabel="Delete"
-        onConfirm={() => {
-          mutations.deleteWorkout.mutate(workout.id);
-          setPendingDelete(false);
-        }}
-        onOpenChange={(open) => {
-          if (!open) {
-            setPendingDelete(false);
-          }
-        }}
-      />
     </>
   );
 }

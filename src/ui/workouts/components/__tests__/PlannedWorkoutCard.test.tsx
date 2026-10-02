@@ -250,7 +250,7 @@ describe('PlannedWorkoutCard', () => {
     ]);
   });
 
-  it('opens delete confirmation with updated copy and deletes on confirm', () => {
+  it('deletes the workout when the destructive action is chosen', () => {
     const deleteWorkout = { mutate: jest.fn() };
 
     render(
@@ -270,16 +270,8 @@ describe('PlannedWorkoutCard', () => {
     fireEvent.press(screen.getByTestId('workout-actions-menu'));
     presentedActionSheet().selectLabel('Delete');
 
-    expect(screen.getByText('Delete workout?')).toBeTruthy();
-    expect(
-      screen.getByText(
-        'This will remove it from your history, dashboard metrics, and progress tracking.'
-      )
-    ).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId('confirm-delete'));
-
     expect(deleteWorkout.mutate).toHaveBeenCalledWith('workout-1');
+    expect(screen.queryByText('Delete workout?')).toBeNull();
   });
 
   it('calls completeWorkout when Mark as Completed is pressed on a past workout', () => {
