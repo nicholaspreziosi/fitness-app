@@ -9,6 +9,17 @@ jest.mock('@expo/react-native-action-sheet', () => {
   };
 });
 
+jest.mock('@expo/ui', () => ({
+  BottomSheet: ({ isPresented, children }: { isPresented: boolean; children?: unknown }) =>
+    isPresented ? children : null,
+  RNHostView: ({ children }: { children?: unknown }) => children,
+}));
+
+jest.mock('react-native-safe-area-context', () => {
+  const mock = require('react-native-safe-area-context/jest/mock');
+  return mock.default ?? mock;
+});
+
 jest.mock('react-native-gesture-handler', () => {
   const React = require('react');
   const { ScrollView, View } = require('react-native');

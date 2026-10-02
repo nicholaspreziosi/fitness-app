@@ -1,6 +1,9 @@
-import { useKeyboardInset } from '@/src/ui/shared/hooks/useKeyboardInset';
+import { THEME } from '@/lib/theme';
+import { BottomSheet as ExpoBottomSheet, RNHostView } from '@expo/ui';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
-import { Keyboard, Modal, Pressable, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type BottomSheetProps = {
   visible: boolean;
@@ -8,42 +11,30 @@ type BottomSheetProps = {
   children: React.ReactNode;
 };
 
+/**
+ * Flow bottom sheet. Wraps Expo UI's system sheet so feature screens keep the
+ * `visible` / `onClose` API and never import `@expo/ui` directly.
+ *
+ * The sheet presents its content in its own view controller, so React Native
+ * touches only reach it through `RNHostView`, which attaches a touch handler.
+ * `matchContents` lets the sheet size itself to the hosted content; the
+ * explicit width keeps the content full-bleed instead of shrinking to fit.
+ */
 export function BottomSheet({ visible, onClose, children }: BottomSheetProps) {
-  const keyboardHeight = useKeyboardInset();
-  const keyboardVisibleRef = React.useRef(false);
-
-  React.useEffect(() => {
-    keyboardVisibleRef.current = keyboardHeight > 0;
-  }, [keyboardHeight]);
-
-  const handleDismissAttempt = React.useCallback(() => {
-    if (keyboardVisibleRef.current) {
-      Keyboard.dismiss();
-      return;
-    }
-
-    onClose();
-  }, [onClose]);
+  const { colorScheme } = useColorScheme();
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const theme = THEME[colorScheme === 'dark' ? 'dark' : 'light'];
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="none"
-      onRequestClose={handleDismissAttempt}>
-      <View className="flex-1">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Close sheet"
-          className="absolute inset-0 bg-black/40"
-          onPress={handleDismissAttempt}
-        />
-        <View className="flex-1 justify-end" pointerEvents="box-none">
-          <Pressable onPress={(event) => event.stopPropagation()}>
-            <View style={{ marginBottom: keyboardHeight }}>{children}</View>
-          </Pressable>
-        </View>
-      </View>
-    </Modal>
+    <ExpoBottomSheet
+      isPresented={visible}
+      onDismiss={onClose}
+      contentPadding={0}
+      containerColor={theme.card}>
+      <RNHostView matchContents>
+        <View style={{ width, paddingBottom: insets.bottom }}>{children}</View>
+      </RNHostView>
+    </ExpoBottomSheet>
   );
 }

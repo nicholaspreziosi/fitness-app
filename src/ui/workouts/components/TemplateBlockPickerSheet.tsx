@@ -128,7 +128,7 @@ export function TemplateBlockPickerSheet({ workout, onClose }: TemplateBlockPick
 
   return (
     <View
-      className="gap-3 rounded-t-xl border border-border bg-card p-4"
+      className="gap-3 p-4"
       style={{ maxHeight: sheetMaxHeight }}>
       <View className="gap-1">
         <Text className="text-lg font-semibold text-foreground">Add Template Blocks</Text>

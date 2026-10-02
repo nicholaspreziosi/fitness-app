@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
@@ -26,13 +25,8 @@ export function DatePickerSheet({
   className,
 }: DatePickerSheetProps) {
   return (
-    <View className={cn('rounded-t-xl border border-border bg-surface p-4', className)}>
-      <View className="mb-4 flex-row items-center justify-between">
-        <Text className="text-lg font-semibold text-foreground">{title}</Text>
-        <Button variant="ghost" size="sm" onPress={onClose}>
-          <Text>Close</Text>
-        </Button>
-      </View>
+    <View className={cn('p-4', className)}>
+      <Text className="mb-4 text-lg font-semibold text-foreground">{title}</Text>
       <DatePicker
         value={value}
         onConfirm={onConfirm}
