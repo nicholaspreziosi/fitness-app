@@ -1,6 +1,7 @@
 import { WorkoutEditPanel } from '@/src/ui/workouts/components/WorkoutEditPanel';
 import { createMockExercise, createMockWorkoutExercise } from '@/test-utils/mockData';
 import { createTestDate } from '@/test-utils/testDates';
+import { presentedActionSheet } from '@/test-utils/actionSheet';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 jest.mock('@/src/ui/shared/components/DatePickerField', () => {
@@ -14,30 +15,6 @@ jest.mock('@/src/ui/shared/components/DatePickerField', () => {
 jest.mock('@/src/ui/shared/components/ConfirmDialog', () => ({
   ConfirmDialog: () => null,
 }));
-
-jest.mock('@/src/ui/shared/components/PopoverMenu', () => {
-  const React = require('react');
-  const { Pressable, Text, View } = require('react-native');
-
-  return {
-    PopoverMenu: ({
-      trigger,
-      items,
-    }: {
-      trigger?: React.ReactNode;
-      items: Array<{ label: string; onPress: () => void; testID?: string }>;
-    }) => (
-      <View>
-        {trigger}
-        {items.map((item) => (
-          <Pressable key={item.label} onPress={item.onPress}>
-            <Text>{item.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-    ),
-  };
-});
 
 jest.mock('@/src/ui/workouts/components/plannerDnD', () => {
   const React = require('react');
@@ -133,8 +110,8 @@ describe('WorkoutEditPanel', () => {
       />
     );
 
-    fireEvent.press(screen.getByText('Add'));
-    fireEvent.press(screen.getByText('Exercises'));
+    fireEvent.press(screen.getByTestId('add-workout-content'));
+    presentedActionSheet().selectLabel('Exercises');
     expect(onAddExercise).toHaveBeenCalled();
   });
 });

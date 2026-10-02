@@ -51,6 +51,10 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        surface: {
+          DEFAULT: 'hsl(var(--surface))',
+          elevated: 'hsl(var(--surface-elevated))',
+        },
         'auth-brand': {
           DEFAULT: 'hsl(var(--auth-brand))',
           foreground: 'hsl(var(--auth-brand-foreground))',

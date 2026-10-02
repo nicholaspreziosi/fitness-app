@@ -1,3 +1,4 @@
+import { ActionSheet } from '@/components/ui/action-sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
@@ -8,7 +9,6 @@ import type { Workout } from '@/src/contexts/workouts/domain/workout.model';
 import type { WorkoutExercise } from '@/src/contexts/workouts/domain/workout.model';
 import { mergeVisibleExerciseReorder } from '@/src/contexts/workouts/domain/workoutExerciseOrdering';
 import { PageHeader } from '@/src/ui/shared/components/PageHeader';
-import { PopoverMenu } from '@/src/ui/shared/components/PopoverMenu';
 import { ScreenContainer } from '@/src/ui/shared/components/ScreenContainer';
 import { BottomSheet } from '@/src/ui/shared/components/BottomSheet';
 import { useRefreshGuard } from '@/src/ui/shared/providers/RefreshGuardProvider';
@@ -65,6 +65,7 @@ export function WorkoutModeView({
   const isSubmitting = saveStatus === 'saving';
   const refreshEnabled = !isDragging && !isSubmitting && !isInputFocused;
   const [activeSheet, setActiveSheet] = React.useState<WorkoutModeSheet>('none');
+  const [addMenuOpen, setAddMenuOpen] = React.useState(false);
 
   const visibleExercises = workout.exercises.filter(
     (exercise) => showCompleted || !exercise.completed
@@ -145,17 +146,20 @@ export function WorkoutModeView({
               <Text className="text-xs text-destructive">{saveError}</Text>
             ) : null}
           </View>
-          <PopoverMenu
-            items={addMenuItems}
+          <Button
+            variant="outline"
+            size="sm"
+            testID="workout-mode-add"
             accessibilityLabel="Add exercises or templates"
-            menuAlign="end"
-            trigger={
-              <Button variant="outline" size="sm" testID="workout-mode-add">
-                <Icon as={PlusIcon} className="size-3.5 text-foreground" />
-                <Text>Add</Text>
-                <Icon as={ChevronDownIcon} className="size-3.5 text-muted-foreground" />
-              </Button>
-            }
+            onPress={() => setAddMenuOpen(true)}>
+            <Icon as={PlusIcon} className="size-3.5 text-foreground" />
+            <Text>Add</Text>
+            <Icon as={ChevronDownIcon} className="size-3.5 text-muted-foreground" />
+          </Button>
+          <ActionSheet
+            open={addMenuOpen}
+            onClose={() => setAddMenuOpen(false)}
+            actions={addMenuItems}
           />
         </View>
 

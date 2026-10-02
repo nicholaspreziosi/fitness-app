@@ -2,6 +2,11 @@ import { ExerciseListItem } from '@/src/ui/exercises/components/ExerciseListItem
 import { createMockExercise } from '@/test-utils/mockData';
 import { render, screen } from '@testing-library/react-native';
 
+jest.mock('expo-router', () => ({
+  DarkTheme: { colors: {} },
+  DefaultTheme: { colors: {} },
+}));
+
 jest.mock('react-native-gesture-handler', () => {
   const React = require('react');
   const { View } = require('react-native');

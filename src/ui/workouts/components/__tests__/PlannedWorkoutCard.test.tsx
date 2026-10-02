@@ -16,32 +16,6 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
-jest.mock('@/src/ui/shared/components/PopoverMenu', () => {
-  const React = require('react');
-  const { Pressable, Text, View } = require('react-native');
-
-  return {
-    PopoverMenu: ({
-      items,
-      triggerTestID,
-    }: {
-      items: Array<{ label: string; onPress: () => void; testID?: string }>;
-      triggerTestID?: string;
-    }) => (
-      <View>
-        <Pressable testID={triggerTestID}>
-          <Text>Menu</Text>
-        </Pressable>
-        {items.map((item) => (
-          <Pressable key={item.label} testID={item.testID} onPress={item.onPress}>
-            <Text>{item.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-    ),
-  };
-});
-
 jest.mock('@/src/ui/shared/components/ConfirmDialog', () => {
   const React = require('react');
   const { Pressable, Text, View } = require('react-native');
@@ -91,6 +65,7 @@ jest.mock('@/src/ui/workouts/components/WorkoutEditPanel', () => {
 import { PlannedWorkoutCard } from '@/src/ui/workouts/components/PlannedWorkoutCard';
 import type { PlannerState } from '@/src/ui/workouts/hooks/usePlannerState';
 import type { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
+import { presentedActionSheet } from '@/test-utils/actionSheet';
 import { createMockExercise, createMockWorkout } from '@/test-utils/mockData';
 import { createTestDate, FIXED_DATE } from '@/test-utils/testDates';
 import { fireEvent, render, screen } from '@testing-library/react-native';
@@ -170,10 +145,17 @@ describe('PlannedWorkoutCard', () => {
         />
       );
 
-      expect(screen.getByText('Mark as Completed')).toBeTruthy();
-      expect(screen.getByText('Mark as Skipped')).toBeTruthy();
-      expect(screen.getByText('Duplicate')).toBeTruthy();
-      expect(screen.queryByText('Mark as planned')).toBeNull();
+      fireEvent.press(screen.getByTestId('workout-actions-menu'));
+
+      const sheet = presentedActionSheet();
+
+      expect(sheet.options).toEqual([
+        'Mark as Completed',
+        'Mark as Skipped',
+        'Delete',
+        'Duplicate',
+        'Cancel',
+      ]);
     }
   );
 
@@ -191,8 +173,14 @@ describe('PlannedWorkoutCard', () => {
       />
     );
 
-    expect(screen.queryByText('Mark as Completed')).toBeNull();
-    expect(screen.getByText('Mark as Skipped')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('workout-actions-menu'));
+
+    expect(presentedActionSheet().options).toEqual([
+      'Mark as Skipped',
+      'Delete',
+      'Duplicate',
+      'Cancel',
+    ]);
   });
 
   it('shows only Mark as Completed for past skipped workouts', () => {
@@ -209,8 +197,14 @@ describe('PlannedWorkoutCard', () => {
       />
     );
 
-    expect(screen.getByText('Mark as Completed')).toBeTruthy();
-    expect(screen.queryByText('Mark as Skipped')).toBeNull();
+    fireEvent.press(screen.getByTestId('workout-actions-menu'));
+
+    expect(presentedActionSheet().options).toEqual([
+      'Mark as Completed',
+      'Delete',
+      'Duplicate',
+      'Cancel',
+    ]);
   });
 
   it('does not show past workout status actions for today or future planned workouts', () => {
@@ -227,9 +221,9 @@ describe('PlannedWorkoutCard', () => {
       />
     );
 
-    expect(screen.queryByText('Mark as Completed')).toBeNull();
-    expect(screen.queryByText('Mark as Skipped')).toBeNull();
-    expect(screen.getByText('Duplicate')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('workout-actions-menu'));
+
+    expect(presentedActionSheet().options).toEqual(['Duplicate', 'Delete', 'Cancel']);
   });
 
   it('shows Mark as planned for future completed workouts', () => {
@@ -246,8 +240,14 @@ describe('PlannedWorkoutCard', () => {
       />
     );
 
-    expect(screen.getByText('Mark as planned')).toBeTruthy();
-    expect(screen.queryByText('Mark as Completed')).toBeNull();
+    fireEvent.press(screen.getByTestId('workout-actions-menu'));
+
+    expect(presentedActionSheet().options).toEqual([
+      'Duplicate',
+      'Mark as planned',
+      'Delete',
+      'Cancel',
+    ]);
   });
 
   it('opens delete confirmation with updated copy and deletes on confirm', () => {
@@ -267,7 +267,8 @@ describe('PlannedWorkoutCard', () => {
       />
     );
 
-    fireEvent.press(screen.getByTestId('delete-workout'));
+    fireEvent.press(screen.getByTestId('workout-actions-menu'));
+    presentedActionSheet().selectLabel('Delete');
 
     expect(screen.getByText('Delete workout?')).toBeTruthy();
     expect(
@@ -297,7 +298,8 @@ describe('PlannedWorkoutCard', () => {
       />
     );
 
-    fireEvent.press(screen.getByTestId('complete-workout'));
+    fireEvent.press(screen.getByTestId('workout-actions-menu'));
+    presentedActionSheet().selectLabel('Mark as Completed');
 
     expect(completeWorkout.mutate).toHaveBeenCalledWith('workout-1');
   });
@@ -318,7 +320,8 @@ describe('PlannedWorkoutCard', () => {
       />
     );
 
-    fireEvent.press(screen.getByTestId('skip-workout'));
+    fireEvent.press(screen.getByTestId('workout-actions-menu'));
+    presentedActionSheet().selectLabel('Mark as Skipped');
 
     expect(skipWorkout.mutate).toHaveBeenCalledWith('workout-1');
   });

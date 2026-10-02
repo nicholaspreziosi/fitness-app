@@ -1,5 +1,14 @@
 import '@testing-library/jest-native/extend-expect';
 
+jest.mock('@expo/react-native-action-sheet', () => {
+  const showActionSheetWithOptions = jest.fn();
+
+  return {
+    ActionSheetProvider: ({ children }) => children,
+    useActionSheet: () => ({ showActionSheetWithOptions }),
+  };
+});
+
 jest.mock('react-native-gesture-handler', () => {
   const React = require('react');
   const { ScrollView, View } = require('react-native');
@@ -14,8 +23,8 @@ jest.mock('react-native-gesture-handler', () => {
 jest.mock('react-native-worklets', () => ({
   runOnUI: (fn: () => void) => fn(),
   runOnJS: (fn: (...args: unknown[]) => unknown) => fn,
-  createSerializable: <T,>(value: T) => value,
-  createSynchronizable: <T,>(value: T) => value,
+  createSerializable: <T>(value: T) => value,
+  createSynchronizable: <T>(value: T) => value,
 }));
 
 jest.mock('react-native-reanimated', () => {
@@ -53,4 +62,3 @@ jest.mock('@/src/contexts/profile/application/createUserProfileService', () => (
     updateProfile: jest.fn(),
   })),
 }));
-

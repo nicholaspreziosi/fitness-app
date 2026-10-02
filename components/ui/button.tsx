@@ -25,21 +25,15 @@ const buttonVariants = cva(
           'border-border bg-background active:bg-muted/80',
           Platform.select({ web: 'hover:bg-muted/60' })
         ),
-        secondary: cn(
-          'bg-muted active:bg-muted/80',
-          Platform.select({ web: 'hover:bg-muted/80' })
-        ),
-        ghost: cn(
-          'active:bg-muted/80',
-          Platform.select({ web: 'hover:bg-muted/60' })
-        ),
+        secondary: cn('bg-muted active:bg-muted/80', Platform.select({ web: 'hover:bg-muted/80' })),
+        ghost: cn('active:bg-muted/80', Platform.select({ web: 'hover:bg-muted/60' })),
         link: '',
       },
       size: {
-        default: 'h-11 px-4',
-        sm: 'h-10 gap-1 rounded-md px-3.5 text-sm',
+        default: 'h-12 px-4',
+        sm: 'h-11 gap-1 rounded-md px-3.5 text-sm',
         lg: 'h-12 px-5',
-        icon: 'size-11',
+        icon: 'size-12',
       },
     },
     defaultVariants: {
@@ -57,10 +51,7 @@ const buttonTextVariants = cva('text-sm font-medium', {
       outline: 'text-foreground',
       secondary: 'text-foreground',
       ghost: 'text-foreground',
-      link: cn(
-        'text-brand-ink',
-        Platform.select({ web: 'underline-offset-4 hover:underline' })
-      ),
+      link: cn('text-brand-ink', Platform.select({ web: 'underline-offset-4 hover:underline' })),
     },
     size: {
       default: '',

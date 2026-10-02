@@ -26,7 +26,23 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-community/datetimepicker",
+      [
+        "@react-native-community/datetimepicker",
+        {
+          "android": {
+            "datePicker": {
+              "colorAccent": {
+                "light": "#82CB15",
+                "dark": "#82CB15"
+              },
+              "colorControlActivated": {
+                "light": "#82CB15",
+                "dark": "#82CB15"
+              }
+            }
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {

@@ -1,8 +1,14 @@
 import { WorkoutModeView } from '@/src/ui/workouts/views/WorkoutModeView';
 import { RefreshGuardProvider } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import { createMockWorkout, createMockWorkoutExercise } from '@/test-utils/mockData';
+import { presentedActionSheet } from '@/test-utils/actionSheet';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import * as React from 'react';
+
+jest.mock('expo-router', () => ({
+  DarkTheme: { colors: {} },
+  DefaultTheme: { colors: {} },
+}));
 
 const mockSetPreference = jest.fn();
 let mockShowCompleted = false;
@@ -24,30 +30,8 @@ jest.mock('@/src/ui/shared/hooks/useUiPreferences', () => ({
 jest.mock('@/src/ui/shared/components/ScreenContainer', () => {
   const React = require('react');
   const { View } = require('react-native');
-  return { ScreenContainer: ({ children }: { children: React.ReactNode }) => <View>{children}</View> };
-});
-
-jest.mock('@/src/ui/shared/components/PopoverMenu', () => {
-  const React = require('react');
-  const { Pressable, Text, View } = require('react-native');
-
   return {
-    PopoverMenu: ({
-      trigger,
-      items,
-    }: {
-      trigger?: React.ReactNode;
-      items: Array<{ label: string; onPress: () => void; testID?: string }>;
-    }) => (
-      <View>
-        {trigger}
-        {items.map((item) => (
-          <Pressable key={item.label} testID={item.testID} onPress={item.onPress}>
-            <Text>{item.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-    ),
+    ScreenContainer: ({ children }: { children: React.ReactNode }) => <View>{children}</View>,
   };
 });
 
@@ -233,10 +217,12 @@ describe('WorkoutModeView', () => {
       onReorderExercises: jest.fn(),
     });
 
-    fireEvent.press(screen.getByTestId('workout-mode-add-exercises'));
+    fireEvent.press(screen.getByTestId('workout-mode-add'));
+    presentedActionSheet().selectLabel('Exercises');
     expect(screen.getByText('Exercise picker sheet')).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId('workout-mode-add-templates'));
+    fireEvent.press(screen.getByTestId('workout-mode-add'));
+    presentedActionSheet().selectLabel('Templates');
     expect(screen.getByText('Template picker sheet')).toBeTruthy();
   });
 

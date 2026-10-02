@@ -1,3 +1,4 @@
+import { ActionSheet } from '@/components/ui/action-sheet';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,6 @@ import { canEditWorkoutExercises } from '@/src/contexts/workouts/domain/planner.
 import { sortWorkoutExercises } from '@/src/contexts/workouts/domain/planner.helpers';
 import { DatePickerField } from '@/src/ui/shared/components/DatePickerField';
 import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
-import { PopoverMenu } from '@/src/ui/shared/components/PopoverMenu';
 import { useRefreshGuardInputHandlers } from '@/src/ui/shared/providers/RefreshGuardProvider';
 import { ExerciseReorderList } from '@/src/ui/workouts/components/plannerDnD';
 import { ChevronDownIcon, PlusIcon } from 'lucide-react-native';
@@ -52,6 +52,7 @@ export function WorkoutEditPanel({
   onCancelDateChange,
 }: WorkoutEditPanelProps) {
   const [name, setName] = React.useState(workoutName);
+  const [addMenuOpen, setAddMenuOpen] = React.useState(false);
   const inputHandlers = useRefreshGuardInputHandlers();
   const sorted = React.useMemo(() => sortWorkoutExercises(exercises), [exercises]);
 
@@ -115,17 +116,19 @@ export function WorkoutEditPanel({
           onChange={onDateChange}
           disabled={!canChangeDate}
         />
-        <PopoverMenu
-          items={addMenuItems}
-          accessibilityLabel="Add exercises or templates"
-          menuAlign="end"
-          trigger={
-            <Button variant="outline" size="sm" testID="add-workout-content">
-              <Icon as={PlusIcon} className="size-3.5 text-foreground" />
-              <Text>Add</Text>
-              <Icon as={ChevronDownIcon} className="size-3.5 text-muted-foreground" />
-            </Button>
-          }
+        <Button
+          variant="outline"
+          size="sm"
+          testID="add-workout-content"
+          onPress={() => setAddMenuOpen(true)}>
+          <Icon as={PlusIcon} className="size-3.5 text-foreground" />
+          <Text>Add</Text>
+          <Icon as={ChevronDownIcon} className="size-3.5 text-muted-foreground" />
+        </Button>
+        <ActionSheet
+          open={addMenuOpen}
+          onClose={() => setAddMenuOpen(false)}
+          actions={addMenuItems}
         />
       </View>
       {!canChangeDate && dateChangeDisabledMessage ? (

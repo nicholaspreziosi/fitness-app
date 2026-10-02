@@ -1,3 +1,4 @@
+import { ActionSheet, type ActionSheetAction } from '@/components/ui/action-sheet';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import type { Exercise } from '@/src/contexts/exercises/domain/exercise.model';
@@ -7,29 +8,16 @@ import { canMoveWorkoutToDate } from '@/src/contexts/workouts/domain/planner.rul
 import { estimateWorkoutDuration } from '@/src/contexts/workouts/domain/workoutDuration';
 import { isBeforeDay, isSameDay, startOfDay } from '@/src/lib/dates/weekBounds';
 import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
-import { PopoverMenu, type PopoverMenuItem } from '@/src/ui/shared/components/PopoverMenu';
 import { PlannedExerciseRow } from '@/src/ui/workouts/components/PlannedExerciseRow';
 import { WorkoutCard } from '@/src/ui/workouts/components/WorkoutCard';
-import {
-  WorkoutEditPanel,
-  canEnterEditMode,
-} from '@/src/ui/workouts/components/WorkoutEditPanel';
+import { WorkoutEditPanel, canEnterEditMode } from '@/src/ui/workouts/components/WorkoutEditPanel';
 import type { PlannerState } from '@/src/ui/workouts/hooks/usePlannerState';
 import type { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
 import { cn } from '@/lib/utils';
-import {
-  CheckCircleIcon,
-  ChevronDownIcon,
-  CopyIcon,
-  RotateCcwIcon,
-  SkipForwardIcon,
-  Trash2Icon,
-} from 'lucide-react-native';
+import { ChevronDownIcon, MoreVertical } from 'lucide-react-native';
 import * as React from 'react';
-import { View } from 'react-native';
-import {
-  useRegisterExpandedWorkoutSwipeBlock,
-} from '@/src/ui/workouts/hooks/useExpandedWorkoutSwipeBlock';
+import { Pressable, View } from 'react-native';
+import { useRegisterExpandedWorkoutSwipeBlock } from '@/src/ui/workouts/hooks/useExpandedWorkoutSwipeBlock';
 
 type PlannedWorkoutCardProps = {
   workout: Workout;
@@ -39,10 +27,9 @@ type PlannedWorkoutCardProps = {
   canUseTraining?: boolean;
 };
 
-function buildDeleteMenuItem(onDelete: () => void): PopoverMenuItem {
+function buildDeleteMenuItem(onDelete: () => void): ActionSheetAction {
   return {
     label: 'Delete',
-    icon: Trash2Icon,
     destructive: true,
     testID: 'delete-workout',
     onPress: onDelete,
@@ -52,10 +39,9 @@ function buildDeleteMenuItem(onDelete: () => void): PopoverMenuItem {
 function buildRevertMenuItem(
   workoutId: string,
   mutations: ReturnType<typeof useWorkoutMutations>
-): PopoverMenuItem {
+): ActionSheetAction {
   return {
     label: 'Mark as planned',
-    icon: RotateCcwIcon,
     testID: 'revert-workout',
     onPress: () => mutations.revertWorkoutToPlanned.mutate(workoutId),
   };
@@ -64,10 +50,9 @@ function buildRevertMenuItem(
 function buildMarkCompletedMenuItem(
   workoutId: string,
   mutations: ReturnType<typeof useWorkoutMutations>
-): PopoverMenuItem {
+): ActionSheetAction {
   return {
     label: 'Mark as Completed',
-    icon: CheckCircleIcon,
     testID: 'complete-workout',
     onPress: () => mutations.completeWorkout.mutate(workoutId),
   };
@@ -76,25 +61,19 @@ function buildMarkCompletedMenuItem(
 function buildMarkSkippedMenuItem(
   workoutId: string,
   mutations: ReturnType<typeof useWorkoutMutations>
-): PopoverMenuItem {
+): ActionSheetAction {
   return {
     label: 'Mark as Skipped',
-    icon: SkipForwardIcon,
     testID: 'skip-workout',
     onPress: () => mutations.skipWorkout.mutate(workoutId),
   };
 }
 
-function buildDuplicateMenuItem(
-  workout: Workout,
-  plannerState: PlannerState
-): PopoverMenuItem {
+function buildDuplicateMenuItem(workout: Workout, plannerState: PlannerState): ActionSheetAction {
   return {
     label: 'Duplicate',
-    icon: CopyIcon,
     testID: 'duplicate-workout',
-    onPress: () =>
-      plannerState.openSheet({ type: 'duplicateWorkout', workoutId: workout.id }),
+    onPress: () => plannerState.openSheet({ type: 'duplicateWorkout', workoutId: workout.id }),
   };
 }
 
@@ -103,8 +82,8 @@ function buildPastWorkoutMenuItems(
   plannerState: PlannerState,
   mutations: ReturnType<typeof useWorkoutMutations>,
   onDelete: () => void
-): PopoverMenuItem[] {
-  const items: PopoverMenuItem[] = [];
+): ActionSheetAction[] {
+  const items: ActionSheetAction[] = [];
 
   if (workout.status !== 'completed') {
     items.push(buildMarkCompletedMenuItem(workout.id, mutations));
@@ -125,7 +104,7 @@ function buildMenuItems(
   mutations: ReturnType<typeof useWorkoutMutations>,
   onDelete: () => void,
   referenceDate: Date = new Date()
-): PopoverMenuItem[] {
+): ActionSheetAction[] {
   const isPast = isBeforeDay(workout.date, referenceDate);
 
   if (isPast && workout.status !== 'draft' && workout.status !== 'archived') {
@@ -153,6 +132,31 @@ function buildMenuItems(
     default:
       return [];
   }
+}
+
+function WorkoutActionMenu({
+  actions,
+  triggerTestID,
+}: {
+  actions: ActionSheetAction[];
+  triggerTestID: string;
+}) {
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <>
+      <Pressable
+        accessibilityLabel="Open actions menu"
+        accessibilityRole="button"
+        className="size-12 items-center justify-center rounded-md active:bg-muted/80"
+        hitSlop={8}
+        testID={triggerTestID}
+        onPress={() => setOpen(true)}>
+        <Icon as={MoreVertical} className="size-6 text-muted-foreground" />
+      </Pressable>
+      <ActionSheet open={open} onClose={() => setOpen(false)} actions={actions} />
+    </>
+  );
 }
 
 export function PlannedWorkoutCard({
@@ -271,12 +275,12 @@ export function PlannedWorkoutCard({
       {menuItems.length > 0 ? (
         <>
           <View className="mx-0.5 h-5 w-px bg-border" />
-          <PopoverMenu items={menuItems} menuAlign="end" size="lg" triggerTestID="workout-actions-menu" />
+          <WorkoutActionMenu actions={menuItems} triggerTestID="workout-actions-menu" />
         </>
       ) : null}
     </>
   ) : menuItems.length > 0 ? (
-    <PopoverMenu items={menuItems} menuAlign="end" size="lg" triggerTestID="workout-actions-menu" />
+    <WorkoutActionMenu actions={menuItems} triggerTestID="workout-actions-menu" />
   ) : null;
 
   return (
@@ -301,9 +305,7 @@ export function PlannedWorkoutCard({
               dateChangeDisabledMessage={!moveRule.allowed ? moveRule.message : undefined}
               exercises={workout.exercises}
               exercisesById={exercisesById}
-              onNameChange={(name) =>
-                mutations.updateWorkout.mutate({ ...workout, name })
-              }
+              onNameChange={(name) => mutations.updateWorkout.mutate({ ...workout, name })}
               onAddExercise={() =>
                 plannerState.openSheet({ type: 'addExercise', workoutId: workout.id })
               }
@@ -331,9 +333,7 @@ export function PlannedWorkoutCard({
                 <PlannedExerciseRow
                   key={exercise.id}
                   workoutExercise={exercise}
-                  exerciseName={
-                    exercisesById.get(exercise.exerciseId)?.name ?? 'Unknown exercise'
-                  }
+                  exerciseName={exercisesById.get(exercise.exerciseId)?.name ?? 'Unknown exercise'}
                 />
               ))}
             </View>

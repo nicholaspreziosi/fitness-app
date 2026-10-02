@@ -13,6 +13,8 @@
     --foreground: 0 0% 9%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 9%;
+    --surface: 0 0% 100%;
+    --surface-elevated: 0 0% 100%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 9%;
     --primary: 0 0% 9%;
@@ -44,6 +46,8 @@
     --foreground: 0 0% 96%;
     --card: 0 0% 10%;
     --card-foreground: 0 0% 96%;
+    --surface: 0 0% 10%;
+    --surface-elevated: 0 0% 10%;
     --popover: 0 0% 10%;
     --popover-foreground: 0 0% 96%;
     --primary: 0 0% 96%;

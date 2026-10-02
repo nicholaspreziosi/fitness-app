@@ -1,16 +1,10 @@
+import { ActionSheet } from '@/components/ui/action-sheet';
 import { THEME } from '@/lib/theme';
 import { Text } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
-import {
-  Alert,
-  Platform,
-  Pressable,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { Platform, Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 
 export type ListRowAction = {
@@ -70,6 +64,7 @@ export function SwipeableListRow({
   containerClassName,
 }: SwipeableListRowProps) {
   const swipeableRef = React.useRef<Swipeable>(null);
+  const [actionsOpen, setActionsOpen] = React.useState(false);
   const { colorScheme } = useColorScheme();
   const theme = THEME[colorScheme ?? 'light'];
   const surfaceColor = contained ? theme.card : theme.background;
@@ -100,20 +95,8 @@ export function SwipeableListRow({
       return;
     }
 
-    Alert.alert(
-      'Actions',
-      undefined,
-      [
-        ...actions.map((action) => ({
-          text: action.label,
-          style: action.destructive ? ('destructive' as const) : ('default' as const),
-          onPress: action.onPress,
-        })),
-        { text: 'Cancel', style: 'cancel' as const },
-      ],
-      { cancelable: true }
-    );
-  }, [actions]);
+    setActionsOpen(true);
+  }, [actions.length]);
 
   const renderRightActions = React.useCallback(
     () => (
@@ -147,15 +130,12 @@ export function SwipeableListRow({
           : undefined
       }
       testID={testID}
-      style={({ pressed }) => [
-        rowSurfaceStyle,
-        pressed ? { backgroundColor: theme.muted } : null,
-      ]}
+      style={({ pressed }) => [rowSurfaceStyle, pressed ? { backgroundColor: theme.muted } : null]}
       onPress={onPress}
       onLongPress={actions.length > 0 && Platform.OS !== 'web' ? showActionSheet : undefined}
       onContextMenu={
         actions.length > 0 && Platform.OS === 'web'
-          ? (event) => {
+          ? (event: { preventDefault: () => void }) => {
               event.preventDefault();
               showActionSheet();
             }
@@ -193,13 +173,25 @@ export function SwipeableListRow({
     </Swipeable>
   );
 
+  const actionSheet = (
+    <ActionSheet open={actionsOpen} onClose={() => setActionsOpen(false)} actions={actions} />
+  );
+
   if (contained) {
     return (
-      <View className={cn('overflow-hidden rounded-lg border border-border', containerClassName)}>
-        {swipeable}
-      </View>
+      <>
+        <View className={cn('overflow-hidden rounded-lg border border-border', containerClassName)}>
+          {swipeable}
+        </View>
+        {actionSheet}
+      </>
     );
   }
 
-  return swipeable;
+  return (
+    <>
+      {swipeable}
+      {actionSheet}
+    </>
+  );
 }

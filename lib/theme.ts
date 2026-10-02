@@ -1,7 +1,15 @@
 import { DarkTheme, DefaultTheme, type Theme } from 'expo-router';
 
+function withSurfaceAliases<T extends { card: string; popover: string }>(scheme: T) {
+  return {
+    ...scheme,
+    surface: scheme.card,
+    surfaceElevated: scheme.popover,
+  };
+}
+
 export const THEME = {
-  light: {
+  light: withSurfaceAliases({
     background: 'hsl(0 0% 100%)',
     foreground: 'hsl(0 0% 9%)',
     card: 'hsl(0 0% 100%)',
@@ -26,8 +34,8 @@ export const THEME = {
     input: 'hsl(0 0% 90%)',
     ring: 'hsl(84 81% 44%)',
     radius: '0.5rem',
-  },
-  dark: {
+  }),
+  dark: withSurfaceAliases({
     background: 'hsl(0 0% 6%)',
     foreground: 'hsl(0 0% 96%)',
     card: 'hsl(0 0% 10%)',
@@ -52,7 +60,7 @@ export const THEME = {
     input: 'hsl(0 0% 18%)',
     ring: 'hsl(84 81% 44%)',
     radius: '0.5rem',
-  },
+  }),
 };
 
 export const NAV_THEME: Record<'light' | 'dark', Theme> = {

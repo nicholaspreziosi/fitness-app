@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 import { queryClient } from '@/src/lib/query/client';
 import { AuthProvider } from '@/src/ui/shared/providers/AuthProvider';
 import { AuthRootNavigator } from '@/src/ui/shared/providers/AuthRootNavigator';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { PortalHost } from '@rn-primitives/portal';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -27,8 +28,12 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <AuthRootNavigator />
-            <PortalHost />
+            <ActionSheetProvider>
+              <>
+                <AuthRootNavigator />
+                <PortalHost />
+              </>
+            </ActionSheetProvider>
           </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
