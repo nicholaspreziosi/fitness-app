@@ -11,9 +11,8 @@ type InlineDatePickerSheetProps = {
 };
 
 /**
- * Sheet content that applies a date the moment a day is tapped. The hosting
- * sheet provides dismissal (grabber, swipe, tap outside), so there is no
- * confirm or cancel row.
+ * Sheet content for the inline date picker. Confirm lives on the picker so
+ * the already-selected day can still be chosen.
  */
 export function InlineDatePickerSheet({
   value,

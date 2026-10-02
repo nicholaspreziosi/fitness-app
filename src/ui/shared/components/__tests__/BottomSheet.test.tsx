@@ -81,10 +81,10 @@ describe('BottomSheet', () => {
     const host = screen.getByTestId('rn-host-view');
     const [content] = host.children;
     expect(typeof content).not.toBe('string');
-    const style = (content as unknown as { props: { style: { width: number; paddingBottom: number } } })
+    const style = (content as unknown as { props: { style: { width: number; paddingBottom?: number } } })
       .props.style;
     expect(style.width).toBe(Dimensions.get('window').width);
-    expect(style.paddingBottom).toBe(34);
+    expect(style.paddingBottom).toBeUndefined();
     expect(screen.getByText('Sheet body')).toBeTruthy();
   });
 

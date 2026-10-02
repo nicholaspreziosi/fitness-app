@@ -3,7 +3,6 @@ import { BottomSheet as ExpoBottomSheet, RNHostView } from '@expo/ui';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
 import { useWindowDimensions, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type BottomSheetProps = {
   visible: boolean;
@@ -23,7 +22,6 @@ type BottomSheetProps = {
 export function BottomSheet({ visible, onClose, children }: BottomSheetProps) {
   const { colorScheme } = useColorScheme();
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   const theme = THEME[colorScheme === 'dark' ? 'dark' : 'light'];
 
   return (
@@ -33,7 +31,7 @@ export function BottomSheet({ visible, onClose, children }: BottomSheetProps) {
       contentPadding={0}
       containerColor={theme.card}>
       <RNHostView matchContents>
-        <View style={{ width, paddingBottom: insets.bottom }}>{children}</View>
+        <View style={{ width }}>{children}</View>
       </RNHostView>
     </ExpoBottomSheet>
   );
