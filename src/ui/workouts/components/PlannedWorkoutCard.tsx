@@ -12,11 +12,66 @@ import { WorkoutCard } from '@/src/ui/workouts/components/WorkoutCard';
 import { WorkoutEditPanel, canEnterEditMode } from '@/src/ui/workouts/components/WorkoutEditPanel';
 import type { PlannerState } from '@/src/ui/workouts/hooks/usePlannerState';
 import type { useWorkoutMutations } from '@/src/ui/workouts/hooks/useWorkoutMutations';
-import { cn } from '@/lib/utils';
 import { ChevronDownIcon, MoreVertical } from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
+import Animated, {
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useRegisterExpandedWorkoutSwipeBlock } from '@/src/ui/workouts/hooks/useExpandedWorkoutSwipeBlock';
+
+const WORKOUT_EXPAND_TIMING = {
+  duration: 200,
+  easing: Easing.bezier(0.4, 0, 0.2, 1),
+};
+
+function WorkoutBody({ open, children }: { open: boolean; children: React.ReactNode }) {
+  const height = useSharedValue(0);
+  const [bodyHeight, setBodyHeight] = React.useState(0);
+  const [visible, setVisible] = React.useState(open);
+
+  React.useEffect(() => {
+    if (open) {
+      setVisible(true);
+    }
+
+    height.value = withTiming(open ? bodyHeight : 0, WORKOUT_EXPAND_TIMING, (finished) => {
+      if (finished && !open) {
+        runOnJS(setVisible)(false);
+      }
+    });
+  }, [bodyHeight, height, open]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: height.value,
+  }));
+
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <Animated.View
+      pointerEvents={open ? 'auto' : 'none'}
+      style={[{ overflow: 'hidden', width: '100%' }, animatedStyle]}>
+      <View
+        collapsable={false}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0 }}
+        onLayout={(event) => {
+          const nextHeight = event.nativeEvent.layout.height;
+          if (nextHeight > 0 && nextHeight !== bodyHeight) {
+            setBodyHeight(nextHeight);
+          }
+        }}>
+        {children}
+      </View>
+    </Animated.View>
+  );
+}
 
 type PlannedWorkoutCardProps = {
   workout: Workout;
@@ -231,6 +286,16 @@ export function PlannedWorkoutCard({
     cardRef
   );
 
+  const chevronRotation = useSharedValue(isExpanded ? 180 : 0);
+
+  React.useEffect(() => {
+    chevronRotation.value = withTiming(isExpanded ? 180 : 0, WORKOUT_EXPAND_TIMING);
+  }, [chevronRotation, isExpanded]);
+
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${chevronRotation.value}deg` }],
+  }));
+
   const handleToggleExpand = React.useCallback(() => {
     if (isEditing) {
       plannerState.exitEditMode();
@@ -264,13 +329,9 @@ export function PlannedWorkoutCard({
         testID={isExpanded ? 'workout-collapse' : 'workout-expand'}
         variant="ghost"
         onPress={handleToggleExpand}>
-        <Icon
-          as={ChevronDownIcon}
-          className={cn(
-            'size-6 text-muted-foreground transition-transform',
-            isExpanded && 'rotate-180'
-          )}
-        />
+        <Animated.View style={chevronStyle}>
+          <Icon as={ChevronDownIcon} className="size-6 text-muted-foreground" />
+        </Animated.View>
       </Button>
       {menuItems.length > 0 ? (
         <>
@@ -297,40 +358,44 @@ export function PlannedWorkoutCard({
           estimatedMinutes={estimateWorkoutDuration(workout.exercises)}
           headerActions={headerActions}
           onPress={isCollapsible ? handleToggleExpand : undefined}>
-          {isEditing ? (
-            <WorkoutEditPanel
-              workoutDate={workout.date}
-              workoutName={workout.name}
-              canChangeDate={moveRule.allowed}
-              dateChangeDisabledMessage={!moveRule.allowed ? moveRule.message : undefined}
-              exercises={workout.exercises}
-              exercisesById={exercisesById}
-              onNameChange={(name) => mutations.updateWorkout.mutate({ ...workout, name })}
-              onAddExercise={() =>
-                plannerState.openSheet({ type: 'addExercise', workoutId: workout.id })
-              }
-              onAddTemplate={() =>
-                plannerState.openSheet({ type: 'addTemplate', workoutId: workout.id })
-              }
-              onDateChange={handleDateChange}
-              onRemoveExercise={(workoutExerciseId) =>
-                mutations.removeExercise.mutate({ workoutId: workout.id, workoutExerciseId })
-              }
-              onReorder={(orderedIds) =>
-                mutations.reorderExercises.mutate({ workoutId: workout.id, orderedIds })
-              }
-            />
-          ) : isExpanded ? (
-            <View className="mt-3 gap-1 border-t border-border pt-3">
-              {sortedExercises.map((exercise) => (
-                <PlannedExerciseRow
-                  key={exercise.id}
-                  workoutExercise={exercise}
-                  exerciseName={exercisesById.get(exercise.exerciseId)?.name ?? 'Unknown exercise'}
-                />
-              ))}
-            </View>
-          ) : null}
+          <WorkoutBody open={isExpanded}>
+            {isEditing ? (
+              <WorkoutEditPanel
+                workoutDate={workout.date}
+                workoutName={workout.name}
+                canChangeDate={moveRule.allowed}
+                dateChangeDisabledMessage={!moveRule.allowed ? moveRule.message : undefined}
+                exercises={workout.exercises}
+                exercisesById={exercisesById}
+                onNameChange={(name) => mutations.updateWorkout.mutate({ ...workout, name })}
+                onAddExercise={() =>
+                  plannerState.openSheet({ type: 'addExercise', workoutId: workout.id })
+                }
+                onAddTemplate={() =>
+                  plannerState.openSheet({ type: 'addTemplate', workoutId: workout.id })
+                }
+                onDateChange={handleDateChange}
+                onRemoveExercise={(workoutExerciseId) =>
+                  mutations.removeExercise.mutate({ workoutId: workout.id, workoutExerciseId })
+                }
+                onReorder={(orderedIds) =>
+                  mutations.reorderExercises.mutate({ workoutId: workout.id, orderedIds })
+                }
+              />
+            ) : (
+              <View className="mt-3 gap-1 border-t border-border pt-3">
+                {sortedExercises.map((exercise) => (
+                  <PlannedExerciseRow
+                    key={exercise.id}
+                    workoutExercise={exercise}
+                    exerciseName={
+                      exercisesById.get(exercise.exerciseId)?.name ?? 'Unknown exercise'
+                    }
+                  />
+                ))}
+              </View>
+            )}
+          </WorkoutBody>
         </WorkoutCard>
       </View>
 
@@ -375,7 +440,6 @@ export function PlannedWorkoutCard({
           },
         ]}
       />
-
     </>
   );
 }

@@ -13,6 +13,10 @@ jest.mock('react-native-reanimated', () => {
     useSharedValue: (initial: number) => ({ value: initial }),
     useAnimatedStyle: () => ({}),
     withTiming: (value: number) => value,
+    runOnJS: (fn: (...args: unknown[]) => unknown) => fn,
+    Easing: {
+      bezier: () => (value: number) => value,
+    },
   };
 });
 
@@ -356,5 +360,6 @@ describe('PlannedWorkoutCard', () => {
     );
 
     expect(screen.getByText('Edit panel')).toBeTruthy();
+    expect(screen.getByTestId('workout-collapse')).toBeTruthy();
   });
 });
