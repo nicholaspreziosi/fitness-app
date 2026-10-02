@@ -57,6 +57,25 @@ describe('ActionSheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('passes title and message to the native sheet', () => {
+    render(
+      <ActionSheet
+        open
+        onClose={jest.fn()}
+        title="Sign out of Flow?"
+        message="You can sign back in anytime."
+        actions={[{ label: 'Sign out', onPress: remove, destructive: true }]}
+      />
+    );
+
+    const sheet = presentedActionSheet();
+
+    expect(sheet.title).toBe('Sign out of Flow?');
+    expect(sheet.message).toBe('You can sign back in anytime.');
+    expect(sheet.options).toEqual(['Sign out', 'Cancel']);
+    expect(sheet.destructiveButtonIndex).toBe(0);
+  });
+
   it('dismisses without running an action', () => {
     const onClose = jest.fn();
 

@@ -1,3 +1,4 @@
+import { ActionSheet } from '@/components/ui/action-sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -12,7 +13,9 @@ import { Text } from '@/components/ui/text';
 import { ACCOUNT_STATUSES } from '@/src/contexts/profile/domain/userProfile.model';
 import type { UserProfileFormValues } from '@/src/contexts/profile/domain/userProfileForm.schema';
 import { ComponentDemoSection } from '@/src/ui/shared/components/ComponentDemoSection';
-import { ConfirmDialog } from '@/src/ui/shared/components/ConfirmDialog';
+import { FlowButton } from '@/src/ui/shared/components/FlowButton';
+import { LogOut } from 'lucide-react-native';
+import * as React from 'react';
 import { View } from 'react-native';
 
 type ProfileAccountSectionProps = {
@@ -30,6 +33,7 @@ export function ProfileAccountSection({
   onSignOut,
   signOutError,
 }: ProfileAccountSectionProps) {
+  const [signOutSheetOpen, setSignOutSheetOpen] = React.useState(false);
   const accountStatusOption: Option = {
     value: values.accountStatus,
     label: values.accountStatus === 'active' ? 'Active' : 'Paused',
@@ -93,12 +97,18 @@ export function ProfileAccountSection({
       </View>
 
       {signOutError ? <Text className="text-sm text-destructive">{signOutError}</Text> : null}
-      <ConfirmDialog
-        triggerLabel="Sign out"
+      <FlowButton
+        icon={LogOut}
+        label="Sign out"
+        variant="outline"
+        onPress={() => setSignOutSheetOpen(true)}
+      />
+      <ActionSheet
+        open={signOutSheetOpen}
+        onClose={() => setSignOutSheetOpen(false)}
         title="Sign out of Flow?"
-        description="You can sign back in anytime to access your workouts and library."
-        confirmLabel="Sign out"
-        onConfirm={onSignOut}
+        message="You can sign back in anytime to access your workouts and library."
+        actions={[{ label: 'Sign out', onPress: onSignOut, destructive: true }]}
       />
     </ComponentDemoSection>
   );

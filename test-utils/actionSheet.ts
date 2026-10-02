@@ -2,6 +2,8 @@ import { useActionSheet } from '@expo/react-native-action-sheet';
 import { act } from '@testing-library/react-native';
 
 type PresentedActionSheet = {
+  title?: string;
+  message?: string;
   options: string[];
   cancelButtonIndex: number;
   destructiveButtonIndex?: number | number[];
@@ -15,6 +17,8 @@ export function presentedActionSheet(): PresentedActionSheet {
   const call = show.mock.calls.at(-1) as
     | [
         {
+          title?: string;
+          message?: string;
           options: string[];
           cancelButtonIndex: number;
           destructiveButtonIndex?: number | number[];
@@ -30,6 +34,8 @@ export function presentedActionSheet(): PresentedActionSheet {
   const [config, select] = call;
 
   return {
+    title: config.title,
+    message: config.message,
     options: config.options,
     cancelButtonIndex: config.cancelButtonIndex,
     destructiveButtonIndex: config.destructiveButtonIndex,

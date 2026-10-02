@@ -2,7 +2,7 @@ import type { ActionSheetProps } from '@/components/ui/action-sheet/types';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import * as React from 'react';
 
-export function ActionSheet({ open, onClose, actions }: ActionSheetProps) {
+export function ActionSheet({ open, onClose, actions, title, message }: ActionSheetProps) {
   const { showActionSheetWithOptions } = useActionSheet();
   const onCloseRef = React.useRef(onClose);
   const actionsRef = React.useRef(actions);
@@ -23,6 +23,8 @@ export function ActionSheet({ open, onClose, actions }: ActionSheetProps) {
 
     showActionSheetWithOptions(
       {
+        title,
+        message,
         options,
         cancelButtonIndex,
         destructiveButtonIndex:
@@ -43,7 +45,7 @@ export function ActionSheet({ open, onClose, actions }: ActionSheetProps) {
         action?.onPress();
       }
     );
-  }, [open, showActionSheetWithOptions]);
+  }, [open, title, message, showActionSheetWithOptions]);
 
   return null;
 }

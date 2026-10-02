@@ -9,4 +9,6 @@ export type ActionSheetProps = {
   open: boolean;
   onClose: () => void;
   actions: ActionSheetAction[];
+  title?: string;
+  message?: string;
 };
