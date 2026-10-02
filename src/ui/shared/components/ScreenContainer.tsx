@@ -1,12 +1,24 @@
 import { THEME } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 import { APP_HEADER_BAR_HEIGHT, TITLE_TOP_PADDING } from '@/src/ui/shared/constants/appHeader';
-import { useShowAppHeader } from '@/src/ui/shared/hooks/useShowAppHeader';
+import { WEB_NAVBAR_MIN_WIDTH, useShowAppHeader } from '@/src/ui/shared/hooks/useShowAppHeader';
+import {
+  WEB_TAB_BAR_BOTTOM_OFFSET,
+  WEB_TAB_BAR_EXPANDED_HEIGHT,
+} from '@/src/ui/shared/navigation/MinimizingWebTabBar';
+import { useOptionalTabBarMinimize } from '@/src/ui/shared/navigation/TabBarMinimizeProvider';
 import { useOptionalAppHeaderScroll } from '@/src/ui/shared/providers/AppHeaderScrollProvider';
 import { useFocusEffect } from 'expo-router';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
-import { Platform, RefreshControl, View, type LayoutChangeEvent, type ScrollViewProps } from 'react-native';
+import {
+  Platform,
+  RefreshControl,
+  useWindowDimensions,
+  View,
+  type LayoutChangeEvent,
+  type ScrollViewProps,
+} from 'react-native';
 import { GestureDetector, ScrollView } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,13 +52,21 @@ export function ScreenContainer({
   const theme = THEME[colorScheme ?? 'light'];
   const showAppHeader = useShowAppHeader();
   const headerScroll = useOptionalAppHeaderScroll();
+  const tabBarMinimize = useOptionalTabBarMinimize();
+  const { width } = useWindowDimensions();
   const useAutomaticSafeArea = Platform.OS === 'ios' && !showAppHeader && scrollable;
+  const compactWebTabBar =
+    Platform.OS === 'web' && width < WEB_NAVBAR_MIN_WIDTH && tabBarMinimize != null;
   const topPadding = showAppHeader
     ? insets.top + APP_HEADER_BAR_HEIGHT
     : useAutomaticSafeArea
       ? TITLE_TOP_PADDING
       : insets.top + TITLE_TOP_PADDING;
-  const bottomPadding = useAutomaticSafeArea ? 16 : Math.max(insets.bottom, 16);
+  const bottomPadding = compactWebTabBar
+    ? insets.bottom + WEB_TAB_BAR_BOTTOM_OFFSET + WEB_TAB_BAR_EXPANDED_HEIGHT + 12
+    : useAutomaticSafeArea
+      ? 16
+      : Math.max(insets.bottom, 16);
   const [scrollHeight, setScrollHeight] = React.useState(0);
   const scrollOffsetRef = React.useRef(0);
   const scrollRef = React.useRef<ScrollView>(null);
@@ -97,14 +117,16 @@ export function ScreenContainer({
   useFocusEffect(
     React.useCallback(() => {
       headerScroll?.resetHeaderScroll(scrollOffsetRef.current);
-    }, [headerScroll])
+      tabBarMinimize?.syncScrollPosition(scrollOffsetRef.current);
+    }, [headerScroll, tabBarMinimize])
   );
 
   const onScroll = React.useCallback<NonNullable<ScrollViewProps['onScroll']>>(
     (event) => {
       scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+      tabBarMinimize?.handleScroll(event);
     },
-    []
+    [tabBarMinimize]
   );
 
   const handleRefresh = React.useCallback(async () => {
@@ -142,7 +164,7 @@ export function ScreenContainer({
   const content = (
     <View
       className={cn(
-        'web:mx-auto web:w-full web:max-w-2xl px-4',
+        'px-4 web:mx-auto web:w-full web:max-w-2xl',
         !scrollable && 'flex-1',
         contentClassName
       )}
@@ -174,9 +196,7 @@ export function ScreenContainer({
   }, []);
 
   if (!scrollable) {
-    return (
-      <View className={cn('flex-1 bg-background', className)}>{content}</View>
-    );
+    return <View className={cn('flex-1 bg-background', className)}>{content}</View>;
   }
 
   const wrapWithScrollGesture = (scrollView: React.ReactElement) =>

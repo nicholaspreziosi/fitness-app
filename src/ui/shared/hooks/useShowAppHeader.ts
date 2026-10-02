@@ -2,7 +2,7 @@ import { useSegments } from 'expo-router';
 import { Platform, useWindowDimensions } from 'react-native';
 
 const TAB_ROOT_SEGMENTS = new Set(['home', 'calendar', 'workout', 'library', 'settings']);
-const WEB_NAVBAR_MIN_WIDTH = 768;
+export const WEB_NAVBAR_MIN_WIDTH = 768;
 
 export function shouldShowAppHeader(platform: string, width: number, segments: string[]) {
   if (platform !== 'web' || width < WEB_NAVBAR_MIN_WIDTH) {

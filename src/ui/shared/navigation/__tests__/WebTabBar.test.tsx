@@ -49,6 +49,7 @@ describe('WebTabBar', () => {
     expect(recordedTabsProps[0]).toEqual(
       expect.objectContaining({
         initialRouteName: 'home',
+        tabBar: expect.any(Function),
       })
     );
     expect(recordedScreens).toEqual([
