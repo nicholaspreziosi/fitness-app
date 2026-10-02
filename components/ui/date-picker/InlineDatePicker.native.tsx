@@ -1,7 +1,9 @@
 import { DatePicker as NativeDatePicker } from '@/components/nativewindui/DatePicker';
+import { Button } from '@/components/ui/button';
 import type { InlineDatePickerProps } from '@/components/ui/date-picker/types';
+import { useDatePickerDraft } from '@/components/ui/date-picker/useDatePickerDraft';
+import { Text } from '@/components/ui/text';
 import { THEME } from '@/lib/theme';
-import { startOfDay } from '@/src/lib/dates/weekBounds';
 import { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useColorScheme } from 'nativewind';
 import { View } from 'react-native';
@@ -15,10 +17,11 @@ export function InlineDatePicker({
 }: InlineDatePickerProps) {
   const { colorScheme } = useColorScheme();
   const scheme = colorScheme === 'dark' ? 'dark' : 'light';
+  const { selectedDate, selectDate } = useDatePickerDraft(value);
 
   const handleChange = (event: DateTimePickerEvent, date?: Date) => {
     if (event.type === 'set' && date) {
-      onChange(startOfDay(date));
+      selectDate(date);
     }
   };
 
@@ -27,7 +30,7 @@ export function InlineDatePicker({
       <NativeDatePicker
         mode="date"
         display="inline"
-        value={value}
+        value={selectedDate}
         minimumDate={minimumDate}
         maximumDate={maximumDate}
         disabled={disabled}
@@ -35,6 +38,11 @@ export function InlineDatePicker({
         themeVariant={scheme}
         onChange={handleChange}
       />
+      <View className="mt-4 w-full">
+        <Button disabled={disabled} onPress={() => onChange(selectedDate)}>
+          <Text>Confirm</Text>
+        </Button>
+      </View>
     </View>
   );
 }

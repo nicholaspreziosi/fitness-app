@@ -20,17 +20,28 @@ jest.mock('@react-native-community/datetimepicker', () => {
 describe('InlineDatePicker (iOS)', () => {
   const value = new Date(2025, 5, 18, 15, 0);
 
-  it('renders the system inline calendar with brand accent', () => {
+  it('renders the system inline calendar with a confirm action', () => {
     render(<InlineDatePicker value={value} onChange={jest.fn()} />);
 
     const picker = screen.getByTestId('date-time-picker');
     expect(picker.props.display).toBe('inline');
     expect(picker.props.mode).toBe('date');
-    expect(picker.props.value).toEqual(value);
+    expect(picker.props.value).toEqual(startOfDay(value));
     expect(picker.props.accentColor).toBe('hsl(84 81% 44%)');
+    expect(screen.getByText('Confirm')).toBeTruthy();
   });
 
-  it('reports the picked day without a time component', () => {
+  it('confirms the current date when the picker never fires a change', () => {
+    const onChange = jest.fn();
+
+    render(<InlineDatePicker value={value} onChange={onChange} />);
+
+    fireEvent.press(screen.getByText('Confirm'));
+
+    expect(onChange).toHaveBeenCalledWith(startOfDay(value));
+  });
+
+  it('confirms a newly picked day', () => {
     const onChange = jest.fn();
 
     render(<InlineDatePicker value={value} onChange={onChange} />);
@@ -41,6 +52,7 @@ describe('InlineDatePicker (iOS)', () => {
       { type: 'set' },
       new Date(2025, 5, 25, 9, 30)
     );
+    fireEvent.press(screen.getByText('Confirm'));
 
     expect(onChange).toHaveBeenCalledWith(startOfDay(new Date(2025, 5, 25)));
   });
@@ -51,7 +63,8 @@ describe('InlineDatePicker (iOS)', () => {
     render(<InlineDatePicker value={value} onChange={onChange} />);
 
     fireEvent(screen.getByTestId('date-time-picker'), 'change', { type: 'dismissed' }, undefined);
+    fireEvent.press(screen.getByText('Confirm'));
 
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith(startOfDay(value));
   });
 });
