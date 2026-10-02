@@ -1,34 +1,8 @@
 import { THEME } from '@/lib/theme';
 import type { NativeStackNavigationOptions } from 'expo-router/native-stack';
-import { Platform, type ViewStyle } from 'react-native';
-
-function createHeaderStyle(
-  colorScheme: 'light' | 'dark' | null | undefined
-): ViewStyle {
-  const theme = THEME[colorScheme ?? 'light'];
-
-  return {
-    backgroundColor: theme.card,
-    borderBottomColor: theme.border,
-    borderBottomWidth: 1,
-    height: Platform.OS === 'ios' ? 96 : 72,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#171717',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: colorScheme === 'dark' ? 0.2 : 0.06,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 2,
-      },
-      default: {},
-    }),
-  };
-}
 
 export function createTabStackScreenOptions(
-  colorScheme: 'light' | 'dark' | null | undefined
+  _colorScheme: 'light' | 'dark' | null | undefined
 ): NativeStackNavigationOptions {
   return {
     headerShown: false,
@@ -43,8 +17,10 @@ export function createDetailStackScreenOptions(
   return {
     headerShown: true,
     headerTitle: '',
-    headerStyle: createHeaderStyle(colorScheme) as NativeStackNavigationOptions['headerStyle'],
-    headerShadowVisible: Platform.OS === 'ios',
+    headerStyle: {
+      backgroundColor: 'transparent',
+    },
+    headerShadowVisible: false,
     headerTintColor: theme.foreground,
   };
 }
