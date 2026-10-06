@@ -3,10 +3,7 @@ import type { Exercise } from '@/src/contexts/exercises/domain/exercise.model';
 import { formatExercisePrescription } from '@/src/contexts/exercises/domain/exercisePresentation';
 import { ActionSheet } from '@/components/ui/action-sheet';
 import { FavoriteButton } from '@/src/ui/shared/components/FavoriteButton';
-import {
-  SwipeableListRow,
-  type ListRowAction,
-} from '@/src/ui/shared/components/SwipeableListRow';
+import { SwipeableListRow, type ListRowAction } from '@/src/ui/shared/components/SwipeableListRow';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { View } from 'react-native';
@@ -86,25 +83,25 @@ export function ExerciseListItem({
         actions={actions}
         testID={`exercise-row-${exercise.id}`}
         accessibilityLabel={exercise.name}
-        onPress={onPress}>
-        <View className="min-w-0 flex-1 flex-row items-center justify-between gap-2">
-          <View className="min-w-0 flex-1">
-            <Text
-              className={cn(
-                'font-medium',
-                exercise.status === 'archived' ? 'text-muted-foreground' : 'text-foreground'
-              )}>
-              {exercise.name}
-            </Text>
-            {prescription ? (
-              <Text className="mt-0.5 text-xs text-muted-foreground">{prescription}</Text>
-            ) : null}
-          </View>
+        onPress={onPress}
+        trailing={
           <FavoriteButton
             favorite={exercise.favorite ?? false}
             testID={`favorite-exercise-${exercise.id}`}
             onPress={() => onToggleFavorite(exercise.id, exercise.favorite ?? false)}
           />
+        }>
+        <View className="min-w-0 flex-1">
+          <Text
+            className={cn(
+              'font-medium',
+              exercise.status === 'archived' ? 'text-muted-foreground' : 'text-foreground'
+            )}>
+            {exercise.name}
+          </Text>
+          {prescription ? (
+            <Text className="mt-0.5 text-xs text-muted-foreground">{prescription}</Text>
+          ) : null}
         </View>
       </SwipeableListRow>
 

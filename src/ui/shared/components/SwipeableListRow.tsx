@@ -17,6 +17,11 @@ export type ListRowAction = {
 type SwipeableListRowProps = {
   children: React.ReactNode;
   onPress?: () => void;
+  /**
+   * Renders beside the row press target. Kept outside that button so nested
+   * controls such as a favorite button stay valid HTML on web.
+   */
+  trailing?: React.ReactNode;
   actions: ListRowAction[];
   testID?: string;
   accessibilityLabel?: string;
@@ -56,6 +61,7 @@ function SwipeActionButton({
 export function SwipeableListRow({
   children,
   onPress,
+  trailing,
   actions,
   testID,
   accessibilityLabel,
@@ -117,36 +123,53 @@ export function SwipeableListRow({
   );
 
   const rowInnerClassName = cn(contained ? undefined : 'px-1 py-3.5', className);
+  const actionHint =
+    actions.length > 0
+      ? Platform.OS === 'web'
+        ? 'Right-click for more actions'
+        : 'Swipe left or long-press for more actions'
+      : undefined;
+  const openActionsFromContextMenu =
+    actions.length > 0 && Platform.OS === 'web'
+      ? (event: { preventDefault: () => void }) => {
+          event.preventDefault();
+          showActionSheet();
+        }
+      : undefined;
+  const openActionsFromLongPress =
+    actions.length > 0 && Platform.OS !== 'web' ? showActionSheet : undefined;
 
-  const row = onPress ? (
+  const rowTarget = onPress ? (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      accessibilityHint={
-        actions.length > 0
-          ? Platform.OS === 'web'
-            ? 'Right-click for more actions'
-            : 'Swipe left or long-press for more actions'
-          : undefined
-      }
+      accessibilityHint={actionHint}
       testID={testID}
-      style={({ pressed }) => [rowSurfaceStyle, pressed ? { backgroundColor: theme.muted } : null]}
+      className={trailing ? cn('min-w-0 flex-1', rowInnerClassName) : undefined}
+      style={({ pressed }) => [
+        trailing ? null : rowSurfaceStyle,
+        pressed ? { backgroundColor: theme.muted } : null,
+      ]}
       onPress={onPress}
-      onLongPress={actions.length > 0 && Platform.OS !== 'web' ? showActionSheet : undefined}
-      onContextMenu={
-        actions.length > 0 && Platform.OS === 'web'
-          ? (event: { preventDefault: () => void }) => {
-              event.preventDefault();
-              showActionSheet();
-            }
-          : undefined
-      }>
-      <View className={rowInnerClassName}>{children}</View>
+      onLongPress={openActionsFromLongPress}
+      onContextMenu={openActionsFromContextMenu}>
+      {trailing ? children : <View className={rowInnerClassName}>{children}</View>}
     </Pressable>
   ) : (
-    <View style={rowSurfaceStyle} className={rowInnerClassName}>
+    <View
+      style={trailing ? undefined : rowSurfaceStyle}
+      className={trailing ? cn('min-w-0 flex-1', rowInnerClassName) : rowInnerClassName}>
       {children}
     </View>
+  );
+
+  const row = trailing ? (
+    <View style={rowSurfaceStyle} className="flex-row items-center">
+      {rowTarget}
+      <View className={contained ? undefined : 'pr-1'}>{trailing}</View>
+    </View>
+  ) : (
+    rowTarget
   );
 
   if (actions.length === 0) {
