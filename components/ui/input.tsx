@@ -2,6 +2,10 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { Platform, Pressable, TextInput, type TextInputProps } from 'react-native';
 
+/** Web focus treatment for text fields. Comboboxes reuse this so focus matches. */
+export const webInputFocusClassName =
+  'outline-none transition-colors focus-within:border-brand/50 focus-within:ring-2 focus-within:ring-ring/30';
+
 export function Input({
   className,
   style,
@@ -21,7 +25,7 @@ export function Input({
             Platform.select({ web: 'disabled:pointer-events-none disabled:cursor-not-allowed' })
           ),
         Platform.select({
-          web: 'outline-none transition-colors focus-within:border-brand/50 focus-within:ring-2 focus-within:ring-ring/30',
+          web: webInputFocusClassName,
         }),
         className
       )}

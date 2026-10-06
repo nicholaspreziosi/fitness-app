@@ -58,7 +58,7 @@ export function ExercisePickerBodyPartFilters({
               accessibilityRole="button"
               testID={`exercise-picker-body-part-${option.value}`}
               className={cn(
-                'rounded-full border px-2.5 py-1',
+                'rounded-lg border px-2.5 py-1',
                 isSelected ? 'border-brand bg-brand/10' : 'border-border bg-background'
               )}
               onPress={() => toggleBodyPart(option.value as BodyPart)}>

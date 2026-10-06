@@ -111,7 +111,7 @@ export function ExerciseForm({ mode = 'edit', initialValues, onSubmit }: Exercis
                     accessibilityRole="button"
                     testID={`exercise-status-${option}`}
                     className={cn(
-                      'rounded-full border px-3 py-1.5',
+                      'rounded-lg border px-3 py-1.5',
                       selected ? 'border-brand bg-brand/10' : 'border-border bg-background'
                     )}
                     onPress={() => updateValues({ status: option as ExerciseStatus })}>

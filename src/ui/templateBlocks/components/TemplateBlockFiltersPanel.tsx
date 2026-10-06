@@ -42,7 +42,7 @@ export function TemplateBlockFiltersPanel({ filters, onChange }: TemplateBlockFi
               accessibilityRole="button"
               testID={`template-status-filter-${option.value}`}
               className={cn(
-                'rounded-full border px-2.5 py-1',
+                'rounded-lg border px-2.5 py-1',
                 selected ? 'border-brand bg-brand/10' : 'border-border bg-background'
               )}
               onPress={() => onChange({ ...filters, status: option.value })}>
@@ -57,7 +57,7 @@ export function TemplateBlockFiltersPanel({ filters, onChange }: TemplateBlockFi
           accessibilityRole="button"
           testID="template-favorites-only-checkbox"
           className={cn(
-            'rounded-full border px-2.5 py-1',
+            'rounded-lg border px-2.5 py-1',
             favoritesOnly ? 'border-brand bg-brand/10' : 'border-border bg-background'
           )}
           onPress={() => onChange({ ...filters, favoritesOnly: !favoritesOnly })}>
