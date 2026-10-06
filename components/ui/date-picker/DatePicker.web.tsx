@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
-import { fromDateInputValue, toDateInputValue } from '@/components/ui/date-picker/datePickerValue';
 import type { DatePickerProps } from '@/components/ui/date-picker/types';
-import { Text } from '@/components/ui/text';
 import { useDatePickerDraft } from '@/components/ui/date-picker/useDatePickerDraft';
+import { WebDateCalendar } from '@/components/ui/date-picker/WebDateCalendar';
+import { Text } from '@/components/ui/text';
 import { View } from 'react-native';
 
 export function DatePicker({
@@ -23,20 +23,12 @@ export function DatePicker({
 
   return (
     <View className="gap-3">
-      <input
-        type="date"
-        aria-label="Date"
-        value={toDateInputValue(selectedDate)}
-        min={minimumDate ? toDateInputValue(minimumDate) : undefined}
-        max={maximumDate ? toDateInputValue(maximumDate) : undefined}
+      <WebDateCalendar
+        selectedDate={selectedDate}
+        onSelect={selectDate}
+        minimumDate={minimumDate}
+        maximumDate={maximumDate}
         disabled={disabled}
-        onChange={(event) => {
-          const nextValue = event.currentTarget.value;
-          if (nextValue) {
-            selectDate(fromDateInputValue(nextValue));
-          }
-        }}
-        className="accent-brand h-12 w-full rounded-lg border border-border bg-background px-3 text-foreground disabled:opacity-40"
       />
       <View className="flex-row justify-end gap-2">
         <Button variant="outline" onPress={handleCancel} disabled={disabled}>

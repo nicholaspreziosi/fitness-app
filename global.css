@@ -73,3 +73,245 @@
     --auth-brand-border: 0 0% 18%;
   }
 }
+
+/* Sheet glass. Kept outside Tailwind so the blur is not dropped by the
+   React Native style compiler. */
+/* iOS graphical date picker. DayPicker renders real DOM nodes, so these
+   classes style that grid directly. */
+.ios-date-picker {
+  width: 100%;
+  color: hsl(var(--foreground));
+}
+
+.ios-date-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  margin-bottom: 20px;
+  padding: 0 2px;
+}
+
+.ios-date-picker-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: hsl(var(--foreground));
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.ios-date-picker-title:hover {
+  background: hsl(var(--foreground) / 0.08);
+}
+
+.ios-date-picker-title[aria-expanded='true'] {
+  background: transparent;
+  color: hsl(var(--brand));
+}
+
+.ios-date-picker-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ios-date-picker-nav-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: hsl(var(--foreground) / 0.08);
+  color: hsl(var(--foreground));
+  cursor: pointer;
+}
+
+.ios-date-picker-nav-button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.ios-wheel-picker {
+  position: relative;
+  display: flex;
+  height: 216px;
+  margin: 0 2px 8px;
+  user-select: none;
+}
+
+.ios-wheel-highlight {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  z-index: 0;
+  height: 36px;
+  border-radius: 9px;
+  background: hsl(var(--foreground) / 0.08);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.ios-wheel {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.45) 18%,
+    #000 36%,
+    #000 64%,
+    rgba(0, 0, 0, 0.45) 82%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.45) 18%,
+    #000 36%,
+    #000 64%,
+    rgba(0, 0, 0, 0.45) 82%,
+    transparent 100%
+  );
+}
+
+.ios-wheel::-webkit-scrollbar {
+  display: none;
+}
+
+.ios-wheel-month {
+  flex: 1.35;
+}
+
+.ios-wheel-year {
+  flex: 0.8;
+}
+
+.ios-wheel-pad {
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.ios-wheel-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 36px;
+  margin: 0;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: hsl(var(--foreground));
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  scroll-snap-align: center;
+  cursor: pointer;
+}
+
+.ios-wheel-item:disabled {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.35;
+  cursor: default;
+}
+
+.ios-date-picker .rdp-month {
+  width: 100%;
+}
+
+.ios-date-picker .rdp-month_caption {
+  display: none;
+}
+
+.ios-date-picker .rdp-month_grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.ios-date-picker .rdp-weekday {
+  width: 14.285%;
+  padding: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+}
+
+.ios-date-picker .rdp-day {
+  padding: 3px 0;
+  text-align: center;
+}
+
+.ios-date-picker .rdp-day_button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.ios-date-picker .rdp-day_button:focus-visible {
+  outline: 2px solid hsl(var(--brand));
+  outline-offset: 2px;
+}
+
+.ios-date-picker .rdp-today:not(.rdp-selected) .rdp-day_button {
+  color: hsl(var(--brand));
+  font-weight: 600;
+}
+
+.ios-date-picker .rdp-selected .rdp-day_button {
+  background: hsl(var(--brand));
+  color: hsl(var(--brand-foreground));
+  font-weight: 600;
+}
+
+.ios-date-picker .rdp-outside .rdp-day_button {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.4;
+}
+
+.ios-date-picker .rdp-disabled .rdp-day_button {
+  opacity: 0.28;
+}
+
+.ios-sheet-panel,
+.ios-sheet-panel-dark {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+  backdrop-filter: blur(40px) saturate(180%) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.35) !important;
+  border-top-left-radius: 38px !important;
+  border-top-right-radius: 38px !important;
+}
