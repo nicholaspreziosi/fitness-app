@@ -32,6 +32,23 @@ const END_SPACING = 20;
 const TOOLTIP_WIDTH = 72;
 const TOOLTIP_HEIGHT = 44;
 const TOOLTIP_GAP = 10;
+const DATA_POINT_RADIUS = 4;
+
+// gifted-charts gives its default SVG data points press handlers. On web, react-native-svg
+// forwards those as responder props to the DOM, which React logs as unknown event handlers.
+// A plain View data point keeps the same look with no press handlers attached.
+function renderDataPoint() {
+  return (
+    <View
+      style={{
+        width: DATA_POINT_RADIUS * 2,
+        height: DATA_POINT_RADIUS * 2,
+        borderRadius: DATA_POINT_RADIUS,
+        backgroundColor: CHART_COLOR,
+      }}
+    />
+  );
+}
 
 type ExerciseHistoryChartProps = {
   history?: ExercisePerformancePoint[];
@@ -285,7 +302,10 @@ export function ExerciseHistoryChart({
               color={CHART_COLOR}
               thickness={2}
               dataPointsColor={CHART_COLOR}
-              dataPointsRadius={4}
+              dataPointsRadius={DATA_POINT_RADIUS}
+              dataPointsWidth={DATA_POINT_RADIUS * 2}
+              dataPointsHeight={DATA_POINT_RADIUS * 2}
+              customDataPoint={renderDataPoint}
               startFillColor={CHART_COLOR}
               endFillColor={CHART_COLOR}
               startOpacity={0.15}
@@ -320,8 +340,8 @@ export function ExerciseHistoryChart({
             {activeIndex !== null && activePoint && activePosition ? (
               <>
                 <View
-                  pointerEvents="none"
                   style={{
+                    pointerEvents: 'none',
                     position: 'absolute',
                     left: activePosition.x,
                     top: 0,
@@ -331,8 +351,8 @@ export function ExerciseHistoryChart({
                   }}
                 />
                 <View
-                  pointerEvents="none"
                   style={{
+                    pointerEvents: 'none',
                     position: 'absolute',
                     left: activePosition.x - 4,
                     top: activePosition.y - 4,
@@ -343,8 +363,8 @@ export function ExerciseHistoryChart({
                   }}
                 />
                 <View
-                  pointerEvents="none"
                   style={{
+                    pointerEvents: 'none',
                     position: 'absolute',
                     left: activePosition.x - TOOLTIP_WIDTH / 2,
                     top: Math.max(0, activePosition.y - TOOLTIP_HEIGHT - TOOLTIP_GAP),
