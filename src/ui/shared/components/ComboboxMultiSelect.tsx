@@ -64,37 +64,39 @@ export function ComboboxMultiSelect({
     <View className={cn('gap-2', className)}>
       {label ? <Label>{label}</Label> : null}
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={placeholder}
-        accessibilityState={{ expanded: open }}
-        testID={testID}
+      <View
         className={cn(
           'min-h-11 flex-row flex-wrap items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-2',
           Platform.select({ web: webInputFocusClassName })
-        )}
-        onPress={() => setOpen(true)}>
-        {selectedOptions.length === 0 ? (
-          <Text className="flex-1 py-1 text-sm text-muted-foreground">{placeholder}</Text>
-        ) : (
-          selectedOptions.map((option) => (
-            <Pressable
-              key={option.value}
-              accessibilityRole="button"
-              className="flex-row items-center gap-1 rounded-md border border-border bg-muted/70 px-2 py-0.5 active:bg-muted"
-              onPress={(event) => {
-                event?.stopPropagation?.();
-                removeValue(option.value);
-              }}>
-              <Text className="text-xs font-medium text-foreground">{option.label}</Text>
-              <Icon as={X} className="size-3 text-muted-foreground" />
-            </Pressable>
-          ))
-        )}
-        <View className="ml-auto pl-1">
-          <Icon as={ChevronDown} className="size-4 text-muted-foreground" />
-        </View>
-      </Pressable>
+        )}>
+        {selectedOptions.map((option) => (
+          <Pressable
+            key={option.value}
+            accessibilityRole="button"
+            accessibilityLabel={`Remove ${option.label}`}
+            className="flex-row items-center gap-1 rounded-md border border-border bg-muted/70 px-2 py-0.5 active:bg-muted"
+            onPress={() => removeValue(option.value)}>
+            <Text className="text-xs font-medium text-foreground">{option.label}</Text>
+            <Icon as={X} className="size-3 text-muted-foreground" />
+          </Pressable>
+        ))}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={placeholder}
+          accessibilityState={{ expanded: open }}
+          testID={testID}
+          className="min-h-7 min-w-8 flex-1 flex-row items-center"
+          onPress={() => setOpen(true)}>
+          {selectedOptions.length === 0 ? (
+            <Text className="flex-1 py-1 text-sm text-muted-foreground">{placeholder}</Text>
+          ) : (
+            <View className="flex-1" />
+          )}
+          <View className="ml-auto pl-1">
+            <Icon as={ChevronDown} className="size-4 text-muted-foreground" />
+          </View>
+        </Pressable>
+      </View>
 
       <BottomSheet visible={open} onClose={close}>
         <View>

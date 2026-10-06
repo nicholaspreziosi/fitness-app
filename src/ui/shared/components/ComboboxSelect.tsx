@@ -51,34 +51,39 @@ export function ComboboxSelect({
     <View className={cn('gap-2', className)}>
       {label ? <Label>{label}</Label> : null}
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={selectedOption?.label ?? placeholder}
-        accessibilityState={{ expanded: open }}
-        testID={testID}
+      <View
         className={cn(
           'min-h-11 flex-row items-center gap-2 rounded-lg border border-border bg-background px-3 py-2.5',
           Platform.select({ web: webInputFocusClassName })
-        )}
-        onPress={() => setOpen(true)}>
+        )}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={selectedOption?.label ?? placeholder}
+          accessibilityState={{ expanded: open }}
+          testID={testID}
+          className="min-h-7 flex-1 flex-row items-center"
+          onPress={() => setOpen(true)}>
+          <Text
+            className={cn(
+              'flex-1 text-sm',
+              selectedOption ? 'text-foreground' : 'text-muted-foreground'
+            )}>
+            {selectedOption?.label ?? placeholder}
+          </Text>
+        </Pressable>
         {selectedOption ? (
-          <View className="flex-1 flex-row items-center gap-1">
-            <Text className="flex-1 text-sm text-foreground">{selectedOption.label}</Text>
-            <Pressable
-              accessibilityRole="button"
-              hitSlop={8}
-              onPress={(event) => {
-                event?.stopPropagation?.();
-                onChange(undefined);
-              }}>
-              <Icon as={X} className="size-3.5 text-muted-foreground" />
-            </Pressable>
-          </View>
-        ) : (
-          <Text className="flex-1 text-sm text-muted-foreground">{placeholder}</Text>
-        )}
-        <Icon as={ChevronDown} className="size-4 text-muted-foreground" />
-      </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Clear ${selectedOption.label}`}
+            hitSlop={8}
+            onPress={() => onChange(undefined)}>
+            <Icon as={X} className="size-3.5 text-muted-foreground" />
+          </Pressable>
+        ) : null}
+        <Pressable hitSlop={8} onPress={() => setOpen(true)}>
+          <Icon as={ChevronDown} className="size-4 text-muted-foreground" />
+        </Pressable>
+      </View>
 
       <BottomSheet visible={open} onClose={close}>
         <View>
