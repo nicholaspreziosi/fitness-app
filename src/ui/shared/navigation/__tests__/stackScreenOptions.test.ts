@@ -14,4 +14,18 @@ describe('createDetailStackScreenOptions', () => {
     expect(headerStyle?.backgroundColor).toBe('transparent');
     expect(options.headerShadowVisible).toBe(false);
   });
+
+  it('shows the back title next to the arrow on web', () => {
+    const { Platform } = jest.requireActual('react-native');
+    const originalOS = Platform.OS;
+    Platform.OS = 'web';
+
+    try {
+      expect(createDetailStackScreenOptions('light').headerBackButtonDisplayMode).toBe('default');
+    } finally {
+      Platform.OS = originalOS;
+    }
+
+    expect(createDetailStackScreenOptions('light').headerBackButtonDisplayMode).toBeUndefined();
+  });
 });
