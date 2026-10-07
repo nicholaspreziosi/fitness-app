@@ -1,4 +1,5 @@
 import { LibraryView } from '@/src/ui/exercises/views/LibraryView';
+import { presentedActionSheet } from '@/test-utils/actionSheet';
 import { createMockExercise, createMockTemplateBlock } from '@/test-utils/mockData';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
@@ -240,7 +241,9 @@ describe('LibraryView', () => {
 
     fireEvent.press(screen.getByTestId('archive-exercise-1'));
 
-    expect(screen.getByText('Archive this exercise?')).toBeTruthy();
+    const sheet = presentedActionSheet();
+    expect(sheet.title).toBe('Archive this exercise?');
+    expect(sheet.options).toEqual(['Archive', 'Cancel']);
   });
 
   it('shows restore action for archived exercises', () => {
@@ -352,7 +355,9 @@ describe('LibraryView', () => {
     fireEvent.press(screen.getByTestId('library-segmented-control-templates'));
     fireEvent.press(screen.getByTestId('archive-template-block-1'));
 
-    expect(screen.getByText('Archive this template block?')).toBeTruthy();
+    const sheet = presentedActionSheet();
+    expect(sheet.title).toBe('Archive this template block?');
+    expect(sheet.options).toEqual(['Archive', 'Cancel']);
   });
 
   it('shows delete action for template blocks', () => {
@@ -365,7 +370,10 @@ describe('LibraryView', () => {
     fireEvent.press(screen.getByTestId('library-segmented-control-templates'));
     fireEvent.press(screen.getByTestId('delete-template-block-1'));
 
-    expect(screen.getByText('Delete this template block?')).toBeTruthy();
+    const sheet = presentedActionSheet();
+    expect(sheet.title).toBe('Delete this template block?');
+    expect(sheet.options).toEqual(['Delete', 'Cancel']);
+    expect(sheet.destructiveButtonIndex).toBe(0);
   });
 
   it('hides delete action for used exercises', () => {
